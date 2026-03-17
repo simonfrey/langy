@@ -79,11 +79,10 @@ func spaFileServer(staticFS fs.FS) http.HandlerFunc {
 			}
 		}
 
-		// SPA fallback: serve index.html
-		if f, err := staticFS.Open("index.html"); err == nil {
-			f.Close()
-			r.URL.Path = "/langy/index.html"
-			http.StripPrefix("/langy", fileServer).ServeHTTP(w, r)
+		// SPA fallback: serve index.html directly (bypass FileServer's index.html->/ redirect)
+		if content, err := fs.ReadFile(staticFS, "index.html"); err == nil {
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
+			w.Write(content)
 			return
 		}
 
