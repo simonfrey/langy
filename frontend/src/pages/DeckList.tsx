@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { api, apiFormData } from '../lib/api';
 import { formatLanguage } from '../lib/languages';
 import LanguageSelect from '../components/LanguageSelect';
+import { db } from '../db/dexie';
+import { useOffline } from '../hooks/useOffline';
+import OfflineBanner from '../components/OfflineBanner';
 
 interface Deck {
   id: string;
@@ -14,6 +17,10 @@ interface Deck {
 
 interface Card {
   id: string;
+  front: string;
+  back: string;
+  front_image_url?: string;
+  back_image_url?: string;
   next_review: string;
 }
 
@@ -31,26 +38,52 @@ export default function DeckList() {
   const [cardForm, setCardForm] = useState({ front: '', back: '' });
   const [frontImage, setFrontImage] = useState<File | null>(null);
   const [backImage, setBackImage] = useState<File | null>(null);
+  const [editingDeck, setEditingDeck] = useState<string | null>(null);
+  const [editCards, setEditCards] = useState<Card[]>([]);
+  const [editingCardId, setEditingCardId] = useState<string | null>(null);
+  const [editCardForm, setEditCardForm] = useState({ front: '', back: '' });
   const navigate = useNavigate();
+  const isOffline = useOffline();
+
+  const loadFromDexie = useCallback(async () => {
+    const localDecks = await db.decks.toArray();
+    const now = new Date();
+    const enriched: DeckWithCounts[] = await Promise.all(
+      localDecks.map(async (d) => {
+        const cards = await db.cards.where('deck_id').equals(d.id).toArray();
+        const dueCount = cards.filter((c) => new Date(c.next_review) <= now).length;
+        return { ...d, cardCount: cards.length, dueCount };
+      }),
+    );
+    return enriched;
+  }, []);
 
   const load = useCallback(async () => {
+    // Show local data immediately
+    const local = await loadFromDexie();
+    if (local.length > 0) {
+      setDecks(local);
+      setLoading(false);
+    }
+
+    // Then try to refresh from API
     try {
       const rawDecks = await api<Deck[]>('/decks');
+      const now = new Date();
       const enriched: DeckWithCounts[] = await Promise.all(
         rawDecks.map(async (d) => {
           const cards = await api<Card[]>(`/decks/${d.id}/cards`);
-          const now = new Date();
           const dueCount = cards.filter((c) => new Date(c.next_review) <= now).length;
           return { ...d, cardCount: cards.length, dueCount };
         }),
       );
       setDecks(enriched);
     } catch {
-      // offline
+      // offline — local data already shown
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [loadFromDexie]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -82,6 +115,37 @@ export default function DeckList() {
     load();
   }
 
+  async function openEditDeck(deckId: string) {
+    setEditingDeck(deckId);
+    setEditingCardId(null);
+    try {
+      const cards = await api<Card[]>(`/decks/${deckId}/cards`);
+      setEditCards(cards);
+    } catch {
+      setEditCards([]);
+    }
+  }
+
+  async function saveCard(cardId: string) {
+    if (!editCardForm.front || !editCardForm.back) return;
+    try {
+      await api(`/cards/${cardId}`, { method: 'PUT', body: JSON.stringify(editCardForm) });
+      setEditCards((prev) => prev.map((c) => c.id === cardId ? { ...c, ...editCardForm } : c));
+      setEditingCardId(null);
+    } catch {
+      // error
+    }
+  }
+
+  async function deleteCard(cardId: string) {
+    try {
+      await api(`/cards/${cardId}`, { method: 'DELETE' });
+      setEditCards((prev) => prev.filter((c) => c.id !== cardId));
+    } catch {
+      // error
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[60vh]">
@@ -92,11 +156,13 @@ export default function DeckList() {
 
   return (
     <div className="p-4 pb-24">
+      {isOffline && <div className="mb-4"><OfflineBanner /></div>}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-white">Your Decks</h1>
         <button
           onClick={() => setShowModal(true)}
-          className="bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition"
+          disabled={isOffline}
+          className="bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-800 disabled:cursor-not-allowed text-white text-sm font-medium px-4 py-2 rounded-lg transition"
         >
           + New Deck
         </button>
@@ -133,12 +199,22 @@ export default function DeckList() {
                   </span>
                 )}
               </div>
-              <button
-                onClick={(e) => { e.stopPropagation(); setShowAddCard(deck.id); }}
-                className="mt-3 text-sm text-indigo-400 hover:text-indigo-300 font-medium"
-              >
-                + Add Card
-              </button>
+              <div className="flex gap-4 mt-3">
+                <button
+                  onClick={(e) => { e.stopPropagation(); setShowAddCard(deck.id); }}
+                  disabled={isOffline}
+                  className="text-sm text-indigo-400 hover:text-indigo-300 disabled:text-slate-600 disabled:cursor-not-allowed font-medium"
+                >
+                  + Add Card
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); openEditDeck(deck.id); }}
+                  disabled={isOffline}
+                  className="text-sm text-indigo-400 hover:text-indigo-300 disabled:text-slate-600 disabled:cursor-not-allowed font-medium"
+                >
+                  Edit Cards
+                </button>
+              </div>
             </div>
           ))}
         </div>
@@ -179,6 +255,70 @@ export default function DeckList() {
               <button type="submit" className="flex-1 py-3 rounded-lg text-white bg-indigo-600 hover:bg-indigo-500 transition font-medium">Create</button>
             </div>
           </form>
+        </div>
+      )}
+
+      {/* Edit Cards Modal */}
+      {editingDeck && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-4" onClick={() => { setEditingDeck(null); load(); }}>
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-slate-900 rounded-2xl p-6 w-full max-w-md border border-slate-800 shadow-xl max-h-[80vh] flex flex-col"
+          >
+            <h2 className="text-xl font-semibold text-white mb-4">Edit Cards</h2>
+            <div className="flex-1 overflow-y-auto space-y-2">
+              {editCards.length === 0 ? (
+                <p className="text-slate-500 text-sm text-center py-4">No cards in this deck</p>
+              ) : (
+                editCards.map((card) => (
+                  <div key={card.id} className="bg-slate-800 rounded-lg p-3">
+                    {editingCardId === card.id ? (
+                      <div className="space-y-2">
+                        <input
+                          value={editCardForm.front}
+                          onChange={(e) => setEditCardForm({ ...editCardForm, front: e.target.value })}
+                          className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          placeholder="Front"
+                        />
+                        <input
+                          value={editCardForm.back}
+                          onChange={(e) => setEditCardForm({ ...editCardForm, back: e.target.value })}
+                          className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          placeholder="Back"
+                        />
+                        <div className="flex gap-2">
+                          <button onClick={() => saveCard(card.id)} className="text-xs text-green-400 hover:text-green-300 font-medium">Save</button>
+                          <button onClick={() => setEditingCardId(null)} className="text-xs text-slate-400 hover:text-slate-300 font-medium">Cancel</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-white text-sm truncate">{card.front}</p>
+                          <p className="text-slate-400 text-xs truncate">{card.back}</p>
+                        </div>
+                        <div className="flex gap-2 ml-2 shrink-0">
+                          <button
+                            onClick={() => { setEditingCardId(card.id); setEditCardForm({ front: card.front, back: card.back }); }}
+                            className="text-xs text-indigo-400 hover:text-indigo-300 font-medium"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => deleteCard(card.id)}
+                            className="text-xs text-red-400 hover:text-red-300 font-medium"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+            <button onClick={() => { setEditingDeck(null); load(); }} className="mt-4 w-full py-3 rounded-lg text-slate-300 bg-slate-800 hover:bg-slate-700 transition font-medium">Close</button>
+          </div>
         </div>
       )}
 

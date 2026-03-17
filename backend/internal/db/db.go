@@ -309,7 +309,7 @@ func (d *DB) GetDueCards(ctx context.Context, userID string) ([]Card, error) {
 	rows, err := d.Pool.Query(ctx,
 		`SELECT `+cardSelectColumns+`
 		 FROM cards c JOIN decks d ON c.deck_id = d.id
-		 WHERE d.user_id = $1 AND c.next_review <= now()
+		 WHERE d.user_id = $1 AND c.next_review <= now() AND c.repetitions > 0
 		 ORDER BY c.next_review ASC`, userID)
 	if err != nil {
 		return nil, fmt.Errorf("get due cards: %w", err)
@@ -326,6 +326,58 @@ func (d *DB) GetDueCards(ctx context.Context, userID string) ([]Card, error) {
 	}
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("get due cards rows: %w", err)
+	}
+	return cards, nil
+}
+
+func (d *DB) GetNewCards(ctx context.Context, userID string) ([]Card, error) {
+	rows, err := d.Pool.Query(ctx,
+		`SELECT `+cardSelectColumns+`
+		 FROM cards c JOIN decks d ON c.deck_id = d.id
+		 WHERE d.user_id = $1 AND c.repetitions = 0
+		 ORDER BY c.created_at ASC`, userID)
+	if err != nil {
+		return nil, fmt.Errorf("get new cards: %w", err)
+	}
+	defer rows.Close()
+
+	var cards []Card
+	for rows.Next() {
+		c, err := scanCard(rows)
+		if err != nil {
+			return nil, fmt.Errorf("get new cards scan: %w", err)
+		}
+		cards = append(cards, c)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("get new cards rows: %w", err)
+	}
+	return cards, nil
+}
+
+func (d *DB) GetUpcomingCards(ctx context.Context, userID string, excludeIDs []string, limit int) ([]Card, error) {
+	rows, err := d.Pool.Query(ctx,
+		`SELECT `+cardSelectColumns+`
+		 FROM cards c JOIN decks d ON c.deck_id = d.id
+		 WHERE d.user_id = $1 AND c.repetitions > 0 AND c.next_review > now()
+		   AND c.id != ALL($2)
+		 ORDER BY c.next_review ASC
+		 LIMIT $3`, userID, excludeIDs, limit)
+	if err != nil {
+		return nil, fmt.Errorf("get upcoming cards: %w", err)
+	}
+	defer rows.Close()
+
+	var cards []Card
+	for rows.Next() {
+		c, err := scanCard(rows)
+		if err != nil {
+			return nil, fmt.Errorf("get upcoming cards scan: %w", err)
+		}
+		cards = append(cards, c)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("get upcoming cards rows: %w", err)
 	}
 	return cards, nil
 }
@@ -352,6 +404,34 @@ func (d *DB) UpdateCardSRS(ctx context.Context, cardID string, easeFactor float6
 		 WHERE id = $5`, easeFactor, intervalDays, repetitions, nextReview, cardID)
 	if err != nil {
 		return fmt.Errorf("update card SRS: %w", err)
+	}
+	return nil
+}
+
+func (d *DB) UpdateCard(ctx context.Context, userID, cardID, front, back string) error {
+	tag, err := d.Pool.Exec(ctx,
+		`UPDATE cards SET front = $1, back = $2, updated_at = now()
+		 FROM decks WHERE cards.deck_id = decks.id AND cards.id = $3 AND decks.user_id = $4`,
+		front, back, cardID, userID)
+	if err != nil {
+		return fmt.Errorf("update card: %w", err)
+	}
+	if tag.RowsAffected() == 0 {
+		return pgx.ErrNoRows
+	}
+	return nil
+}
+
+func (d *DB) DeleteCard(ctx context.Context, userID, cardID string) error {
+	tag, err := d.Pool.Exec(ctx,
+		`DELETE FROM cards USING decks
+		 WHERE cards.deck_id = decks.id AND cards.id = $1 AND decks.user_id = $2`,
+		cardID, userID)
+	if err != nil {
+		return fmt.Errorf("delete card: %w", err)
+	}
+	if tag.RowsAffected() == 0 {
+		return pgx.ErrNoRows
 	}
 	return nil
 }

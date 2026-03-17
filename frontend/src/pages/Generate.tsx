@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { api, apiFormData } from '../lib/api';
 import { formatLanguage } from '../lib/languages';
+import { useOffline } from '../hooks/useOffline';
+import OfflineBanner from '../components/OfflineBanner';
 
 interface Deck {
   id: string;
@@ -10,9 +12,14 @@ interface Deck {
 }
 
 interface GeneratedCard {
-  id: string;
   front: string;
   back: string;
+  front_image_base64?: string;
+  front_image_type?: string;
+}
+
+interface PendingCard extends GeneratedCard {
+  selected: boolean;
 }
 
 export default function Generate() {
@@ -20,10 +27,13 @@ export default function Generate() {
   const [deckId, setDeckId] = useState('');
   const [prompt, setPrompt] = useState('');
   const [loading, setLoading] = useState(false);
-  const [generatedCards, setGeneratedCards] = useState<GeneratedCard[]>([]);
+  const [pendingCards, setPendingCards] = useState<PendingCard[]>([]);
   const [images, setImages] = useState<File[]>([]);
   const [generateImages, setGenerateImages] = useState(false);
   const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [saveProgress, setSaveProgress] = useState({ done: 0, total: 0 });
+  const isOffline = useOffline();
 
   useEffect(() => {
     api<Deck[]>('/decks').then((d) => {
@@ -38,7 +48,7 @@ export default function Generate() {
     e.preventDefault();
     setError('');
     setLoading(true);
-    setGeneratedCards([]);
+    setPendingCards([]);
     try {
       let cards: GeneratedCard[];
       if (images.length > 0) {
@@ -62,8 +72,7 @@ export default function Generate() {
           }),
         });
       }
-      setGeneratedCards(cards);
-      setPrompt('');
+      setPendingCards(cards.map((c) => ({ ...c, selected: true })));
       setImages([]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Generation failed');
@@ -72,9 +81,56 @@ export default function Generate() {
     }
   }
 
+  function updateCard(index: number, updates: Partial<PendingCard>) {
+    setPendingCards((prev) => prev.map((c, i) => i === index ? { ...c, ...updates } : c));
+  }
+
+  function toggleAll(selected: boolean) {
+    setPendingCards((prev) => prev.map((c) => ({ ...c, selected })));
+  }
+
+  async function handleSaveSelected() {
+    const selected = pendingCards.filter((c) => c.selected);
+    if (selected.length === 0) return;
+
+    setSaving(true);
+    setSaveProgress({ done: 0, total: selected.length });
+    setError('');
+
+    let saved = 0;
+    for (const card of selected) {
+      try {
+        await api(`/decks/${deckId}/cards`, {
+          method: 'POST',
+          body: JSON.stringify({
+            front: card.front,
+            back: card.back,
+            front_image_base64: card.front_image_base64 || undefined,
+            front_image_type: card.front_image_type || undefined,
+          }),
+        });
+        saved++;
+        setSaveProgress({ done: saved, total: selected.length });
+      } catch {
+        setError(`Failed to save card "${card.front}". ${saved} of ${selected.length} saved.`);
+        break;
+      }
+    }
+
+    if (saved === selected.length) {
+      setPendingCards([]);
+      setPrompt('');
+    }
+    setSaving(false);
+  }
+
+  const selectedCount = pendingCards.filter((c) => c.selected).length;
+
   return (
     <div className="p-4 pb-24">
       <h1 className="text-2xl font-bold text-white mb-6">Generate Cards</h1>
+
+      {isOffline && <div className="mb-4"><OfflineBanner blocking message="You are offline. Card generation requires an internet connection." /></div>}
 
       <form onSubmit={handleGenerate} className="space-y-4">
         <div>
@@ -160,7 +216,7 @@ export default function Generate() {
 
         <button
           type="submit"
-          disabled={loading || !deckId}
+          disabled={loading || !deckId || saving || isOffline}
           className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-800 disabled:cursor-not-allowed text-white font-medium py-3 rounded-lg transition"
         >
           {loading ? (
@@ -174,21 +230,88 @@ export default function Generate() {
         </button>
       </form>
 
-      {generatedCards.length > 0 && (
+      {pendingCards.length > 0 && (
         <div className="mt-8">
-          <h2 className="text-lg font-semibold text-white mb-4">
-            Generated {generatedCards.length} cards
-          </h2>
-          <div className="space-y-2">
-            {generatedCards.map((card) => (
-              <div key={card.id} className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex items-center justify-between">
-                <div>
-                  <p className="text-white font-medium">{card.front}</p>
-                  <p className="text-slate-400 text-sm">{card.back}</p>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-white">
+              Review {pendingCards.length} generated cards
+            </h2>
+            <button
+              type="button"
+              onClick={() => toggleAll(selectedCount < pendingCards.length)}
+              className="text-xs text-slate-400 hover:text-white transition px-2 py-1"
+            >
+              {selectedCount === pendingCards.length ? 'Deselect All' : 'Select All'}
+            </button>
+          </div>
+
+          <div className="space-y-3">
+            {pendingCards.map((card, i) => (
+              <div
+                key={i}
+                className={`bg-slate-900 border rounded-xl p-4 transition ${card.selected ? 'border-indigo-500/50' : 'border-slate-800 opacity-60'}`}
+              >
+                <div className="flex items-start gap-3">
+                  <input
+                    type="checkbox"
+                    checked={card.selected}
+                    onChange={(e) => updateCard(i, { selected: e.target.checked })}
+                    className="mt-1 w-4 h-4 rounded border-slate-600 bg-slate-800 text-indigo-600 focus:ring-indigo-500 focus:ring-offset-0 cursor-pointer"
+                  />
+                  <div className="flex-1 space-y-2">
+                    {card.front_image_base64 && (
+                      <img
+                        src={`data:${card.front_image_type};base64,${card.front_image_base64}`}
+                        alt=""
+                        className="h-20 w-20 object-cover rounded-lg border border-slate-700"
+                      />
+                    )}
+                    <div>
+                      <label className="block text-xs text-slate-500 mb-0.5">Front</label>
+                      <input
+                        value={card.front}
+                        onChange={(e) => updateCard(i, { front: e.target.value })}
+                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-slate-500 mb-0.5">Back</label>
+                      <input
+                        value={card.back}
+                        onChange={(e) => updateCard(i, { back: e.target.value })}
+                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      />
+                    </div>
+                  </div>
                 </div>
-                <span className="text-green-400 text-xs font-medium bg-green-400/10 px-2 py-1 rounded-full">Added</span>
               </div>
             ))}
+          </div>
+
+          <div className="flex gap-3 mt-4">
+            <button
+              type="button"
+              onClick={handleSaveSelected}
+              disabled={saving || selectedCount === 0}
+              className="flex-1 bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-800 disabled:cursor-not-allowed text-white font-medium py-3 rounded-lg transition"
+            >
+              {saving ? (
+                <span className="flex items-center justify-center gap-2">
+                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Saving {saveProgress.done}/{saveProgress.total}...
+                </span>
+              ) : (
+                `Add ${selectedCount} Card${selectedCount !== 1 ? 's' : ''} to Deck`
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => setPendingCards([])}
+              disabled={saving}
+              className="px-4 py-3 text-slate-400 hover:text-white border border-slate-700 hover:border-slate-600 rounded-lg transition disabled:opacity-50"
+            >
+              Discard
+            </button>
           </div>
         </div>
       )}

@@ -39,6 +39,8 @@ func New(database *db.DB, geminiClient *gemini.Client, staticFiles fs.FS) http.H
 			r.Delete("/api/decks/{id}", cardsHandler.DeleteDeck)
 			r.Get("/api/decks/{id}/cards", cardsHandler.ListCards)
 			r.Post("/api/decks/{id}/cards", cardsHandler.CreateCard)
+			r.Put("/api/cards/{id}", cardsHandler.UpdateCard)
+			r.Delete("/api/cards/{id}", cardsHandler.DeleteCard)
 			r.Get("/api/cards/{id}/{side}", cardsHandler.GetCardImage)
 
 			r.Get("/api/review/due", reviewHandler.GetDueCards)

@@ -155,6 +155,45 @@ func (h *CardsHandler) CreateCard(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, card)
 }
 
+type updateCardRequest struct {
+	Front string `json:"front"`
+	Back  string `json:"back"`
+}
+
+func (h *CardsHandler) UpdateCard(w http.ResponseWriter, r *http.Request) {
+	userID := middleware.GetUserID(r.Context())
+	cardID := chi.URLParam(r, "id")
+
+	var req updateCardRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid request body"})
+		return
+	}
+	if req.Front == "" || req.Back == "" {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "front and back required"})
+		return
+	}
+
+	if err := h.DB.UpdateCard(r.Context(), userID, cardID, req.Front, req.Back); err != nil {
+		slog.Error("failed to update card", "error", err, "user_id", userID, "card_id", cardID)
+		writeJSON(w, http.StatusNotFound, map[string]string{"error": "card not found"})
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]string{"status": "updated"})
+}
+
+func (h *CardsHandler) DeleteCard(w http.ResponseWriter, r *http.Request) {
+	userID := middleware.GetUserID(r.Context())
+	cardID := chi.URLParam(r, "id")
+
+	if err := h.DB.DeleteCard(r.Context(), userID, cardID); err != nil {
+		slog.Error("failed to delete card", "error", err, "user_id", userID, "card_id", cardID)
+		writeJSON(w, http.StatusNotFound, map[string]string{"error": "card not found"})
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]string{"status": "deleted"})
+}
+
 func (h *CardsHandler) GetCardImage(w http.ResponseWriter, r *http.Request) {
 	userID := middleware.GetUserID(r.Context())
 	cardID := chi.URLParam(r, "id")

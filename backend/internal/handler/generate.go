@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/simonfrey/langy/internal/db"
 	"github.com/simonfrey/langy/internal/gemini"
 	"github.com/simonfrey/langy/internal/middleware"
 )
@@ -95,10 +96,10 @@ func (h *GenerateHandler) Generate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type generatedCard struct {
-		Front           string `json:"front"`
-		Back            string `json:"back"`
-		FrontImageB64   string `json:"front_image_base64,omitempty"`
-		FrontImageType  string `json:"front_image_type,omitempty"`
+		Front          string `json:"front"`
+		Back           string `json:"back"`
+		FrontImageB64  string `json:"front_image_base64,omitempty"`
+		FrontImageType string `json:"front_image_type,omitempty"`
 	}
 
 	result := make([]generatedCard, len(pairs))

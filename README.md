@@ -1,5 +1,8 @@
 # Langy
 
+
+Repo lives in https://github.com/simonfrey/langy 
+
 ## Prerequisites
 
 - Docker

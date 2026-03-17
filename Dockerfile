@@ -5,7 +5,7 @@ RUN npm ci
 COPY frontend/ ./
 RUN npm run build
 
-FROM golang:1.23-alpine AS backend
+FROM golang:1.25-alpine AS backend
 WORKDIR /app
 COPY backend/go.mod backend/go.sum ./
 RUN go mod download
@@ -16,5 +16,6 @@ RUN CGO_ENABLED=0 go build -o langy .
 FROM alpine:3.20
 RUN apk add --no-cache ca-certificates
 COPY --from=backend /app/langy /usr/local/bin/langy
+COPY backend/migrations/ /migrations/
 ENTRYPOINT ["langy"]
 CMD ["serve"]
