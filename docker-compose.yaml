@@ -1,0 +1,12 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: langy
+      POSTGRES_PASSWORD: langy
+      POSTGRES_DB: langy
+    ports:
+      - "5432:5432"
+
+volumes:
+  pgdata:

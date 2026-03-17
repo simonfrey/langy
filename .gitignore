@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.env
+*.local
+frontend/dist/
+backend/static/*.js
+backend/static/*.css
+backend/static/assets/
+.idea
