@@ -4,7 +4,7 @@ import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
-  base: '/langy/',
+  base: '/',
   plugins: [
     react(),
     tailwindcss(),
@@ -15,21 +15,21 @@ export default defineConfig({
         name: 'Langy',
         short_name: 'Langy',
         description: 'Language learning with spaced repetition',
-        scope: '/langy/',
-        start_url: '/langy/',
+        scope: '/',
+        start_url: '/',
         display: 'standalone',
         theme_color: '#6366f1',
         background_color: '#0f172a',
         icons: [
-          { src: '/langy/pwa-192x192.png', sizes: '192x192', type: 'image/png' },
-          { src: '/langy/pwa-512x512.png', sizes: '512x512', type: 'image/png' },
+          { src: '/pwa-192x192.png', sizes: '192x192', type: 'image/png' },
+          { src: '/pwa-512x512.png', sizes: '512x512', type: 'image/png' },
         ],
       },
     }),
   ],
   server: {
     proxy: {
-      '/langy/api': {
+      '/api': {
         target: 'http://localhost:8080',
         changeOrigin: true,
       },

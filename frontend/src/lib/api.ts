@@ -1,4 +1,4 @@
-const BASE = '/langy/api';
+const BASE = '/api';
 
 function getToken(): string | null {
   return localStorage.getItem('langy_token');

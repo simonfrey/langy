@@ -25,35 +25,33 @@ func New(database *db.DB, geminiClient *gemini.Client, staticFiles fs.FS) http.H
 	syncHandler := &handler.SyncHandler{DB: database}
 	generateHandler := &handler.GenerateHandler{DB: database, Gemini: geminiClient}
 
-	r.Route("/langy", func(r chi.Router) {
-		// Public auth routes
-		r.Post("/api/auth/register", authHandler.Register)
-		r.Post("/api/auth/login", authHandler.Login)
+	// Public auth routes
+	r.Post("/api/auth/register", authHandler.Register)
+	r.Post("/api/auth/login", authHandler.Login)
 
-		// Protected API routes
-		r.Group(func(r chi.Router) {
-			r.Use(middleware.Auth)
+	// Protected API routes
+	r.Group(func(r chi.Router) {
+		r.Use(middleware.Auth)
 
-			r.Get("/api/decks", cardsHandler.ListDecks)
-			r.Post("/api/decks", cardsHandler.CreateDeck)
-			r.Delete("/api/decks/{id}", cardsHandler.DeleteDeck)
-			r.Get("/api/decks/{id}/cards", cardsHandler.ListCards)
-			r.Post("/api/decks/{id}/cards", cardsHandler.CreateCard)
-			r.Put("/api/cards/{id}", cardsHandler.UpdateCard)
-			r.Delete("/api/cards/{id}", cardsHandler.DeleteCard)
-			r.Get("/api/cards/{id}/{side}", cardsHandler.GetCardImage)
+		r.Get("/api/decks", cardsHandler.ListDecks)
+		r.Post("/api/decks", cardsHandler.CreateDeck)
+		r.Delete("/api/decks/{id}", cardsHandler.DeleteDeck)
+		r.Get("/api/decks/{id}/cards", cardsHandler.ListCards)
+		r.Post("/api/decks/{id}/cards", cardsHandler.CreateCard)
+		r.Put("/api/cards/{id}", cardsHandler.UpdateCard)
+		r.Delete("/api/cards/{id}", cardsHandler.DeleteCard)
+		r.Get("/api/cards/{id}/{side}", cardsHandler.GetCardImage)
 
-			r.Get("/api/review/due", reviewHandler.GetDueCards)
-			r.Post("/api/review", reviewHandler.SubmitReview)
+		r.Get("/api/review/due", reviewHandler.GetDueCards)
+		r.Post("/api/review", reviewHandler.SubmitReview)
 
-			r.Post("/api/sync", syncHandler.Sync)
-			r.Post("/api/generate", generateHandler.Generate)
-		})
-
-		// Serve static files with SPA fallback
-		spaHandler := spaFileServer(staticFiles)
-		r.Get("/*", spaHandler)
+		r.Post("/api/sync", syncHandler.Sync)
+		r.Post("/api/generate", generateHandler.Generate)
 	})
+
+	// Serve static files with SPA fallback
+	spaHandler := spaFileServer(staticFiles)
+	r.Get("/*", spaHandler)
 
 	return r
 }
@@ -62,19 +60,13 @@ func spaFileServer(staticFS fs.FS) http.HandlerFunc {
 	fileServer := http.FileServer(http.FS(staticFS))
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		// Strip the /langy prefix for file lookup
-		path := strings.TrimPrefix(r.URL.Path, "/langy")
-		if path == "" {
-			path = "/"
-		}
-		path = strings.TrimPrefix(path, "/")
+		path := strings.TrimPrefix(r.URL.Path, "/")
 
 		// Try to open the file
 		if path != "" {
 			if f, err := staticFS.Open(path); err == nil {
 				f.Close()
-				// Serve with the /langy prefix stripped
-				http.StripPrefix("/langy", fileServer).ServeHTTP(w, r)
+				fileServer.ServeHTTP(w, r)
 				return
 			}
 		}
