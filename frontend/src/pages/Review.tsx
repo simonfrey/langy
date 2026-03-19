@@ -5,6 +5,7 @@ import { db } from '../db/dexie';
 import SwipeCard from '../components/SwipeCard';
 import { useOffline } from '../hooks/useOffline';
 import OfflineBanner from '../components/OfflineBanner';
+import { BlobBackground, CelebrationIllustration } from '../components/Blobs';
 
 interface Card {
   id: string;
@@ -20,8 +21,12 @@ interface Card {
   back_image_url?: string;
 }
 
+interface ReviewCard extends Card {
+  reversed: boolean;
+}
+
 export default function Review() {
-  const [cards, setCards] = useState<Card[]>([]);
+  const [cards, setCards] = useState<ReviewCard[]>([]);
   const [index, setIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [done, setDone] = useState(false);
@@ -63,14 +68,17 @@ export default function Review() {
     return result;
   }, []);
 
+  const addDirection = (cards: Card[]): ReviewCard[] =>
+    cards.map((c) => ({ ...c, reversed: Math.random() < 0.5 }));
+
   const load = useCallback(async () => {
     try {
       const due = await api<Card[]>('/review/due');
-      setCards(due);
+      setCards(addDirection(due));
       setDone(due.length === 0);
     } catch {
       const local = await loadDueFromDexie();
-      setCards(local);
+      setCards(addDirection(local));
       setDone(local.length === 0);
     } finally {
       setLoading(false);
@@ -169,7 +177,7 @@ export default function Review() {
         moreCards = await loadDueFromDexie();
       }
       if (moreCards.length > 0) {
-        setCards(moreCards);
+        setCards(addDirection(moreCards));
         setIndex(0);
         setDone(false);
         setFlipped(false);
@@ -188,14 +196,15 @@ export default function Review() {
     ];
     const msg = messages[Math.floor(Math.random() * messages.length)];
     return (
-      <div className="flex flex-col items-center justify-center h-[60vh] p-4 text-center">
-        <div className="text-7xl mb-6 animate-bounce">{msg.emoji}</div>
-        <h2 className="text-2xl font-extrabold text-warm-900 mb-2">{msg.title}</h2>
-        <p className="text-warm-500 mb-8">{msg.subtitle}</p>
+      <div className="flex flex-col items-center justify-center h-[60vh] p-4 text-center relative">
+        <BlobBackground />
+        <CelebrationIllustration className="mb-2 relative z-10" />
+        <h2 className="text-2xl font-extrabold text-warm-900 mb-2 relative z-10">{msg.title}</h2>
+        <p className="text-warm-500 mb-8 relative z-10">{msg.subtitle}</p>
         <button
           onClick={handleContinueLearning}
           disabled={loadingMore}
-          className="px-6 py-3 bg-coral hover:bg-coral-hover disabled:opacity-50 text-white font-bold rounded-xl transition shadow-sm"
+          className="px-6 py-3 bg-coral hover:bg-coral-hover disabled:opacity-50 text-white font-bold rounded-xl transition shadow-sm relative z-10"
         >
           {loadingMore ? 'Loading...' : 'Continue Learning'}
         </button>
@@ -207,31 +216,30 @@ export default function Review() {
   const total = cards.length;
 
   return (
-    <div className="p-4 pb-24">
-      {isOffline && <div className="mb-4"><OfflineBanner message="You're offline. Reviews will sync when you reconnect." /></div>}
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-extrabold text-warm-900">Review</h1>
-        <span className="text-sm text-warm-500 font-semibold">
-          {index + 1} / {total}
-        </span>
-      </div>
+    <div className="p-4 pb-24 relative">
+      <BlobBackground />
+      {isOffline && <div className="mb-4 relative z-10"><OfflineBanner message="You're offline. Reviews will sync when you reconnect." /></div>}
+
+
+      <h1 className="text-2xl font-extrabold text-warm-900 mb-2 relative z-10">Review</h1>
 
       {/* Progress bar */}
-      <div className="flex items-center gap-3 mb-8">
-        <div className="flex-1 bg-warm-200 rounded-full h-2.5">
+      <div className="flex items-center gap-3 mb-2">
+        <div className="flex-1 bg-warm-200 rounded-full">
           <div
-            className="bg-coral h-2.5 rounded-full transition-all duration-300"
+            className="p-1 bg-coral rounded-full transition-all duration-300 text-right text-xs text-cream font-bold"
             style={{ width: `${((index + 1) / total) * 100}%` }}
-          />
+          >{index + 1}/{total}
+          </div>
+
         </div>
-        <span className="text-xs text-warm-400 font-semibold whitespace-nowrap">{index + 1} of {total}</span>
       </div>
 
       <SwipeCard
-        front={card.front}
-        back={card.back}
-        frontImageUrl={card.front_image_url}
-        backImageUrl={card.back_image_url}
+        front={card.reversed ? card.back : card.front}
+        back={card.reversed ? card.front : card.back}
+        frontImageUrl={card.reversed ? card.back_image_url : card.front_image_url}
+        backImageUrl={card.reversed ? card.front_image_url : card.back_image_url}
         onSwipe={(dir) => { handleSwipe(dir); setFlipped(false); }}
         flipped={flipped}
         onFlipChange={setFlipped}

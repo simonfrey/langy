@@ -1,4 +1,6 @@
+import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { db } from '../db/dexie';
 
 const tabs = [
   {
@@ -33,17 +35,28 @@ const tabs = [
 export default function BottomNav() {
   const location = useLocation();
   const navigate = useNavigate();
+  const [hasDecks, setHasDecks] = useState(true);
+
+  useEffect(() => {
+    const check = () => db.decks.count().then((c) => setHasDecks(c > 0));
+    check();
+    const id = setInterval(check, 2000);
+    return () => clearInterval(id);
+  }, []);
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-warm-200 pb-[env(safe-area-inset-bottom)]">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-lg border-t border-warm-200 pb-[env(safe-area-inset-bottom)]">
       <div className="flex justify-around items-center h-16 max-w-[700px] mx-auto">
         {tabs.map((tab) => {
           const active = location.pathname === tab.path;
+          const disabled = !hasDecks && tab.path !== '/';
           return (
             <button
               key={tab.path}
-              onClick={() => navigate(tab.path)}
+              onClick={() => !disabled && navigate(tab.path)}
+              disabled={disabled}
               className={`flex flex-col items-center gap-0.5 px-4 py-2 transition-colors ${
+                disabled ? 'text-warm-300 opacity-40 cursor-not-allowed' :
                 active ? 'text-coral' : 'text-warm-400 hover:text-warm-700'
               }`}
             >

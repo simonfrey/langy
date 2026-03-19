@@ -6,6 +6,7 @@ import LanguageSelect from '../components/LanguageSelect';
 import { db } from '../db/dexie';
 import { useOffline } from '../hooks/useOffline';
 import OfflineBanner from '../components/OfflineBanner';
+import { BlobBackground, CardStackIllustration } from '../components/Blobs';
 
 interface Deck {
   id: string;
@@ -153,22 +154,15 @@ export default function DeckList() {
   }
 
   return (
-    <div className="p-4 pb-24">
+    <div className="p-4 pb-24 relative">
+      <BlobBackground />
+      <div className="relative z-10">
       {isOffline && <div className="mb-4"><OfflineBanner /></div>}
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-extrabold text-warm-900">Your Decks</h1>
-        <button
-          onClick={() => setShowModal(true)}
-          disabled={isOffline}
-          className="bg-coral hover:bg-coral-hover disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-bold px-4 py-2 rounded-xl transition shadow-sm"
-        >
-          + New Deck
-        </button>
-      </div>
+      <h1 className="text-2xl font-extrabold text-warm-900 mb-6">Your Decks</h1>
 
       {decks.length === 0 ? (
         <div className="text-center py-16">
-          <div className="text-6xl mb-4">📚</div>
+          <CardStackIllustration className="mx-auto mb-4" />
           <p className="text-warm-700 text-lg font-bold mb-2">No decks yet</p>
           <p className="text-warm-400 text-sm mb-6">Create your first deck and start learning a new language!</p>
           <button
@@ -191,7 +185,7 @@ export default function DeckList() {
                 <div className="flex-1 min-w-0">
                   <h3 className="text-lg font-bold text-warm-900 truncate">{deck.name}</h3>
                   <p className="text-warm-500 text-sm mt-0.5">
-                    {formatLanguage(deck.source_lang)} → {formatLanguage(deck.target_lang)}
+                    {formatLanguage(deck.source_lang)} ↔ {formatLanguage(deck.target_lang)}
                   </p>
                   <p className="text-warm-400 text-xs mt-1">{deck.cardCount} cards</p>
                 </div>
@@ -228,6 +222,13 @@ export default function DeckList() {
               </div>
             </div>
           ))}
+          <button
+            onClick={() => setShowModal(true)}
+            disabled={isOffline}
+            className="w-full border-2 border-dashed border-warm-300 hover:border-coral text-warm-400 hover:text-coral disabled:opacity-50 disabled:cursor-not-allowed font-bold py-4 rounded-2xl transition"
+          >
+            + New Deck
+          </button>
         </div>
       )}
 
@@ -252,13 +253,13 @@ export default function DeckList() {
                 value={form.source_lang}
                 onChange={(code) => setForm({ ...form, source_lang: code })}
                 required
-                label="Source language"
+                label="Language 1"
               />
               <LanguageSelect
                 value={form.target_lang}
                 onChange={(code) => setForm({ ...form, target_lang: code })}
                 required
-                label="Target language"
+                label="Language 2"
               />
             </div>
             <div className="flex gap-3 mt-6">
@@ -383,6 +384,7 @@ export default function DeckList() {
           </form>
         </div>
       )}
+      </div>
     </div>
   );
 }

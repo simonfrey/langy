@@ -3,6 +3,7 @@ import { api, apiFormData } from '../lib/api';
 import { formatLanguage } from '../lib/languages';
 import { useOffline } from '../hooks/useOffline';
 import OfflineBanner from '../components/OfflineBanner';
+import { BlobBackground, SparkleIllustration } from '../components/Blobs';
 
 interface Deck {
   id: string;
@@ -127,9 +128,16 @@ export default function Generate() {
   const selectedCount = pendingCards.filter((c) => c.selected).length;
 
   return (
-    <div className="p-4 pb-24">
-      <h1 className="text-2xl font-extrabold text-warm-900 mb-2">Generate Cards</h1>
-      <p className="text-warm-500 text-sm mb-6">Use AI to generate flashcards for any topic. Pick a deck, describe what you want to learn, and we'll create cards for you.</p>
+    <div className="p-4 pb-24 relative">
+      <BlobBackground />
+      <div className="relative z-10">
+      <div className="flex items-center gap-3 mb-2">
+        <SparkleIllustration className="w-16 h-16 shrink-0" />
+        <div>
+          <h1 className="text-2xl font-extrabold text-warm-900">Generate Cards</h1>
+          <p className="text-warm-500 text-sm">Use AI to create flashcards for any topic.</p>
+        </div>
+      </div>
 
       {isOffline && <div className="mb-4"><OfflineBanner blocking message="You are offline. Card generation requires an internet connection." /></div>}
 
@@ -150,7 +158,7 @@ export default function Generate() {
 
         {selectedDeck && (
           <p className="text-warm-500 text-sm font-semibold">
-            {formatLanguage(selectedDeck.source_lang)} → {formatLanguage(selectedDeck.target_lang)}
+            {formatLanguage(selectedDeck.source_lang)} ↔ {formatLanguage(selectedDeck.target_lang)}
           </p>
         )}
 
@@ -328,6 +336,7 @@ export default function Generate() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

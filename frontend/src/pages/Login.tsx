@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { BlobBackground, Mascot } from '../components/Blobs';
 
 export default function Login() {
   const [isRegister, setIsRegister] = useState(false);
@@ -30,9 +31,11 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-cream flex items-center justify-center p-4">
-      <div className="w-full max-w-sm">
+    <div className="min-h-screen bg-cream flex items-center justify-center p-4 relative">
+      <BlobBackground />
+      <div className="w-full max-w-sm relative z-10">
         <div className="text-center mb-8">
+          <Mascot className="mx-auto mb-4" />
           <h1 className="text-4xl font-extrabold text-warm-900 mb-2">Langy</h1>
           <p className="text-warm-500">Learn languages with spaced repetition</p>
         </div>
