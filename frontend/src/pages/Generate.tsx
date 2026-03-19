@@ -128,18 +128,19 @@ export default function Generate() {
 
   return (
     <div className="p-4 pb-24">
-      <h1 className="text-2xl font-bold text-white mb-6">Generate Cards</h1>
+      <h1 className="text-2xl font-extrabold text-warm-900 mb-2">Generate Cards</h1>
+      <p className="text-warm-500 text-sm mb-6">Use AI to generate flashcards for any topic. Pick a deck, describe what you want to learn, and we'll create cards for you.</p>
 
       {isOffline && <div className="mb-4"><OfflineBanner blocking message="You are offline. Card generation requires an internet connection." /></div>}
 
-      <form onSubmit={handleGenerate} className="space-y-4">
+      <form onSubmit={handleGenerate} className="bg-white border border-warm-200 rounded-2xl p-5 shadow-sm space-y-4">
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-1">Deck</label>
+          <label className="block text-sm font-semibold text-warm-700 mb-1">Deck</label>
           <select
             value={deckId}
             onChange={(e) => setDeckId(e.target.value)}
             required
-            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full bg-warm-100 border border-warm-200 rounded-xl px-4 py-3 text-warm-900 focus:outline-none focus:ring-2 focus:ring-coral"
           >
             {decks.map((d) => (
               <option key={d.id} value={d.id}>{d.name}</option>
@@ -148,31 +149,43 @@ export default function Generate() {
         </div>
 
         {selectedDeck && (
-          <p className="text-slate-400 text-sm">
+          <p className="text-warm-500 text-sm font-semibold">
             {formatLanguage(selectedDeck.source_lang)} → {formatLanguage(selectedDeck.target_lang)}
           </p>
         )}
 
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-1">Prompt</label>
+          <label className="block text-sm font-semibold text-warm-700 mb-1">Prompt</label>
           <textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             required
             rows={3}
             placeholder="e.g. Common greetings, food vocabulary, travel phrases..."
-            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+            className="w-full bg-warm-100 border border-warm-200 rounded-xl px-4 py-3 text-warm-900 placeholder-warm-400 focus:outline-none focus:ring-2 focus:ring-coral resize-none"
           />
+          <div className="flex flex-wrap gap-2 mt-2">
+            {['Food & drinks', 'Travel basics', 'Common greetings', 'Numbers 1-100', 'Daily routines', 'At the restaurant'].map((chip) => (
+              <button
+                key={chip}
+                type="button"
+                onClick={() => setPrompt(chip)}
+                className="text-xs bg-warm-100 hover:bg-warm-200 text-warm-600 font-semibold px-3 py-1.5 rounded-full transition border border-warm-200"
+              >
+                {chip}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-1">Images (optional context)</label>
+          <label className="block text-sm font-semibold text-warm-700 mb-1">Images (optional context)</label>
           <input
             type="file"
             accept="image/*"
             multiple
             onChange={(e) => setImages(Array.from(e.target.files || []))}
-            className="w-full text-sm text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-slate-700 file:text-slate-300 file:text-sm"
+            className="w-full text-sm text-warm-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-warm-100 file:text-warm-700 file:text-sm file:font-semibold"
           />
           {images.length > 0 && (
             <div className="flex gap-2 mt-2 flex-wrap">
@@ -181,12 +194,12 @@ export default function Generate() {
                   <img
                     src={URL.createObjectURL(img)}
                     alt=""
-                    className="h-16 w-16 object-cover rounded-lg border border-slate-700"
+                    className="h-16 w-16 object-cover rounded-xl border border-warm-200"
                   />
                   <button
                     type="button"
                     onClick={() => setImages(images.filter((_, j) => j !== i))}
-                    className="absolute -top-1.5 -right-1.5 bg-slate-700 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-500 transition"
+                    className="absolute -top-1.5 -right-1.5 bg-warm-700 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-500 transition"
                   >
                     x
                   </button>
@@ -204,20 +217,20 @@ export default function Generate() {
               onChange={(e) => setGenerateImages(e.target.checked)}
               className="sr-only peer"
             />
-            <div className="w-10 h-5 bg-slate-700 rounded-full peer-checked:bg-indigo-600 transition" />
-            <div className="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition peer-checked:translate-x-5" />
+            <div className="w-10 h-5 bg-warm-300 rounded-full peer-checked:bg-coral transition" />
+            <div className="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition peer-checked:translate-x-5 shadow-sm" />
           </div>
-          <span className="text-sm text-slate-300">Generate images for cards</span>
+          <span className="text-sm text-warm-700 font-semibold">Generate images for cards</span>
         </label>
 
         {error && (
-          <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 text-red-400 text-sm">{error}</div>
+          <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-red-600 text-sm">{error}</div>
         )}
 
         <button
           type="submit"
           disabled={loading || !deckId || saving || isOffline}
-          className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-800 disabled:cursor-not-allowed text-white font-medium py-3 rounded-lg transition"
+          className="w-full bg-coral hover:bg-coral-hover disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition shadow-sm"
         >
           {loading ? (
             <span className="flex items-center justify-center gap-2">
@@ -233,13 +246,13 @@ export default function Generate() {
       {pendingCards.length > 0 && (
         <div className="mt-8">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-white">
+            <h2 className="text-lg font-bold text-warm-900">
               Review {pendingCards.length} generated cards
             </h2>
             <button
               type="button"
               onClick={() => toggleAll(selectedCount < pendingCards.length)}
-              className="text-xs text-slate-400 hover:text-white transition px-2 py-1"
+              className="text-xs text-warm-500 hover:text-warm-900 transition px-2 py-1 font-semibold"
             >
               {selectedCount === pendingCards.length ? 'Deselect All' : 'Select All'}
             </button>
@@ -249,37 +262,37 @@ export default function Generate() {
             {pendingCards.map((card, i) => (
               <div
                 key={i}
-                className={`bg-slate-900 border rounded-xl p-4 transition ${card.selected ? 'border-indigo-500/50' : 'border-slate-800 opacity-60'}`}
+                className={`bg-white border rounded-2xl p-4 transition shadow-sm ${card.selected ? 'border-coral/40' : 'border-warm-200 opacity-60'}`}
               >
                 <div className="flex items-start gap-3">
                   <input
                     type="checkbox"
                     checked={card.selected}
                     onChange={(e) => updateCard(i, { selected: e.target.checked })}
-                    className="mt-1 w-4 h-4 rounded border-slate-600 bg-slate-800 text-indigo-600 focus:ring-indigo-500 focus:ring-offset-0 cursor-pointer"
+                    className="mt-1 w-4 h-4 rounded border-warm-300 bg-warm-100 text-coral focus:ring-coral focus:ring-offset-0 cursor-pointer accent-coral"
                   />
                   <div className="flex-1 space-y-2">
                     {card.front_image_base64 && (
                       <img
                         src={`data:${card.front_image_type};base64,${card.front_image_base64}`}
                         alt=""
-                        className="h-20 w-20 object-cover rounded-lg border border-slate-700"
+                        className="h-20 w-20 object-cover rounded-xl border border-warm-200"
                       />
                     )}
                     <div>
-                      <label className="block text-xs text-slate-500 mb-0.5">Front</label>
+                      <label className="block text-xs text-warm-400 mb-0.5 font-semibold">Front</label>
                       <input
                         value={card.front}
                         onChange={(e) => updateCard(i, { front: e.target.value })}
-                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                        className="w-full bg-warm-100 border border-warm-200 rounded-lg px-3 py-2 text-warm-900 text-sm focus:outline-none focus:ring-1 focus:ring-coral"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs text-slate-500 mb-0.5">Back</label>
+                      <label className="block text-xs text-warm-400 mb-0.5 font-semibold">Back</label>
                       <input
                         value={card.back}
                         onChange={(e) => updateCard(i, { back: e.target.value })}
-                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                        className="w-full bg-warm-100 border border-warm-200 rounded-lg px-3 py-2 text-warm-900 text-sm focus:outline-none focus:ring-1 focus:ring-coral"
                       />
                     </div>
                   </div>
@@ -293,7 +306,7 @@ export default function Generate() {
               type="button"
               onClick={handleSaveSelected}
               disabled={saving || selectedCount === 0}
-              className="flex-1 bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-800 disabled:cursor-not-allowed text-white font-medium py-3 rounded-lg transition"
+              className="flex-1 bg-coral hover:bg-coral-hover disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition shadow-sm"
             >
               {saving ? (
                 <span className="flex items-center justify-center gap-2">
@@ -308,7 +321,7 @@ export default function Generate() {
               type="button"
               onClick={() => setPendingCards([])}
               disabled={saving}
-              className="px-4 py-3 text-slate-400 hover:text-white border border-slate-700 hover:border-slate-600 rounded-lg transition disabled:opacity-50"
+              className="px-4 py-3 text-warm-500 hover:text-warm-900 border border-warm-200 hover:border-warm-300 rounded-xl transition disabled:opacity-50 font-semibold"
             >
               Discard
             </button>

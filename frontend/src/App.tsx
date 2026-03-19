@@ -13,8 +13,8 @@ function AuthenticatedLayout() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-cream flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-coral border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -24,12 +24,14 @@ function AuthenticatedLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950">
-      <Routes>
-        <Route path="/" element={<DeckList />} />
-        <Route path="/review" element={<Review />} />
-        <Route path="/generate" element={<Generate />} />
-      </Routes>
+    <div className="min-h-screen bg-cream">
+      <div className="max-w-[700px] mx-auto">
+        <Routes>
+          <Route path="/" element={<DeckList />} />
+          <Route path="/review" element={<Review />} />
+          <Route path="/generate" element={<Generate />} />
+        </Routes>
+      </div>
       <BottomNav />
     </div>
   );

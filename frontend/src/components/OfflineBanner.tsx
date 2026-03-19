@@ -5,10 +5,10 @@ interface Props {
 
 export default function OfflineBanner({ blocking, message }: Props) {
   return (
-    <div className={`rounded-lg p-3 text-sm flex items-center gap-2 ${
+    <div className={`rounded-xl p-3 text-sm flex items-center gap-2 ${
       blocking
-        ? 'bg-amber-500/10 border border-amber-500/30 text-amber-400'
-        : 'bg-slate-800 border border-slate-700 text-slate-400'
+        ? 'bg-amber-50 border border-amber-200 text-amber-700'
+        : 'bg-warm-100 border border-warm-200 text-warm-500'
     }`}>
       <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0" />
       {message ?? (blocking

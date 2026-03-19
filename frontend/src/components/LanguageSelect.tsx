@@ -10,12 +10,12 @@ interface Props {
 export default function LanguageSelect({ value, onChange, required, label }: Props) {
   return (
     <div>
-      {label && <label className="block text-sm font-medium text-slate-300 mb-1">{label}</label>}
+      {label && <label className="block text-sm font-semibold text-warm-700 mb-1">{label}</label>}
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
         required={required}
-        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        className="w-full bg-warm-100 border border-warm-200 rounded-xl px-4 py-3 text-warm-900 focus:outline-none focus:ring-2 focus:ring-coral"
       >
         <option value="">Select language</option>
         {LANGUAGES.map((l) => (
