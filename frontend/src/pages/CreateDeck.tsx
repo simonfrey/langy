@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createDeck } from '../db/mutations';
 import LanguageSelect from '../components/LanguageSelect';
-import { BlobBackground } from '../components/Blobs';
 import { useHandDrawn } from '../hooks/useHandDrawn';
 
 export default function CreateDeck() {
@@ -24,7 +23,6 @@ export default function CreateDeck() {
 
   return (
     <div className="p-4 pb-24 relative">
-      <BlobBackground />
       <div className="relative z-10">
         <button onClick={() => navigate('/')} className="text-warm-500 hover:text-warm-700 font-semibold text-sm mb-4">
           &larr; Back

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { formatLanguage } from '../lib/languages';
 import { useOffline } from '../hooks/useOffline';
 import OfflineBanner from '../components/OfflineBanner';
-import { BlobBackground, CardStackIllustration } from '../components/Blobs';
+import { CardStackIllustration } from '../components/Blobs';
 import { useDecksWithCounts } from '../hooks/useDecks';
 import { refreshFromServer } from '../db/mutations';
 import { getHandDrawnStyle } from '../hooks/useHandDrawn';
@@ -27,7 +27,6 @@ export default function DeckList() {
 
   return (
     <div className="p-4 pb-24 relative">
-      <BlobBackground />
       <div className="relative z-10">
       {isOffline && <div className="mb-4"><OfflineBanner /></div>}
       {syncError && !isOffline && (

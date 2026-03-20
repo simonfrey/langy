@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { BlobBackground, Mascot } from '../components/Blobs';
+import { Mascot } from '../components/Blobs';
 import { useHandDrawn } from '../hooks/useHandDrawn';
 
 export default function Login() {
@@ -34,7 +34,6 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-cream flex items-center justify-center p-4 relative">
-      <BlobBackground />
       <div className="w-full max-w-sm relative z-10">
         <div className="text-center mb-8">
           <Mascot className="mx-auto mb-4" />

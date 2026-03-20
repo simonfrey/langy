@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './hooks/useAuth';
 import { useHasDecksWithCards } from './hooks/useDecks';
 import { useSync } from './hooks/useSync';
@@ -10,6 +10,7 @@ import EditCards from './pages/EditCards';
 import AddCard from './pages/AddCard';
 import Review from './pages/Review';
 import Generate from './pages/Generate';
+import { BlobBackground } from './components/Blobs';
 
 function DefaultRoute() {
   const hasDecksWithCards = useHasDecksWithCards();
@@ -21,6 +22,7 @@ function DefaultRoute() {
 
 function AuthenticatedLayout() {
   const { user, loading } = useAuth();
+  const { pathname } = useLocation();
   useSync();
 
   if (loading) {
@@ -37,6 +39,7 @@ function AuthenticatedLayout() {
 
   return (
     <div className="min-h-screen bg-cream">
+      <BlobBackground key={pathname} />
       <div className="max-w-[700px] mx-auto">
         <Routes>
           <Route path="/" element={<DefaultRoute />} />
@@ -56,7 +59,7 @@ function AuthenticatedLayout() {
 function AppRoutes() {
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
+      <Route path="/login" element={<><BlobBackground /><Login /></>} />
       <Route path="/*" element={<AuthenticatedLayout />} />
     </Routes>
   );

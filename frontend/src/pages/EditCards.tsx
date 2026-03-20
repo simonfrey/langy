@@ -5,7 +5,6 @@ import { db } from '../db/dexie';
 import { saveCard, saveCardWithFormData, deleteCard as deleteCardMutation } from '../db/mutations';
 import { useLiveQuery } from 'dexie-react-hooks';
 import AuthImage from '../components/AuthImage';
-import { BlobBackground } from '../components/Blobs';
 import { useHandDrawn } from '../hooks/useHandDrawn';
 
 export default function EditCards() {
@@ -71,7 +70,6 @@ export default function EditCards() {
 
   return (
     <div className="p-4 pb-24 relative">
-      <BlobBackground />
       <div className="relative z-10">
         <button onClick={() => navigate('/')} className="text-warm-500 hover:text-warm-700 font-semibold text-sm mb-4">
           &larr; Back

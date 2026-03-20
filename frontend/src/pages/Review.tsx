@@ -6,7 +6,7 @@ import SwipeCard from '../components/SwipeCard';
 import AuthImage from '../components/AuthImage';
 import { useOffline } from '../hooks/useOffline';
 import OfflineBanner from '../components/OfflineBanner';
-import { BlobBackground, CelebrationIllustration } from '../components/Blobs';
+import { CelebrationIllustration } from '../components/Blobs';
 import { reviewCard as reviewCardMutation } from '../db/mutations';
 import { computeGrade, recordTiming } from '../lib/adaptiveGrade';
 import { getHandDrawnStyle } from '../hooks/useHandDrawn';
@@ -185,7 +185,6 @@ export default function Review() {
     const msg = messages[Math.floor(Math.random() * messages.length)];
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] p-4 text-center relative">
-        <BlobBackground />
         <CelebrationIllustration className="mb-2 relative z-10" />
         <h2 className="text-2xl font-extrabold text-warm-900 mb-2 relative z-10">{msg.title}</h2>
         <p className="text-warm-500 mb-8 relative z-10">{msg.subtitle}</p>
@@ -205,7 +204,6 @@ export default function Review() {
 
   return (
     <div className="p-4 pb-24 relative overflow-hidden">
-      <BlobBackground />
       {isOffline && <div className="mb-4 relative z-10"><OfflineBanner message="You're offline. Reviews will sync when you reconnect." /></div>}
 
 

@@ -3,7 +3,7 @@ import { api, apiFormData } from '../lib/api';
 import { formatLanguage } from '../lib/languages';
 import { useOffline } from '../hooks/useOffline';
 import OfflineBanner from '../components/OfflineBanner';
-import { BlobBackground, SparkleIllustration } from '../components/Blobs';
+import { SparkleIllustration } from '../components/Blobs';
 import { useDecksWithCounts } from '../hooks/useDecks';
 import { addCardFromGenerate } from '../db/mutations';
 import { useHandDrawn, getHandDrawnStyle } from '../hooks/useHandDrawn';
@@ -150,7 +150,6 @@ export default function Generate() {
 
   return (
     <div className="p-4 pb-24 relative">
-      <BlobBackground />
       <div className="relative z-10">
       <div className="flex items-center gap-3 mb-2">
         <SparkleIllustration className="w-16 h-16 shrink-0" />
