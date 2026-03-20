@@ -185,37 +185,43 @@ Guidelines:
 	}
 
 	if generateImages {
+		var imgFailures int
 		for i := range pairs {
-			imgData, err := c.generateCardImage(ctx, pairs[i].Front, pairs[i].Back, sourceLang)
+			imgData, mimeType, err := c.generateCardImage(ctx, pairs[i].Front, pairs[i].Back, tgtName)
 			if err != nil {
 				slog.Warn("failed to generate card image", "error", err, "front", pairs[i].Front)
+				imgFailures++
 				continue
 			}
 			pairs[i].FrontImg = imgData
-			pairs[i].ImgType = "image/png"
+			pairs[i].ImgType = mimeType
+		}
+		if imgFailures == len(pairs) {
+			slog.Error("all card image generations failed")
 		}
 	}
 
 	return pairs, nil
 }
 
-func (c *Client) generateCardImage(ctx context.Context, front, back, lang string) ([]byte, error) {
+func (c *Client) generateCardImage(ctx context.Context, front, back, lang string) ([]byte, string, error) {
 	prompt := fmt.Sprintf("Simple, clean flashcard illustration for the %s word '%s' (meaning: %s). Minimal style, no text, white background.", lang, front, back)
 
-	resp, err := c.client.Models.GenerateImages(
+	result, err := c.client.Models.GenerateContent(
 		ctx,
-		"imagen-3.0-generate-002",
-		prompt,
-		&genai.GenerateImagesConfig{
-			NumberOfImages: 1,
-			OutputMIMEType: "image/png",
+		"gemini-2.5-flash-image",
+		genai.Text(prompt),
+		&genai.GenerateContentConfig{
+			ResponseModalities: []string{"IMAGE", "TEXT"},
 		},
 	)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
-	if len(resp.GeneratedImages) == 0 {
-		return nil, fmt.Errorf("no image generated")
+	for _, part := range result.Candidates[0].Content.Parts {
+		if part.InlineData != nil {
+			return part.InlineData.Data, part.InlineData.MIMEType, nil
+		}
 	}
-	return resp.GeneratedImages[0].Image.ImageBytes, nil
+	return nil, "", fmt.Errorf("no image generated")
 }

@@ -305,6 +305,9 @@ export default function DeckList() {
                       </div>
                     ) : (
                       <div className="flex items-center justify-between">
+                        {card.front_image_url && (
+                          <img src={card.front_image_url} alt="" className="w-10 h-10 rounded object-cover shrink-0 mr-3" />
+                        )}
                         <div className="flex-1 min-w-0">
                           <p className="text-warm-900 text-sm truncate font-semibold">{card.front}</p>
                           <p className="text-warm-500 text-xs truncate">{card.back}</p>

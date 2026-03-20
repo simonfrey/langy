@@ -32,6 +32,7 @@ export default function Review() {
   const [done, setDone] = useState(false);
   const [flipped, setFlipped] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [exitDirection, setExitDirection] = useState<'left' | 'right' | 'up' | null>(null);
   const isOffline = useOffline();
 
   const loadDueFromDexie = useCallback(async (): Promise<Card[]> => {
@@ -87,29 +88,33 @@ export default function Review() {
 
   useEffect(() => { load(); }, [load]);
 
+  function startSwipe(dir: 'left' | 'right' | 'up') {
+    if (exitDirection) return;
+    setExitDirection(dir);
+    setFlipped(false);
+  }
+
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
-      if (done || loading) return;
+      if (done || loading || exitDirection) return;
       if (e.key === ' ') {
         e.preventDefault();
         setFlipped(f => !f);
       } else if (e.key === 'ArrowLeft' && flipped) {
-        handleSwipe('left');
-        setFlipped(false);
+        startSwipe('left');
       } else if (e.key === 'ArrowRight' && flipped) {
-        handleSwipe('right');
-        setFlipped(false);
+        startSwipe('right');
       } else if (e.key === 'ArrowUp' && flipped) {
         e.preventDefault();
-        handleSwipe('up');
-        setFlipped(false);
+        startSwipe('up');
       }
     }
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [done, loading, flipped, handleSwipe]);
+  }, [done, loading, flipped, exitDirection]);
 
-  async function handleSwipe(direction: 'left' | 'right' | 'up') {
+  async function handleSwipeComplete(direction: 'left' | 'right' | 'up') {
+    setExitDirection(null);
     const card = cards[index];
     if (!card) return;
 
@@ -157,6 +162,7 @@ export default function Review() {
     } else {
       setIndex(index + 1);
     }
+    setFlipped(false);
   }
 
   if (loading) {
@@ -216,15 +222,15 @@ export default function Review() {
   const total = cards.length;
 
   return (
-    <div className="p-4 pb-24 relative">
+    <div className="p-4 pb-24 relative overflow-hidden">
       <BlobBackground />
       {isOffline && <div className="mb-4 relative z-10"><OfflineBanner message="You're offline. Reviews will sync when you reconnect." /></div>}
 
 
-      <h1 className="text-2xl font-extrabold text-warm-900 mb-2 relative z-10">Review</h1>
+      <h1 className="text-2xl font-extrabold text-warm-900 mb-2 relative z-20">Review</h1>
 
       {/* Progress bar */}
-      <div className="flex items-center gap-3 mb-2">
+      <div className="flex items-center gap-3 mb-2 relative z-20">
         <div className="flex-1 bg-warm-200 rounded-full">
           <div
             className="p-1 bg-coral rounded-full transition-all duration-300 text-right text-xs text-cream font-bold"
@@ -240,9 +246,12 @@ export default function Review() {
         back={card.reversed ? card.front : card.back}
         frontImageUrl={card.reversed ? card.back_image_url : card.front_image_url}
         backImageUrl={card.reversed ? card.front_image_url : card.back_image_url}
-        onSwipe={(dir) => { handleSwipe(dir); setFlipped(false); }}
+        onSwipeComplete={handleSwipeComplete}
+        onDragSwipe={startSwipe}
         flipped={flipped}
         onFlipChange={setFlipped}
+        remainingCards={cards.length - index}
+        exitDirection={exitDirection}
       />
 
       {!flipped ? (
@@ -257,19 +266,19 @@ export default function Review() {
       ) : (
         <div className="flex justify-center gap-3 mt-6">
           <button
-            onClick={() => { handleSwipe('left'); setFlipped(false); }}
+            onClick={() => startSwipe('left')}
             className="flex-1 max-w-[140px] py-3 bg-red-50 hover:bg-red-100 text-red-500 font-bold rounded-xl transition border border-red-200"
           >
             Again
           </button>
           <button
-            onClick={() => { handleSwipe('right'); setFlipped(false); }}
+            onClick={() => startSwipe('right')}
             className="flex-1 max-w-[140px] py-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 font-bold rounded-xl transition border border-emerald-200"
           >
             Good
           </button>
           <button
-            onClick={() => { handleSwipe('up'); setFlipped(false); }}
+            onClick={() => startSwipe('up')}
             className="flex-1 max-w-[140px] py-3 bg-sky-50 hover:bg-sky-100 text-sky-600 font-bold rounded-xl transition border border-sky-200"
           >
             Easy

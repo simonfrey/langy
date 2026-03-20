@@ -50,10 +50,10 @@ type Card struct {
 
 func (c *Card) PopulateImageURLs() {
 	if len(c.FrontImage) > 0 {
-		c.FrontImageURL = "/langy/api/cards/" + c.ID + "/front-image"
+		c.FrontImageURL = "/api/cards/" + c.ID + "/front-image"
 	}
 	if len(c.BackImage) > 0 {
-		c.BackImageURL = "/langy/api/cards/" + c.ID + "/back-image"
+		c.BackImageURL = "/api/cards/" + c.ID + "/back-image"
 	}
 }
 
