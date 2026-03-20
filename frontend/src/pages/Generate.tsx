@@ -4,7 +4,7 @@ import { formatLanguage } from '../lib/languages';
 import { useOffline } from '../hooks/useOffline';
 import OfflineBanner from '../components/OfflineBanner';
 import { BlobBackground, SparkleIllustration } from '../components/Blobs';
-import { useDecks } from '../hooks/useDecks';
+import { useDecksWithCounts } from '../hooks/useDecks';
 import { addCardFromGenerate } from '../db/mutations';
 
 interface GeneratedCard {
@@ -19,7 +19,7 @@ interface PendingCard extends GeneratedCard {
 }
 
 export default function Generate() {
-  const decks = useDecks();
+  const decks = useDecksWithCounts();
   const [deckId, setDeckId] = useState('');
   const [prompt, setPrompt] = useState('');
   const [loading, setLoading] = useState(false);
@@ -36,6 +36,30 @@ export default function Generate() {
   }, [decks, deckId]);
 
   const selectedDeck = decks.find((d) => d.id === deckId);
+
+  async function handleGenerateFromDeck() {
+    if (!selectedDeck) return;
+    setError('');
+    setLoading(true);
+    setPendingCards([]);
+    try {
+      const cards = await api<GeneratedCard[]>('/generate', {
+        method: 'POST',
+        body: JSON.stringify({
+          from_deck: true,
+          source_lang: selectedDeck.source_lang,
+          target_lang: selectedDeck.target_lang,
+          deck_id: deckId,
+          generate_images: generateImages,
+        }),
+      });
+      setPendingCards(cards.map((c) => ({ ...c, selected: true })));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Generation failed');
+    } finally {
+      setLoading(false);
+    }
+  }
 
   async function handleGenerate(e: React.FormEvent) {
     e.preventDefault();
@@ -239,6 +263,52 @@ export default function Generate() {
           )}
         </button>
       </form>
+
+      {selectedDeck && selectedDeck.cardCount >= 30 && (
+        <>
+          <div className="flex items-center gap-3 my-5">
+            <div className="flex-1 h-px bg-warm-300" />
+            <span className="text-warm-400 text-sm font-semibold">or</span>
+            <div className="flex-1 h-px bg-warm-300" />
+          </div>
+
+          <div className="bg-white border border-warm-200 rounded-2xl p-5 shadow-sm space-y-4">
+            <p className="text-sm text-warm-600">
+              Generate 10 more cards based on the <span className="font-semibold">{selectedDeck.cardCount} existing cards</span> in this deck.
+            </p>
+
+            <label className="flex items-center gap-3 cursor-pointer">
+              <div className="relative">
+                <input
+                  type="checkbox"
+                  checked={generateImages}
+                  onChange={(e) => setGenerateImages(e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-10 h-5 bg-warm-300 rounded-full peer-checked:bg-coral transition" />
+                <div className="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition peer-checked:translate-x-5 shadow-sm" />
+              </div>
+              <span className="text-sm text-warm-700 font-semibold">Generate images for cards</span>
+            </label>
+
+            <button
+              type="button"
+              onClick={handleGenerateFromDeck}
+              disabled={loading || !deckId || saving || isOffline}
+              className="w-full bg-coral hover:bg-coral-hover disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition shadow-sm"
+            >
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Generating...
+                </span>
+              ) : (
+                'Generate Cards from Deck Content'
+              )}
+            </button>
+          </div>
+        </>
+      )}
 
       {pendingCards.length > 0 && (
         <div className="mt-8">

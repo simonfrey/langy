@@ -24,13 +24,14 @@ type generateRequest struct {
 	TargetLang     string `json:"target_lang"`
 	DeckID         string `json:"deck_id"`
 	GenerateImages bool   `json:"generate_images"`
+	FromDeck       bool   `json:"from_deck"`
 }
 
 func (h *GenerateHandler) Generate(w http.ResponseWriter, r *http.Request) {
 	userID := middleware.GetUserID(r.Context())
 
 	var prompt, sourceLang, targetLang, deckID string
-	var generateImages bool
+	var generateImages, fromDeck bool
 	var images []gemini.ImageData
 
 	contentType := r.Header.Get("Content-Type")
@@ -44,6 +45,7 @@ func (h *GenerateHandler) Generate(w http.ResponseWriter, r *http.Request) {
 		targetLang = r.FormValue("target_lang")
 		deckID = r.FormValue("deck_id")
 		generateImages = r.FormValue("generate_images") == "true"
+		fromDeck = r.FormValue("from_deck") == "true"
 
 		for _, fh := range r.MultipartForm.File["images"] {
 			f, err := fh.Open()
@@ -71,10 +73,15 @@ func (h *GenerateHandler) Generate(w http.ResponseWriter, r *http.Request) {
 		targetLang = req.TargetLang
 		deckID = req.DeckID
 		generateImages = req.GenerateImages
+		fromDeck = req.FromDeck
 	}
 
-	if prompt == "" || sourceLang == "" || targetLang == "" || deckID == "" {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "prompt, source_lang, target_lang, and deck_id required"})
+	if sourceLang == "" || targetLang == "" || deckID == "" {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "source_lang, target_lang, and deck_id required"})
+		return
+	}
+	if !fromDeck && prompt == "" {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "prompt is required when not generating from deck"})
 		return
 	}
 
@@ -87,6 +94,24 @@ func (h *GenerateHandler) Generate(w http.ResponseWriter, r *http.Request) {
 	if deck == nil {
 		writeJSON(w, http.StatusNotFound, map[string]string{"error": "deck not found"})
 		return
+	}
+
+	if fromDeck {
+		existingCards, err := h.DB.ListCardTexts(r.Context(), userID, deckID)
+		if err != nil {
+			slog.Error("failed to list cards for from_deck generation", "error", err, "user_id", userID, "deck_id", deckID)
+			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "failed to read existing cards"})
+			return
+		}
+		if len(existingCards) == 0 {
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "deck has no cards to generate from"})
+			return
+		}
+		var examples string
+		for _, ct := range existingCards {
+			examples += ct.Front + " → " + ct.Back + "\n"
+		}
+		prompt = "Here are existing flashcards in this deck:\n" + examples + "\nGenerate 10 more flashcards in the same theme/category/difficulty level. Do NOT repeat any of the existing cards above."
 	}
 
 	pairs, err := h.Gemini.GenerateCards(r.Context(), prompt, sourceLang, targetLang, images, generateImages)
