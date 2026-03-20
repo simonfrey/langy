@@ -408,11 +408,25 @@ func (d *DB) UpdateCardSRS(ctx context.Context, cardID string, easeFactor float6
 	return nil
 }
 
-func (d *DB) UpdateCard(ctx context.Context, userID, cardID, front, back string) error {
-	tag, err := d.Pool.Exec(ctx,
-		`UPDATE cards SET front = $1, back = $2, updated_at = now()
-		 FROM decks WHERE cards.deck_id = decks.id AND cards.id = $3 AND decks.user_id = $4`,
-		front, back, cardID, userID)
+func (d *DB) UpdateCard(ctx context.Context, userID, cardID, front, back string, images *CardImageData) error {
+	query := `UPDATE cards SET front = $1, back = $2`
+	args := []any{front, back}
+	n := 3
+	if images != nil {
+		if images.FrontImage != nil {
+			query += fmt.Sprintf(`, front_image = $%d, front_image_type = $%d`, n, n+1)
+			args = append(args, images.FrontImage, images.FrontImageType)
+			n += 2
+		}
+		if images.BackImage != nil {
+			query += fmt.Sprintf(`, back_image = $%d, back_image_type = $%d`, n, n+1)
+			args = append(args, images.BackImage, images.BackImageType)
+			n += 2
+		}
+	}
+	query += fmt.Sprintf(`, updated_at = now() FROM decks WHERE cards.deck_id = decks.id AND cards.id = $%d AND decks.user_id = $%d`, n, n+1)
+	args = append(args, cardID, userID)
+	tag, err := d.Pool.Exec(ctx, query, args...)
 	if err != nil {
 		return fmt.Errorf("update card: %w", err)
 	}

@@ -4,6 +4,9 @@ import { useSync } from './hooks/useSync';
 import BottomNav from './components/BottomNav';
 import Login from './pages/Login';
 import DeckList from './pages/DeckList';
+import CreateDeck from './pages/CreateDeck';
+import EditCards from './pages/EditCards';
+import AddCard from './pages/AddCard';
 import Review from './pages/Review';
 import Generate from './pages/Generate';
 
@@ -28,6 +31,9 @@ function AuthenticatedLayout() {
       <div className="max-w-[700px] mx-auto">
         <Routes>
           <Route path="/" element={<DeckList />} />
+          <Route path="/decks/new" element={<CreateDeck />} />
+          <Route path="/decks/:deckId/edit" element={<EditCards />} />
+          <Route path="/decks/:deckId/add-card" element={<AddCard />} />
           <Route path="/review" element={<Review />} />
           <Route path="/generate" element={<Generate />} />
         </Routes>

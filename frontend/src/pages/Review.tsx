@@ -1,27 +1,14 @@
 import { useEffect, useState, useCallback } from 'react';
-import { api } from '../lib/api';
-import { sm2 } from '../lib/sm2';
+import { api, imageUrl } from '../lib/api';
 import { db } from '../db/dexie';
+import type { CardRecord } from '../db/dexie';
 import SwipeCard from '../components/SwipeCard';
 import { useOffline } from '../hooks/useOffline';
 import OfflineBanner from '../components/OfflineBanner';
 import { BlobBackground, CelebrationIllustration } from '../components/Blobs';
+import { reviewCard as reviewCardMutation } from '../db/mutations';
 
-interface Card {
-  id: string;
-  deck_id: string;
-  front: string;
-  back: string;
-  ease_factor: number;
-  interval_days: number;
-  repetitions: number;
-  next_review: string;
-  created_at: string;
-  front_image_url?: string;
-  back_image_url?: string;
-}
-
-interface ReviewCard extends Card {
+interface ReviewCard extends CardRecord {
   reversed: boolean;
 }
 
@@ -35,16 +22,16 @@ export default function Review() {
   const [exitDirection, setExitDirection] = useState<'left' | 'right' | 'up' | null>(null);
   const isOffline = useOffline();
 
-  const loadDueFromDexie = useCallback(async (): Promise<Card[]> => {
+  const loadDueFromDexie = useCallback(async (): Promise<CardRecord[]> => {
+    const allCards = await db.cards.toArray();
     const now = new Date();
-    const dueCards = (await db.cards.toArray()).filter(
-      (c) => c.repetitions > 0 && new Date(c.next_review) <= now,
-    ) as Card[];
-    const newCards = (await db.cards.toArray()).filter(
-      (c) => c.repetitions === 0,
-    ) as Card[];
 
-    const result: Card[] = [];
+    const dueCards = allCards.filter(
+      (c) => c.repetitions > 0 && new Date(c.next_review) <= now,
+    );
+    const newCards = allCards.filter((c) => c.repetitions === 0);
+
+    const result: CardRecord[] = [];
     const maxLen = Math.max(dueCards.length, newCards.length);
     for (let i = 0; i < maxLen; i++) {
       if (i < dueCards.length) result.push(dueCards[i]);
@@ -52,10 +39,9 @@ export default function Review() {
     }
 
     if (result.length < 10) {
-      const upcoming = (await db.cards.toArray()).filter(
-        (c) => c.repetitions > 0 && new Date(c.next_review) > now,
-      ) as Card[];
-      upcoming.sort((a, b) => new Date(a.next_review).getTime() - new Date(b.next_review).getTime());
+      const upcoming = allCards
+        .filter((c) => c.repetitions > 0 && new Date(c.next_review) > now)
+        .sort((a, b) => new Date(a.next_review).getTime() - new Date(b.next_review).getTime());
       for (const c of upcoming) {
         if (result.length >= 10) break;
         if (!result.some((r) => r.id === c.id)) result.push(c);
@@ -69,12 +55,12 @@ export default function Review() {
     return result;
   }, []);
 
-  const addDirection = (cards: Card[]): ReviewCard[] =>
+  const addDirection = (cards: CardRecord[]): ReviewCard[] =>
     cards.map((c) => ({ ...c, reversed: Math.random() < 0.5 }));
 
   const load = useCallback(async () => {
     try {
-      const due = await api<Card[]>('/review/due');
+      const due = await api<CardRecord[]>('/review/due');
       setCards(addDirection(due));
       setDone(due.length === 0);
     } catch {
@@ -121,41 +107,7 @@ export default function Review() {
     const gradeMap = { left: 1, right: 4, up: 5 };
     const grade = gradeMap[direction];
 
-    const result = sm2({
-      grade,
-      repetitions: card.repetitions,
-      easeFactor: card.ease_factor,
-      intervalDays: card.interval_days,
-    });
-
-    await db.cards.put({
-      ...card,
-      ease_factor: result.easeFactor,
-      interval_days: result.intervalDays,
-      repetitions: result.repetitions,
-      next_review: result.nextReview.toISOString(),
-      created_at: card.created_at,
-      updated_at: new Date().toISOString(),
-    });
-
-    await db.syncQueue.add({
-      card_id: card.id,
-      grade,
-      reviewed_at: new Date().toISOString(),
-    });
-
-    try {
-      await api('/review', {
-        method: 'POST',
-        body: JSON.stringify({ card_id: card.id, grade }),
-      });
-      const lastItem = await db.syncQueue.orderBy('id').last();
-      if (lastItem?.id && lastItem.card_id === card.id) {
-        await db.syncQueue.delete(lastItem.id);
-      }
-    } catch {
-      // Will sync later
-    }
+    await reviewCardMutation(card, grade);
 
     if (index + 1 >= cards.length) {
       setDone(true);
@@ -176,9 +128,9 @@ export default function Review() {
   async function handleContinueLearning() {
     setLoadingMore(true);
     try {
-      let moreCards: Card[];
+      let moreCards: CardRecord[];
       try {
-        moreCards = await api<Card[]>('/review/due');
+        moreCards = await api<CardRecord[]>('/review/due');
       } catch {
         moreCards = await loadDueFromDexie();
       }
@@ -244,8 +196,8 @@ export default function Review() {
       <SwipeCard
         front={card.reversed ? card.back : card.front}
         back={card.reversed ? card.front : card.back}
-        frontImageUrl={card.reversed ? card.back_image_url : card.front_image_url}
-        backImageUrl={card.reversed ? card.front_image_url : card.back_image_url}
+        frontImageUrl={imageUrl(card.reversed ? card.back_image_url : card.front_image_url)}
+        backImageUrl={imageUrl(card.reversed ? card.front_image_url : card.back_image_url)}
         onSwipeComplete={handleSwipeComplete}
         onDragSwipe={startSwipe}
         flipped={flipped}

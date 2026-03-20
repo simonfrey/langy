@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { api, setToken, clearToken } from '../lib/api';
+import { api, setToken, clearToken, setOnUnauthorized } from '../lib/api';
 import React from 'react';
 
 interface User {
@@ -33,6 +33,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
     setLoading(false);
+
+    setOnUnauthorized(() => setUser(null));
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {

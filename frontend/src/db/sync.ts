@@ -1,27 +1,6 @@
 import { db } from './dexie';
+import type { CardRecord, DeckRecord } from './dexie';
 import { api } from '../lib/api';
-
-interface Deck {
-  id: string;
-  user_id: string;
-  name: string;
-  source_lang: string;
-  target_lang: string;
-  created_at: string;
-}
-
-interface Card {
-  id: string;
-  deck_id: string;
-  front: string;
-  back: string;
-  ease_factor: number;
-  interval_days: number;
-  repetitions: number;
-  next_review: string;
-  created_at: string;
-  updated_at: string;
-}
 
 export async function pushSyncQueue() {
   const items = await db.syncQueue.toArray();
@@ -45,21 +24,19 @@ export async function pushSyncQueue() {
 }
 
 export async function pullData() {
-  try {
-    const decks = await api<Deck[]>('/decks');
-    await db.decks.clear();
-    if (decks.length > 0) {
-      await db.decks.bulkPut(decks);
-    }
+  if (!navigator.onLine) return;
 
-    for (const deck of decks) {
-      const cards = await api<Card[]>(`/decks/${deck.id}/cards`);
-      if (cards.length > 0) {
-        await db.cards.bulkPut(cards);
-      }
+  const decks = await api<DeckRecord[]>('/decks');
+  await db.decks.clear();
+  if (decks.length > 0) {
+    await db.decks.bulkPut(decks);
+  }
+
+  for (const deck of decks) {
+    const cards = await api<CardRecord[]>(`/decks/${deck.id}/cards`);
+    if (cards.length > 0) {
+      await db.cards.bulkPut(cards);
     }
-  } catch {
-    // Offline - use cached data
   }
 }
 

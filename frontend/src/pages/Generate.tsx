@@ -4,13 +4,8 @@ import { formatLanguage } from '../lib/languages';
 import { useOffline } from '../hooks/useOffline';
 import OfflineBanner from '../components/OfflineBanner';
 import { BlobBackground, SparkleIllustration } from '../components/Blobs';
-
-interface Deck {
-  id: string;
-  name: string;
-  source_lang: string;
-  target_lang: string;
-}
+import { useDecks } from '../hooks/useDecks';
+import { addCardFromGenerate } from '../db/mutations';
 
 interface GeneratedCard {
   front: string;
@@ -24,7 +19,7 @@ interface PendingCard extends GeneratedCard {
 }
 
 export default function Generate() {
-  const [decks, setDecks] = useState<Deck[]>([]);
+  const decks = useDecks();
   const [deckId, setDeckId] = useState('');
   const [prompt, setPrompt] = useState('');
   const [loading, setLoading] = useState(false);
@@ -37,11 +32,8 @@ export default function Generate() {
   const isOffline = useOffline();
 
   useEffect(() => {
-    api<Deck[]>('/decks').then((d) => {
-      setDecks(d);
-      if (d.length > 0) setDeckId(d[0].id);
-    }).catch(() => {});
-  }, []);
+    if (decks.length > 0 && !deckId) setDeckId(decks[0].id);
+  }, [decks, deckId]);
 
   const selectedDeck = decks.find((d) => d.id === deckId);
 
@@ -101,14 +93,11 @@ export default function Generate() {
     let saved = 0;
     for (const card of selected) {
       try {
-        await api(`/decks/${deckId}/cards`, {
-          method: 'POST',
-          body: JSON.stringify({
-            front: card.front,
-            back: card.back,
-            front_image_base64: card.front_image_base64 || undefined,
-            front_image_type: card.front_image_type || undefined,
-          }),
+        await addCardFromGenerate(deckId, {
+          front: card.front,
+          back: card.back,
+          front_image_base64: card.front_image_base64 || undefined,
+          front_image_type: card.front_image_type || undefined,
         });
         saved++;
         setSaveProgress({ done: saved, total: selected.length });

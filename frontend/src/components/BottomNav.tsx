@@ -1,6 +1,5 @@
-import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { db } from '../db/dexie';
+import { useHasDecks } from '../hooks/useDecks';
 
 const tabs = [
   {
@@ -35,14 +34,7 @@ const tabs = [
 export default function BottomNav() {
   const location = useLocation();
   const navigate = useNavigate();
-  const [hasDecks, setHasDecks] = useState(true);
-
-  useEffect(() => {
-    const check = () => db.decks.count().then((c) => setHasDecks(c > 0));
-    check();
-    const id = setInterval(check, 2000);
-    return () => clearInterval(id);
-  }, []);
+  const hasDecks = useHasDecks();
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-lg border-t border-warm-200 pb-[env(safe-area-inset-bottom)]">

@@ -164,17 +164,48 @@ func (h *CardsHandler) UpdateCard(w http.ResponseWriter, r *http.Request) {
 	userID := middleware.GetUserID(r.Context())
 	cardID := chi.URLParam(r, "id")
 
-	var req updateCardRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid request body"})
-		return
+	var front, back string
+	var images *db.CardImageData
+
+	contentType := r.Header.Get("Content-Type")
+	if len(contentType) >= 19 && contentType[:19] == "multipart/form-data" {
+		if err := r.ParseMultipartForm(20 << 20); err != nil {
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid multipart form"})
+			return
+		}
+		front = r.FormValue("front")
+		back = r.FormValue("back")
+
+		images = &db.CardImageData{}
+		if file, header, err := r.FormFile("front_image"); err == nil {
+			defer file.Close()
+			images.FrontImage, _ = io.ReadAll(file)
+			images.FrontImageType = header.Header.Get("Content-Type")
+		}
+		if file, header, err := r.FormFile("back_image"); err == nil {
+			defer file.Close()
+			images.BackImage, _ = io.ReadAll(file)
+			images.BackImageType = header.Header.Get("Content-Type")
+		}
+		if len(images.FrontImage) == 0 && len(images.BackImage) == 0 {
+			images = nil
+		}
+	} else {
+		var req updateCardRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid request body"})
+			return
+		}
+		front = req.Front
+		back = req.Back
 	}
-	if req.Front == "" || req.Back == "" {
+
+	if front == "" || back == "" {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "front and back required"})
 		return
 	}
 
-	if err := h.DB.UpdateCard(r.Context(), userID, cardID, req.Front, req.Back); err != nil {
+	if err := h.DB.UpdateCard(r.Context(), userID, cardID, front, back, images); err != nil {
 		slog.Error("failed to update card", "error", err, "user_id", userID, "card_id", cardID)
 		writeJSON(w, http.StatusNotFound, map[string]string{"error": "card not found"})
 		return

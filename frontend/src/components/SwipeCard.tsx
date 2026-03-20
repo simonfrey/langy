@@ -1,4 +1,5 @@
 import { motion, useMotionValue, useTransform, animate as animateValue, type PanInfo } from 'framer-motion';
+import AuthImage from './AuthImage';
 
 interface Props {
   front: string;
@@ -134,10 +135,10 @@ export default function SwipeCard({ front, back, frontImageUrl, backImageUrl, on
             className="text-2xl font-bold text-warm-900 text-center"
           >
             {!flipped && frontImageUrl && (
-              <img src={frontImageUrl} alt="" className="max-h-32 mx-auto mb-3 rounded-lg object-contain" />
+              <AuthImage src={frontImageUrl} alt="" className="max-h-32 mx-auto mb-3 rounded-lg object-contain" />
             )}
             {flipped && backImageUrl && (
-              <img src={backImageUrl} alt="" className="max-h-32 mx-auto mb-3 rounded-lg object-contain" />
+              <AuthImage src={backImageUrl} alt="" className="max-h-32 mx-auto mb-3 rounded-lg object-contain" />
             )}
             {flipped ? back : front}
           </motion.div>
