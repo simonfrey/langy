@@ -10,6 +10,7 @@ export async function pushSyncQueue() {
     card_id: item.card_id,
     grade: item.grade,
     reviewed_at: item.reviewed_at,
+    response_time_ms: item.response_time_ms,
   }));
 
   try {

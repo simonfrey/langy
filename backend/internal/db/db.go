@@ -480,10 +480,10 @@ func (d *DB) DeleteCard(ctx context.Context, userID, cardID string) error {
 	return nil
 }
 
-func (d *DB) CreateReviewLog(ctx context.Context, cardID, userID string, grade int, reviewedAt time.Time) error {
+func (d *DB) CreateReviewLog(ctx context.Context, cardID, userID string, grade int, reviewedAt time.Time, responseTimeMs *int) error {
 	_, err := d.Pool.Exec(ctx,
-		`INSERT INTO review_logs (card_id, user_id, grade, reviewed_at) VALUES ($1, $2, $3, $4)`,
-		cardID, userID, grade, reviewedAt)
+		`INSERT INTO review_logs (card_id, user_id, grade, reviewed_at, response_time_ms) VALUES ($1, $2, $3, $4, $5)`,
+		cardID, userID, grade, reviewedAt, responseTimeMs)
 	if err != nil {
 		return fmt.Errorf("create review log: %w", err)
 	}

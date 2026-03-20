@@ -16,9 +16,10 @@ type SyncHandler struct {
 }
 
 type syncAction struct {
-	CardID     string    `json:"card_id"`
-	Grade      int       `json:"grade"`
-	ReviewedAt time.Time `json:"reviewed_at"`
+	CardID         string    `json:"card_id"`
+	Grade          int       `json:"grade"`
+	ReviewedAt     time.Time `json:"reviewed_at"`
+	ResponseTimeMs *int      `json:"response_time_ms,omitempty"`
 }
 
 type syncRequest struct {
@@ -69,7 +70,7 @@ func (h *SyncHandler) Sync(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		if err := h.DB.CreateReviewLog(r.Context(), card.ID, userID, action.Grade, action.ReviewedAt); err != nil {
+		if err := h.DB.CreateReviewLog(r.Context(), card.ID, userID, action.Grade, action.ReviewedAt, action.ResponseTimeMs); err != nil {
 			slog.Error("sync: failed to create review log", "error", err, "user_id", userID, "card_id", action.CardID)
 			result.Errors = append(result.Errors, "failed to log review: "+action.CardID)
 			continue

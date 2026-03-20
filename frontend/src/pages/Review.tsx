@@ -8,6 +8,7 @@ import { useOffline } from '../hooks/useOffline';
 import OfflineBanner from '../components/OfflineBanner';
 import { BlobBackground, CelebrationIllustration } from '../components/Blobs';
 import { reviewCard as reviewCardMutation } from '../db/mutations';
+import { computeGrade, recordTiming } from '../lib/adaptiveGrade';
 
 interface ReviewCard extends CardRecord {
   reversed: boolean;
@@ -32,7 +33,8 @@ export default function Review() {
   const [done, setDone] = useState(false);
   const [flipped, setFlipped] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [exitDirection, setExitDirection] = useState<'left' | 'right' | 'up' | null>(null);
+  const [exitDirection, setExitDirection] = useState<'left' | 'right' | null>(null);
+  const [cardShownTimestamp, setCardShownTimestamp] = useState<number>(Date.now());
   const isOffline = useOffline();
 
   const loadDueFromDexie = useCallback(async (): Promise<CardRecord[]> => {
@@ -86,12 +88,13 @@ export default function Review() {
       setDone(local.length === 0);
     } finally {
       setLoading(false);
+      setCardShownTimestamp(Date.now());
     }
   }, [loadDueFromDexie]);
 
   useEffect(() => { load(); }, [load]);
 
-  function startSwipe(dir: 'left' | 'right' | 'up') {
+  function startSwipe(dir: 'left' | 'right') {
     if (exitDirection) return;
     setExitDirection(dir);
     setFlipped(false);
@@ -107,29 +110,32 @@ export default function Review() {
         startSwipe('left');
       } else if (e.key === 'ArrowRight' && flipped) {
         startSwipe('right');
-      } else if (e.key === 'ArrowUp' && flipped) {
-        e.preventDefault();
-        startSwipe('up');
       }
     }
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
   }, [done, loading, flipped, exitDirection]);
 
-  async function handleSwipeComplete(direction: 'left' | 'right' | 'up') {
+  async function handleSwipeComplete(direction: 'left' | 'right') {
     setExitDirection(null);
     const card = cards[index];
     if (!card) return;
 
-    const gradeMap = { left: 1, right: 4, up: 5 };
-    const grade = gradeMap[direction];
+    const responseTimeMs = Date.now() - cardShownTimestamp;
+    let grade = direction === 'left' ? 1 : 4;
 
-    await reviewCardMutation(card, grade);
+    if (grade === 4) {
+      grade = await computeGrade(responseTimeMs);
+      await recordTiming(responseTimeMs);
+    }
+
+    await reviewCardMutation(card, grade, responseTimeMs);
 
     if (index + 1 >= cards.length) {
       setDone(true);
     } else {
       setIndex(index + 1);
+      setCardShownTimestamp(Date.now());
     }
     setFlipped(false);
   }
@@ -154,6 +160,7 @@ export default function Review() {
       if (moreCards.length > 0) {
         setCards(addDirection(moreCards));
         setIndex(0);
+        setCardShownTimestamp(Date.now());
         setDone(false);
         setFlipped(false);
       }
@@ -252,7 +259,7 @@ export default function Review() {
           onSwipeComplete={handleSwipeComplete}
           onDragSwipe={startSwipe}
           flipped={flipped}
-          onFlipChange={setFlipped}
+          onFlipChange={(f) => { setFlipped(f); }}
           exitDirection={exitDirection}
           jitter={getJitter(index)}
         />
@@ -261,7 +268,7 @@ export default function Review() {
       {!flipped ? (
         <div className="flex justify-center mt-6">
           <button
-            onClick={() => setFlipped(true)}
+            onClick={() => { setFlipped(true); }}
             className="px-8 py-3 bg-warm-100 hover:bg-warm-200 text-warm-700 font-bold rounded-xl transition border border-warm-200"
           >
             Tap to Flip
@@ -280,12 +287,6 @@ export default function Review() {
             className="flex-1 max-w-[140px] py-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 font-bold rounded-xl transition border border-emerald-200"
           >
             Good
-          </button>
-          <button
-            onClick={() => startSwipe('up')}
-            className="flex-1 max-w-[140px] py-3 bg-sky-50 hover:bg-sky-100 text-sky-600 font-bold rounded-xl transition border border-sky-200"
-          >
-            Easy
           </button>
         </div>
       )}

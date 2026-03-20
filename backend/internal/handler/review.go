@@ -17,9 +17,10 @@ type ReviewHandler struct {
 }
 
 type reviewRequest struct {
-	CardID     string    `json:"card_id"`
-	Grade      int       `json:"grade"`
-	ReviewedAt time.Time `json:"reviewed_at"`
+	CardID         string    `json:"card_id"`
+	Grade          int       `json:"grade"`
+	ReviewedAt     time.Time `json:"reviewed_at"`
+	ResponseTimeMs *int      `json:"response_time_ms,omitempty"`
 }
 
 const minCards = 10
@@ -131,7 +132,7 @@ func (h *ReviewHandler) SubmitReview(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.DB.CreateReviewLog(r.Context(), card.ID, userID, req.Grade, req.ReviewedAt); err != nil {
+	if err := h.DB.CreateReviewLog(r.Context(), card.ID, userID, req.Grade, req.ReviewedAt, req.ResponseTimeMs); err != nil {
 		slog.Error("failed to create review log", "error", err, "user_id", userID, "card_id", card.ID)
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "failed to log review"})
 		return

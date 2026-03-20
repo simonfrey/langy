@@ -12,19 +12,18 @@ interface Props {
   back: string;
   frontImageUrl?: string;
   backImageUrl?: string;
-  onSwipeComplete: (direction: 'left' | 'right' | 'up') => void;
-  onDragSwipe: (direction: 'left' | 'right' | 'up') => void;
+  onSwipeComplete: (direction: 'left' | 'right') => void;
+  onDragSwipe: (direction: 'left' | 'right') => void;
   flipped: boolean;
   onFlipChange: (flipped: boolean) => void;
-  exitDirection: 'left' | 'right' | 'up' | null;
+  exitDirection: 'left' | 'right' | null;
   jitter?: Jitter;
 }
 
-function getExitTarget(dir: 'left' | 'right' | 'up') {
+function getExitTarget(dir: 'left' | 'right') {
   switch (dir) {
     case 'left': return { x: -800, y: 0, rotate: -30, opacity: 0 };
     case 'right': return { x: 800, y: 0, rotate: 30, opacity: 0 };
-    case 'up': return { x: 0, y: -800, rotate: 0, opacity: 0 };
   }
 }
 
@@ -50,29 +49,21 @@ export default function SwipeCard({ front, back, frontImageUrl, backImageUrl, on
 
   const greenOpacity = useTransform(x, [j.x, j.x + 100], [0, 1]);
   const redOpacity = useTransform(x, [j.x - 100, j.x], [1, 0]);
-  const blueOpacity = useTransform(y, [j.y - 100, j.y], [1, 0]);
 
   function handleDragEnd(_: unknown, info: PanInfo) {
     const pctThreshold = 0.10;
     const velocityThreshold = 300;
     const vw = window.innerWidth;
-    const vh = window.innerHeight;
 
     const absX = Math.abs(info.offset.x);
-    const absY = Math.abs(info.offset.y);
     const absVx = Math.abs(info.velocity.x);
-    const absVy = Math.abs(info.velocity.y);
 
-    const isUp = info.offset.y < 0 && absY > absX &&
-      (absY > vh * pctThreshold || absVy > velocityThreshold);
     const isRight = info.offset.x > 0 &&
       (absX > vw * pctThreshold || absVx > velocityThreshold);
     const isLeft = info.offset.x < 0 &&
       (absX > vw * pctThreshold || absVx > velocityThreshold);
 
-    if (isUp) {
-      animateDismiss('up');
-    } else if (isRight) {
+    if (isRight) {
       animateDismiss('right');
     } else if (isLeft) {
       animateDismiss('left');
@@ -83,7 +74,7 @@ export default function SwipeCard({ front, back, frontImageUrl, backImageUrl, on
     }
   }
 
-  function animateDismiss(dir: 'left' | 'right' | 'up') {
+  function animateDismiss(dir: 'left' | 'right') {
     const target = getExitTarget(dir);
     const spring = { type: 'spring' as const, stiffness: 200, damping: 25 };
     animateValue(x, target.x, spring);
@@ -126,12 +117,6 @@ export default function SwipeCard({ front, back, frontImageUrl, backImageUrl, on
         >
           AGAIN
         </motion.div>
-        <motion.div
-          className="absolute left-1/2 -translate-x-1/2 -top-2 bg-sky-500 text-white font-bold px-3 py-1 rounded-lg text-sm z-10 shadow-md"
-          style={{ opacity: blueOpacity }}
-        >
-          EASY
-        </motion.div>
 
         <div className="bg-white rounded-2xl shadow-lg border border-warm-200 p-8 min-h-[340px] flex flex-col items-center justify-center">
           <div className="text-xs text-warm-400 uppercase tracking-wider mb-4 font-semibold">
@@ -154,8 +139,7 @@ export default function SwipeCard({ front, back, frontImageUrl, backImageUrl, on
           {flipped && (
             <p className="text-warm-400 text-sm mt-6">
               Swipe: <span className="text-red-400 font-semibold">left</span> again &middot;{' '}
-              <span className="text-emerald-500 font-semibold">right</span> good &middot;{' '}
-              <span className="text-sky-500 font-semibold">up</span> easy
+              <span className="text-emerald-500 font-semibold">right</span> good
             </p>
           )}
         </div>

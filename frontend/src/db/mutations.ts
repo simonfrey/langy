@@ -45,7 +45,7 @@ export async function deleteCard(cardId: string) {
   await db.cards.delete(cardId);
 }
 
-export async function reviewCard(card: CardRecord, grade: number) {
+export async function reviewCard(card: CardRecord, grade: number, responseTimeMs?: number | null) {
   const result = sm2({
     grade,
     repetitions: card.repetitions,
@@ -67,12 +67,13 @@ export async function reviewCard(card: CardRecord, grade: number) {
     card_id: card.id,
     grade,
     reviewed_at: new Date().toISOString(),
+    response_time_ms: responseTimeMs ?? undefined,
   });
 
   try {
     await api('/review', {
       method: 'POST',
-      body: JSON.stringify({ card_id: card.id, grade }),
+      body: JSON.stringify({ card_id: card.id, grade, response_time_ms: responseTimeMs ?? undefined }),
     });
     const lastItem = await db.syncQueue.orderBy('id').last();
     if (lastItem?.id && lastItem.card_id === card.id) {

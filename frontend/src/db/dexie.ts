@@ -29,12 +29,19 @@ export interface SyncQueueItem {
   card_id: string;
   grade: number;
   reviewed_at: string;
+  response_time_ms?: number;
+}
+
+export interface ReviewTiming {
+  id?: number;
+  response_time_ms: number;
 }
 
 class LangyDB extends Dexie {
   decks!: EntityTable<DeckRecord, 'id'>;
   cards!: EntityTable<CardRecord, 'id'>;
   syncQueue!: EntityTable<SyncQueueItem, 'id'>;
+  reviewTimings!: EntityTable<ReviewTiming, 'id'>;
 
   constructor() {
     super('langy');
@@ -42,6 +49,12 @@ class LangyDB extends Dexie {
       decks: 'id, user_id',
       cards: 'id, deck_id, next_review',
       syncQueue: '++id, card_id',
+    });
+    this.version(2).stores({
+      decks: 'id, user_id',
+      cards: 'id, deck_id, next_review',
+      syncQueue: '++id, card_id',
+      reviewTimings: '++id',
     });
   }
 }
