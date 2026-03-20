@@ -72,84 +72,16 @@ func langName(code string) string {
 	return code
 }
 
-func (c *Client) GenerateCards(ctx context.Context, prompt, sourceLang, targetLang string, images []ImageData, generateImages bool) ([]CardPair, error) {
+func (c *Client) GenerateCards(ctx context.Context, prompt, sourceLang, targetLang string, images []ImageData, generateImages bool, mode string) ([]CardPair, error) {
 	srcName := langName(sourceLang)
 	tgtName := langName(targetLang)
 	hasImages := len(images) > 0
 
 	var fullPrompt string
-	switch {
-	case hasImages && generateImages:
-		// Text + image input, with image output
-		fullPrompt = fmt.Sprintf(`You are a vocabulary flashcard generator. Carefully analyze the attached photo(s) and identify all visible objects, actions, settings, signs, text, food, animals, and contextual details.
-
-Generate flashcard pairs for learning %s from %s based on what you see in the image(s).
-- "front": the %s word/phrase for something visible in the photo
-- "back": the %s translation
-
-Additional context from the user: %s
-
-Guidelines:
-- Start with the most prominent items in the photo, then work outward
-- Keep terms concrete and visually representable (an illustration will be generated for each card)
-- Avoid abstract concepts that are hard to depict visually
-- Include common collocations or idiomatic usage where appropriate
-- For non-Latin script languages, include romanization in the "back" field
-- Do NOT include standalone pronunciation hints
-- Use verb forms for visible actions
-- Vary difficulty levels across the set
-- Generate 8-15 cards unless the user requests a specific number`, tgtName, srcName, tgtName, srcName, prompt)
-
-	case hasImages && !generateImages:
-		// Text + image input, no image output
-		fullPrompt = fmt.Sprintf(`You are a vocabulary flashcard generator. Carefully analyze the attached photo(s) and identify all visible objects, actions, settings, signs, text, food, animals, and contextual details.
-
-Generate flashcard pairs for learning %s from %s based on what you see in the image(s).
-- "front": the %s word/phrase for something visible in the photo
-- "back": the %s translation
-
-Additional context from the user: %s
-
-Guidelines:
-- Start with the most prominent items in the photo, then work outward
-- Include both concrete nouns and action verbs for what you see
-- Include common collocations or idiomatic usage where appropriate
-- For non-Latin script languages, include romanization in the "back" field
-- Do NOT include standalone pronunciation hints
-- Vary difficulty levels across the set
-- Generate 8-15 cards unless the user requests a specific number`, tgtName, srcName, tgtName, srcName, prompt)
-
-	case !hasImages && generateImages:
-		// Text-only input, with image output
-		fullPrompt = fmt.Sprintf(`Generate flashcard pairs for learning %s from %s.
-- "front": the %s word/phrase
-- "back": the %s translation
-
-Topic/Request: %s
-
-Guidelines:
-- Favor concrete, visually representable terms (an illustration will be generated for each card)
-- Avoid abstract concepts that are hard to depict visually
-- Include natural, commonly-used expressions
-- For non-Latin script languages, include romanization in the "back" field
-- Do NOT include standalone pronunciation hints
-- Vary difficulty levels within the set
-- If the request implies a specific number, generate exactly that many. Otherwise, generate around 10.`, tgtName, srcName, tgtName, srcName, prompt)
-
-	default:
-		// Text-only input, no image output
-		fullPrompt = fmt.Sprintf(`Generate flashcard pairs for learning %s from %s.
-- "front": the %s word/phrase
-- "back": the %s translation
-
-Topic/Request: %s
-
-Guidelines:
-- Include natural, commonly-used expressions
-- For non-Latin script languages, include romanization in the "back" field
-- Do NOT include standalone pronunciation hints
-- Vary difficulty levels within the set
-- If the request implies a specific number, generate exactly that many. Otherwise, generate around 10.`, tgtName, srcName, tgtName, srcName, prompt)
+	if mode == "grammar" {
+		fullPrompt = c.buildGrammarPrompt(prompt, srcName, tgtName, hasImages, generateImages)
+	} else {
+		fullPrompt = c.buildVocabularyPrompt(prompt, srcName, tgtName, hasImages, generateImages)
 	}
 
 	parts := []*genai.Part{
@@ -187,7 +119,7 @@ Guidelines:
 	if generateImages {
 		var imgFailures int
 		for i := range pairs {
-			imgData, mimeType, err := c.generateCardImage(ctx, pairs[i].Front, pairs[i].Back, tgtName)
+			imgData, mimeType, err := c.generateCardImage(ctx, pairs[i].Front, pairs[i].Back, tgtName, mode)
 			if err != nil {
 				slog.Warn("failed to generate card image", "error", err, "front", pairs[i].Front)
 				imgFailures++
@@ -204,8 +136,106 @@ Guidelines:
 	return pairs, nil
 }
 
-func (c *Client) generateCardImage(ctx context.Context, front, back, lang string) ([]byte, string, error) {
-	prompt := fmt.Sprintf("Simple, clean flashcard illustration for the %s word '%s' (meaning: %s). Minimal style, no text, white background.", lang, front, back)
+func (c *Client) buildVocabularyPrompt(prompt, srcName, tgtName string, hasImages, generateImages bool) string {
+	switch {
+	case hasImages && generateImages:
+		return fmt.Sprintf(`You are a vocabulary flashcard generator. Carefully analyze the attached photo(s) and identify all visible objects, actions, settings, signs, text, food, animals, and contextual details.
+
+Generate flashcard pairs for learning %s from %s based on what you see in the image(s).
+- "front": the %s word/phrase for something visible in the photo
+- "back": the %s translation
+
+Additional context from the user: %s
+
+Guidelines:
+- Start with the most prominent items in the photo, then work outward
+- Keep terms concrete and visually representable (an illustration will be generated for each card)
+- Avoid abstract concepts that are hard to depict visually
+- Include common collocations or idiomatic usage where appropriate
+- For non-Latin script languages, include romanization in the "back" field
+- Do NOT include standalone pronunciation hints
+- Use verb forms for visible actions
+- Vary difficulty levels across the set
+- Generate 8-15 cards unless the user requests a specific number`, tgtName, srcName, tgtName, srcName, prompt)
+
+	case hasImages && !generateImages:
+		return fmt.Sprintf(`You are a vocabulary flashcard generator. Carefully analyze the attached photo(s) and identify all visible objects, actions, settings, signs, text, food, animals, and contextual details.
+
+Generate flashcard pairs for learning %s from %s based on what you see in the image(s).
+- "front": the %s word/phrase for something visible in the photo
+- "back": the %s translation
+
+Additional context from the user: %s
+
+Guidelines:
+- Start with the most prominent items in the photo, then work outward
+- Include both concrete nouns and action verbs for what you see
+- Include common collocations or idiomatic usage where appropriate
+- For non-Latin script languages, include romanization in the "back" field
+- Do NOT include standalone pronunciation hints
+- Vary difficulty levels across the set
+- Generate 8-15 cards unless the user requests a specific number`, tgtName, srcName, tgtName, srcName, prompt)
+
+	case !hasImages && generateImages:
+		return fmt.Sprintf(`Generate flashcard pairs for learning %s from %s.
+- "front": the %s word/phrase
+- "back": the %s translation
+
+Topic/Request: %s
+
+Guidelines:
+- Favor concrete, visually representable terms (an illustration will be generated for each card)
+- Avoid abstract concepts that are hard to depict visually
+- Include natural, commonly-used expressions
+- For non-Latin script languages, include romanization in the "back" field
+- Do NOT include standalone pronunciation hints
+- Vary difficulty levels within the set
+- If the request implies a specific number, generate exactly that many. Otherwise, generate around 10.`, tgtName, srcName, tgtName, srcName, prompt)
+
+	default:
+		return fmt.Sprintf(`Generate flashcard pairs for learning %s from %s.
+- "front": the %s word/phrase
+- "back": the %s translation
+
+Topic/Request: %s
+
+Guidelines:
+- Include natural, commonly-used expressions
+- For non-Latin script languages, include romanization in the "back" field
+- Do NOT include standalone pronunciation hints
+- Vary difficulty levels within the set
+- If the request implies a specific number, generate exactly that many. Otherwise, generate around 10.`, tgtName, srcName, tgtName, srcName, prompt)
+	}
+}
+
+func (c *Client) buildGrammarPrompt(prompt, srcName, tgtName string, hasImages, generateImages bool) string {
+	basePrompt := fmt.Sprintf(`You are a grammar flashcard generator for learning %s from %s.
+
+Generate flashcard pairs that teach grammar rules, patterns, and exercises.
+- "front": a grammar challenge, question, or exercise in %s (e.g., conjugation prompt, fill-in-the-blank, "when do you use X?", sentence transformation)
+- "back": the answer, rule, or explanation in %s
+
+Topic/Request: %s
+
+Guidelines:
+- Mix card types: conjugation exercises, fill-in-the-blank, rule explanations, sentence corrections, pattern recognition
+- Focus on practical, commonly-needed grammar patterns
+- For conjugation cards, test specific forms (not full tables on one card)
+- Include example sentences where helpful
+- For non-Latin script languages, include romanization in the "back" field
+- Vary difficulty levels within the set
+- If the request implies a specific number, generate exactly that many. Otherwise, generate around 10.`, tgtName, srcName, tgtName, srcName, prompt)
+
+	return basePrompt
+}
+
+func (c *Client) generateCardImage(ctx context.Context, front, back, lang, mode string) ([]byte, string, error) {
+	var prompt string
+	if mode == "grammar" {
+		prompt = fmt.Sprintf("Clean educational diagram showing the grammar concept: '%s' (answer: %s). Use a simple table or visual layout. Minimal style, white background, clear text labels in %s.", front, back, lang)
+	} else {
+		prompt = fmt.Sprintf("Simple, clean flashcard illustration for the %s word '%s' (meaning: %s). Minimal style, no text, white background.", lang, front, back)
+	}
 
 	result, err := c.client.Models.GenerateContent(
 		ctx,

@@ -22,6 +22,7 @@ interface PendingCard extends GeneratedCard {
 export default function Generate() {
   const decks = useDecksWithCounts();
   const [deckId, setDeckId] = useState('');
+  const [mode, setMode] = useState<'vocabulary' | 'grammar'>('vocabulary');
   const [prompt, setPrompt] = useState('');
   const [loading, setLoading] = useState(false);
   const [pendingCards, setPendingCards] = useState<PendingCard[]>([]);
@@ -59,6 +60,7 @@ export default function Generate() {
           target_lang: selectedDeck.target_lang,
           deck_id: deckId,
           generate_images: generateImages,
+          mode,
         }),
       });
       setPendingCards(cards.map((c) => ({ ...c, selected: true })));
@@ -83,6 +85,7 @@ export default function Generate() {
         fd.append('target_lang', selectedDeck?.target_lang || '');
         fd.append('deck_id', deckId);
         fd.append('generate_images', String(generateImages));
+        fd.append('mode', mode);
         images.forEach((img) => fd.append('images', img));
         cards = await apiFormData<GeneratedCard[]>('/generate', fd);
       } else {
@@ -94,6 +97,7 @@ export default function Generate() {
             target_lang: selectedDeck?.target_lang || '',
             deck_id: deckId,
             generate_images: generateImages,
+            mode,
           }),
         });
       }
@@ -183,6 +187,22 @@ export default function Generate() {
         )}
 
         <div>
+          <label className="block text-sm font-semibold text-warm-700 mb-1">Card Type</label>
+          <div className="flex rounded-xl overflow-hidden border border-warm-200">
+            {(['vocabulary', 'grammar'] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setMode(m)}
+                className={`flex-1 py-2 text-sm font-semibold transition ${mode === m ? 'bg-coral text-white' : 'bg-warm-100 text-warm-600 hover:bg-warm-200'}`}
+              >
+                {m === 'vocabulary' ? 'Vocabulary' : 'Grammar'}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
           <label className="block text-sm font-semibold text-warm-700 mb-1">Prompt</label>
           <textarea
             value={prompt}
@@ -193,7 +213,10 @@ export default function Generate() {
             className="w-full bg-warm-100 rounded-xl border border-warm-200 px-4 py-3 text-warm-900 placeholder-warm-400 focus:outline-none focus:ring-2 focus:ring-coral resize-none"
           />
           <div className="flex flex-wrap gap-2 mt-2">
-            {['Food & drinks', 'Travel basics', 'Common greetings', 'Numbers 1-100', 'Daily routines', 'At the restaurant'].map((chip) => (
+            {(mode === 'grammar'
+              ? ['Present tense conjugation', 'Past tense rules', 'Word order', 'Cases & declension', 'Subjunctive mood', 'Common prepositions']
+              : ['Food & drinks', 'Travel basics', 'Common greetings', 'Numbers 1-100', 'Daily routines', 'At the restaurant']
+            ).map((chip) => (
               <button
                 key={chip}
                 type="button"

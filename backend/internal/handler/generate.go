@@ -25,12 +25,13 @@ type generateRequest struct {
 	DeckID         string `json:"deck_id"`
 	GenerateImages bool   `json:"generate_images"`
 	FromDeck       bool   `json:"from_deck"`
+	Mode           string `json:"mode"`
 }
 
 func (h *GenerateHandler) Generate(w http.ResponseWriter, r *http.Request) {
 	userID := middleware.GetUserID(r.Context())
 
-	var prompt, sourceLang, targetLang, deckID string
+	var prompt, sourceLang, targetLang, deckID, mode string
 	var generateImages, fromDeck bool
 	var images []gemini.ImageData
 
@@ -46,6 +47,7 @@ func (h *GenerateHandler) Generate(w http.ResponseWriter, r *http.Request) {
 		deckID = r.FormValue("deck_id")
 		generateImages = r.FormValue("generate_images") == "true"
 		fromDeck = r.FormValue("from_deck") == "true"
+		mode = r.FormValue("mode")
 
 		for _, fh := range r.MultipartForm.File["images"] {
 			f, err := fh.Open()
@@ -74,6 +76,7 @@ func (h *GenerateHandler) Generate(w http.ResponseWriter, r *http.Request) {
 		deckID = req.DeckID
 		generateImages = req.GenerateImages
 		fromDeck = req.FromDeck
+		mode = req.Mode
 	}
 
 	if sourceLang == "" || targetLang == "" || deckID == "" {
@@ -111,10 +114,14 @@ func (h *GenerateHandler) Generate(w http.ResponseWriter, r *http.Request) {
 		for _, ct := range existingCards {
 			examples += ct.Front + " → " + ct.Back + "\n"
 		}
-		prompt = "Here are existing flashcards in this deck:\n" + examples + "\nGenerate 10 more flashcards in the same theme/category/difficulty level. Do NOT repeat any of the existing cards above."
+		if mode == "grammar" {
+			prompt = "Here are existing grammar flashcards in this deck:\n" + examples + "\nGenerate 10 more grammar flashcards covering complementary grammar topics (conjugations, cases, sentence structures, tenses, common patterns). Do NOT repeat any of the existing cards above."
+		} else {
+			prompt = "Here are existing flashcards in this deck:\n" + examples + "\nGenerate 10 more flashcards in the same theme/category/difficulty level. Do NOT repeat any of the existing cards above."
+		}
 	}
 
-	pairs, err := h.Gemini.GenerateCards(r.Context(), prompt, sourceLang, targetLang, images, generateImages)
+	pairs, err := h.Gemini.GenerateCards(r.Context(), prompt, sourceLang, targetLang, images, generateImages, mode)
 	if err != nil {
 		slog.Error("failed to generate cards via gemini", "error", err, "user_id", userID, "deck_id", deckID)
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "failed to generate cards: " + err.Error()})
