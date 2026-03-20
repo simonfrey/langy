@@ -21,3 +21,8 @@ body {
   background-color: #FFFAF5;
   font-family: 'Inter', system-ui, sans-serif;
 }
+
+/* Hand-drawn aesthetic — applied only to large content surfaces */
+.hand-drawn {
+  border: 2px solid var(--color-warm-200);
+}

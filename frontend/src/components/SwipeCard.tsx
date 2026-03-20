@@ -18,6 +18,7 @@ interface Props {
   onFlipChange: (flipped: boolean) => void;
   exitDirection: 'left' | 'right' | null;
   jitter?: Jitter;
+  handDrawnStyle?: React.CSSProperties;
 }
 
 function getExitTarget(dir: 'left' | 'right') {
@@ -27,7 +28,7 @@ function getExitTarget(dir: 'left' | 'right') {
   }
 }
 
-export default function SwipeCard({ front, back, frontImageUrl, backImageUrl, onSwipeComplete, onDragSwipe, flipped, onFlipChange, exitDirection, jitter }: Props) {
+export default function SwipeCard({ front, back, frontImageUrl, backImageUrl, onSwipeComplete, onDragSwipe, flipped, onFlipChange, exitDirection, jitter, handDrawnStyle }: Props) {
   const effectiveFrontImage = frontImageUrl || backImageUrl;
   const effectiveBackImage = backImageUrl || frontImageUrl;
 
@@ -118,7 +119,7 @@ export default function SwipeCard({ front, back, frontImageUrl, backImageUrl, on
           AGAIN
         </motion.div>
 
-        <div className="bg-white rounded-2xl shadow-lg border border-warm-200 p-8 min-h-[340px] flex flex-col items-center justify-center">
+        <div className="bg-white hand-drawn shadow-lg p-8 min-h-[340px] flex flex-col items-center justify-center" style={handDrawnStyle}>
           <div className="text-xs text-warm-400 uppercase tracking-wider mb-4 font-semibold">
             {flipped ? 'Back' : 'Front'}
           </div>

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { BlobBackground, Mascot } from '../components/Blobs';
+import { useHandDrawn } from '../hooks/useHandDrawn';
 
 export default function Login() {
   const [isRegister, setIsRegister] = useState(false);
@@ -11,6 +12,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const { login, register } = useAuth();
   const navigate = useNavigate();
+  const handDrawnStyle = useHandDrawn();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -40,13 +42,13 @@ export default function Login() {
           <p className="text-warm-500">Learn languages with spaced repetition</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-6 shadow-lg border border-warm-200">
+        <form onSubmit={handleSubmit} className="bg-white hand-drawn p-6 shadow-lg" style={handDrawnStyle}>
           <h2 className="text-xl font-bold text-warm-900 mb-6">
             {isRegister ? 'Create account' : 'Welcome back'}
           </h2>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4 text-red-600 text-sm">
+            <div className="bg-red-50 border border-red-200 rounded-xl p-3 mb-4 text-red-600 text-sm">
               {error}
             </div>
           )}
@@ -59,7 +61,7 @@ export default function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full bg-warm-100 border border-warm-200 rounded-xl px-4 py-3 text-warm-900 placeholder-warm-400 focus:outline-none focus:ring-2 focus:ring-coral focus:border-transparent transition"
+                className="w-full bg-warm-100 rounded-xl border border-warm-200 px-4 py-3 text-warm-900 placeholder-warm-400 focus:outline-none focus:ring-2 focus:ring-coral focus:border-transparent transition"
                 placeholder="you@example.com"
               />
             </div>
@@ -71,7 +73,7 @@ export default function Login() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
-                className="w-full bg-warm-100 border border-warm-200 rounded-xl px-4 py-3 text-warm-900 placeholder-warm-400 focus:outline-none focus:ring-2 focus:ring-coral focus:border-transparent transition"
+                className="w-full bg-warm-100 rounded-xl border border-warm-200 px-4 py-3 text-warm-900 placeholder-warm-400 focus:outline-none focus:ring-2 focus:ring-coral focus:border-transparent transition"
                 placeholder="••••••••"
               />
             </div>

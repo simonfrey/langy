@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatLanguage } from '../lib/languages';
 import { useOffline } from '../hooks/useOffline';
@@ -6,12 +6,18 @@ import OfflineBanner from '../components/OfflineBanner';
 import { BlobBackground, CardStackIllustration } from '../components/Blobs';
 import { useDecksWithCounts } from '../hooks/useDecks';
 import { refreshFromServer } from '../db/mutations';
+import { getHandDrawnStyle } from '../hooks/useHandDrawn';
 
 export default function DeckList() {
   const decks = useDecksWithCounts();
   const navigate = useNavigate();
   const isOffline = useOffline();
   const [syncError, setSyncError] = useState(false);
+
+  const deckStyles = useMemo(
+    () => decks.map(() => getHandDrawnStyle()),
+    [decks.length],
+  );
 
   useEffect(() => {
     refreshFromServer()
@@ -47,10 +53,11 @@ export default function DeckList() {
         </div>
       ) : (
         <div className="space-y-3">
-          {decks.map((deck) => (
+          {decks.map((deck, i) => (
             <div
               key={deck.id}
-              className="bg-white border border-warm-200 rounded-2xl p-4 active:bg-warm-100 transition shadow-sm cursor-pointer"
+              className="bg-white hand-drawn p-4 active:bg-warm-100 transition shadow-sm cursor-pointer"
+              style={deckStyles[i]}
               onClick={() => navigate('/review')}
             >
               <div className="flex items-center gap-4">
@@ -97,7 +104,7 @@ export default function DeckList() {
           <button
             onClick={() => navigate('/decks/new')}
             disabled={isOffline}
-            className="w-full border-2 border-dashed border-warm-300 hover:border-coral text-warm-400 hover:text-coral disabled:opacity-50 disabled:cursor-not-allowed font-bold py-4 rounded-2xl transition"
+            className="w-full border-2 border-dashed border-warm-300 hover:border-coral text-warm-400 hover:text-coral disabled:opacity-50 disabled:cursor-not-allowed font-bold py-4 rounded-xl transition"
           >
             + New Deck
           </button>

@@ -3,11 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { createDeck } from '../db/mutations';
 import LanguageSelect from '../components/LanguageSelect';
 import { BlobBackground } from '../components/Blobs';
+import { useHandDrawn } from '../hooks/useHandDrawn';
 
 export default function CreateDeck() {
   const [form, setForm] = useState({ name: '', source_lang: '', target_lang: '' });
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const handDrawnStyle = useHandDrawn();
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
@@ -27,7 +29,7 @@ export default function CreateDeck() {
         <button onClick={() => navigate('/')} className="text-warm-500 hover:text-warm-700 font-semibold text-sm mb-4">
           &larr; Back
         </button>
-        <form onSubmit={handleCreate} className="bg-white rounded-2xl p-6 w-full max-w-sm mx-auto border border-warm-200 shadow-sm">
+        <form onSubmit={handleCreate} className="bg-white hand-drawn p-6 w-full max-w-sm mx-auto shadow-sm" style={handDrawnStyle}>
           <h2 className="text-xl font-bold text-warm-900 mb-4">New Deck</h2>
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-3 mb-4">
@@ -40,7 +42,7 @@ export default function CreateDeck() {
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               placeholder="Deck name"
               required
-              className="w-full bg-warm-100 border border-warm-200 rounded-xl px-4 py-3 text-warm-900 placeholder-warm-400 focus:outline-none focus:ring-2 focus:ring-coral"
+              className="w-full bg-warm-100 rounded-xl border border-warm-200 px-4 py-3 text-warm-900 placeholder-warm-400 focus:outline-none focus:ring-2 focus:ring-coral"
             />
             <LanguageSelect
               value={form.source_lang}

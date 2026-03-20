@@ -80,16 +80,22 @@ export function MascotSmall({ className = '' }: { className?: string }) {
 export function BlobBackground({ className = '' }: { className?: string }) {
   const blobs = useMemo(() => {
     const colors = [BLUE, BLUE_MUTED, BLUE_PALE, BLUE_DEEP, BLUE_LIGHT];
-    const count = 4 + Math.floor(Math.random() * 3); // 4-6 blobs
-    return Array.from({ length: count }, () => ({
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      size: 40 + Math.random() * 200,
-      rx: 30 + Math.random() * 40,
-      rotation: Math.random() * 360,
-      opacity: 0.03 + Math.random() * 0.05,
-      color: colors[Math.floor(Math.random() * colors.length)],
-    }));
+    const count = 5 + Math.floor(Math.random() * 4); // 5-8 blobs
+    return Array.from({ length: count }, () => {
+      const w = 40 + Math.random() * 200;
+      const h = (0.4 + Math.random() * 1.2) * w;
+      return {
+        x: Math.random() * 100,
+        y: Math.random() * 100,
+        w,
+        h,
+        rx: 10 + Math.random() * 80,
+        ry: 10 + Math.random() * 80,
+        rotation: Math.random() * 360,
+        opacity: 0.03 + Math.random() * 0.05,
+        color: colors[Math.floor(Math.random() * colors.length)],
+      };
+    });
   }, []);
 
   return (
@@ -98,10 +104,10 @@ export function BlobBackground({ className = '' }: { className?: string }) {
         <svg
           key={i}
           className="absolute transition-all duration-1000"
-          style={{ top: `${b.y}%`, left: `${b.x}%`, width: b.size, height: b.size, opacity: b.opacity, transform: `rotate(${b.rotation}deg) translate(-50%, -50%)` }}
-          viewBox="0 0 200 200"
+          style={{ top: `${b.y}%`, left: `${b.x}%`, width: b.w, height: b.h, opacity: b.opacity, transform: `rotate(${b.rotation}deg) translate(-50%, -50%)` }}
+          viewBox={`0 0 ${b.w} ${b.h}`}
         >
-          <rect width="200" height="200" rx={b.rx} fill={b.color} />
+          <rect width={b.w} height={b.h} rx={b.rx} ry={b.ry} fill={b.color} />
         </svg>
       ))}
     </div>

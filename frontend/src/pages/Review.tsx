@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { api, imageUrl } from '../lib/api';
 import { db } from '../db/dexie';
 import type { CardRecord } from '../db/dexie';
@@ -9,6 +9,7 @@ import OfflineBanner from '../components/OfflineBanner';
 import { BlobBackground, CelebrationIllustration } from '../components/Blobs';
 import { reviewCard as reviewCardMutation } from '../db/mutations';
 import { computeGrade, recordTiming } from '../lib/adaptiveGrade';
+import { getHandDrawnStyle } from '../hooks/useHandDrawn';
 
 interface ReviewCard extends CardRecord {
   reversed: boolean;
@@ -36,6 +37,11 @@ export default function Review() {
   const [exitDirection, setExitDirection] = useState<'left' | 'right' | null>(null);
   const [cardShownTimestamp, setCardShownTimestamp] = useState<number>(Date.now());
   const isOffline = useOffline();
+
+  const stackStyles = useMemo(
+    () => cards.map(() => getHandDrawnStyle()),
+    [cards],
+  );
 
   const loadDueFromDexie = useCallback(async (): Promise<CardRecord[]> => {
     const allCards = await db.cards.toArray();
@@ -206,10 +212,10 @@ export default function Review() {
       <h1 className="text-2xl font-extrabold text-warm-900 mb-2 relative z-20">Review</h1>
 
       {/* Progress bar */}
-      <div className="flex items-center gap-3 mb-2 relative z-20">
+      <div className="flex items-center gap-3 mb-4 relative z-20">
         <div className="flex-1 bg-warm-200 rounded-full">
           <div
-            className="p-1 bg-coral rounded-full transition-all duration-300 text-right text-xs text-cream font-bold"
+            className="min-w-fit p-1 bg-coral rounded-full transition-all duration-300 text-right text-xs text-cream font-bold"
             style={{ width: `${((index + 1) / total) * 100}%` }}
           >{index + 1}/{total}
           </div>
@@ -226,6 +232,7 @@ export default function Review() {
           const frontText = stackCard.reversed ? stackCard.back : stackCard.front;
           const frontImg = imageUrl(stackCard.reversed ? stackCard.back_image_url : stackCard.front_image_url)
             || imageUrl(stackCard.reversed ? stackCard.front_image_url : stackCard.back_image_url);
+          const stackIdx = cards.indexOf(stackCard);
           return (
             <div
               key={stackCard.id}
@@ -236,7 +243,7 @@ export default function Review() {
                 zIndex: 3 - layerIndex,
               }}
             >
-              <div className="bg-white rounded-2xl shadow-lg border border-warm-200 p-8 min-h-[340px] flex flex-col items-center justify-center">
+              <div className="bg-white hand-drawn shadow-lg p-8 min-h-[340px] flex flex-col items-center justify-center" style={stackStyles[stackIdx]}>
                 <div className="text-xs text-warm-400 uppercase tracking-wider mb-4 font-semibold">Front</div>
                 <div className="text-2xl font-bold text-warm-900 text-center">
                   {frontImg && (
@@ -262,6 +269,7 @@ export default function Review() {
           onFlipChange={(f) => { setFlipped(f); }}
           exitDirection={exitDirection}
           jitter={getJitter(index)}
+          handDrawnStyle={stackStyles[index]}
         />
       </div>
 
@@ -269,7 +277,7 @@ export default function Review() {
         <div className="flex justify-center mt-6">
           <button
             onClick={() => { setFlipped(true); }}
-            className="px-8 py-3 bg-warm-100 hover:bg-warm-200 text-warm-700 font-bold rounded-xl transition border border-warm-200"
+            className="px-8 py-3 bg-warm-100 hover:bg-warm-200 text-warm-700 font-bold rounded-xl border-2 border-warm-200 transition"
           >
             Tap to Flip
           </button>
@@ -278,13 +286,13 @@ export default function Review() {
         <div className="flex justify-center gap-3 mt-6">
           <button
             onClick={() => startSwipe('left')}
-            className="flex-1 max-w-[140px] py-3 bg-red-50 hover:bg-red-100 text-red-500 font-bold rounded-xl transition border border-red-200"
+            className="flex-1 max-w-[140px] py-3 bg-red-50 hover:bg-red-100 text-red-500 font-bold rounded-xl border-2 border-red-200 transition"
           >
             Again
           </button>
           <button
             onClick={() => startSwipe('right')}
-            className="flex-1 max-w-[140px] py-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 font-bold rounded-xl transition border border-emerald-200"
+            className="flex-1 max-w-[140px] py-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 font-bold rounded-xl border-2 border-emerald-200 transition"
           >
             Good
           </button>

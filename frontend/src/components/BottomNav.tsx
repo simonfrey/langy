@@ -3,7 +3,7 @@ import { useHasDecks } from '../hooks/useDecks';
 
 const tabs = [
   {
-    path: '/',
+    path: '/decks',
     label: 'Decks',
     icon: (
       <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -37,11 +37,11 @@ export default function BottomNav() {
   const hasDecks = useHasDecks();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-lg border-t border-warm-200 pb-[env(safe-area-inset-bottom)]">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-lg border-t-2 border-warm-200 pb-[env(safe-area-inset-bottom)]">
       <div className="flex justify-around items-center h-16 max-w-[700px] mx-auto">
         {tabs.map((tab) => {
-          const active = location.pathname === tab.path;
-          const disabled = !hasDecks && tab.path !== '/';
+          const active = location.pathname === tab.path || (tab.path === '/decks' && location.pathname.startsWith('/decks'));
+          const disabled = !hasDecks && tab.path !== '/decks';
           return (
             <button
               key={tab.path}

@@ -6,6 +6,7 @@ import { saveCard, saveCardWithFormData, deleteCard as deleteCardMutation } from
 import { useLiveQuery } from 'dexie-react-hooks';
 import AuthImage from '../components/AuthImage';
 import { BlobBackground } from '../components/Blobs';
+import { useHandDrawn } from '../hooks/useHandDrawn';
 
 export default function EditCards() {
   const { deckId } = useParams<{ deckId: string }>();
@@ -15,6 +16,7 @@ export default function EditCards() {
   const [frontImage, setFrontImage] = useState<File | null>(null);
   const [backImage, setBackImage] = useState<File | null>(null);
   const [error, setError] = useState('');
+  const handDrawnStyle = useHandDrawn();
 
   const cards = useLiveQuery(
     () => deckId ? db.cards.where('deck_id').equals(deckId).toArray() : [],
@@ -74,7 +76,7 @@ export default function EditCards() {
         <button onClick={() => navigate('/')} className="text-warm-500 hover:text-warm-700 font-semibold text-sm mb-4">
           &larr; Back
         </button>
-        <div className="bg-white rounded-2xl p-6 w-full max-w-md mx-auto border border-warm-200 shadow-sm">
+        <div className="bg-white hand-drawn p-6 w-full max-w-md mx-auto shadow-sm" style={handDrawnStyle}>
           <h2 className="text-xl font-bold text-warm-900 mb-4">Edit Cards</h2>
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-3 mb-4 flex items-center justify-between">

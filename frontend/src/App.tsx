@@ -40,6 +40,7 @@ function AuthenticatedLayout() {
       <div className="max-w-[700px] mx-auto">
         <Routes>
           <Route path="/" element={<DefaultRoute />} />
+          <Route path="/decks" element={<DeckList />} />
           <Route path="/decks/new" element={<CreateDeck />} />
           <Route path="/decks/:deckId/edit" element={<EditCards />} />
           <Route path="/decks/:deckId/add-card" element={<AddCard />} />

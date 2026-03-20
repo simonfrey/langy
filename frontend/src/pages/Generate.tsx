@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { api, apiFormData } from '../lib/api';
 import { formatLanguage } from '../lib/languages';
 import { useOffline } from '../hooks/useOffline';
@@ -6,6 +6,7 @@ import OfflineBanner from '../components/OfflineBanner';
 import { BlobBackground, SparkleIllustration } from '../components/Blobs';
 import { useDecksWithCounts } from '../hooks/useDecks';
 import { addCardFromGenerate } from '../db/mutations';
+import { useHandDrawn, getHandDrawnStyle } from '../hooks/useHandDrawn';
 
 interface GeneratedCard {
   front: string;
@@ -30,6 +31,13 @@ export default function Generate() {
   const [saving, setSaving] = useState(false);
   const [saveProgress, setSaveProgress] = useState({ done: 0, total: 0 });
   const isOffline = useOffline();
+  const formStyle = useHandDrawn();
+  const fromDeckStyle = useHandDrawn();
+
+  const pendingCardStyles = useMemo(
+    () => pendingCards.map(() => getHandDrawnStyle()),
+    [pendingCards.length],
+  );
 
   useEffect(() => {
     if (decks.length > 0 && !deckId) setDeckId(decks[0].id);
@@ -154,14 +162,14 @@ export default function Generate() {
 
       {isOffline && <div className="mb-4"><OfflineBanner blocking message="You are offline. Card generation requires an internet connection." /></div>}
 
-      <form onSubmit={handleGenerate} className="bg-white border border-warm-200 rounded-2xl p-5 shadow-sm space-y-4">
+      <form onSubmit={handleGenerate} className="bg-white hand-drawn p-5 shadow-sm space-y-4" style={formStyle}>
         <div>
           <label className="block text-sm font-semibold text-warm-700 mb-1">Deck</label>
           <select
             value={deckId}
             onChange={(e) => setDeckId(e.target.value)}
             required
-            className="w-full bg-warm-100 border border-warm-200 rounded-xl px-4 py-3 text-warm-900 focus:outline-none focus:ring-2 focus:ring-coral"
+            className="w-full bg-warm-100 rounded-xl border border-warm-200 px-4 py-3 text-warm-900 focus:outline-none focus:ring-2 focus:ring-coral"
           >
             {decks.map((d) => (
               <option key={d.id} value={d.id}>{d.name}</option>
@@ -183,7 +191,7 @@ export default function Generate() {
             required
             rows={3}
             placeholder="e.g. Common greetings, food vocabulary, travel phrases..."
-            className="w-full bg-warm-100 border border-warm-200 rounded-xl px-4 py-3 text-warm-900 placeholder-warm-400 focus:outline-none focus:ring-2 focus:ring-coral resize-none"
+            className="w-full bg-warm-100 rounded-xl border border-warm-200 px-4 py-3 text-warm-900 placeholder-warm-400 focus:outline-none focus:ring-2 focus:ring-coral resize-none"
           />
           <div className="flex flex-wrap gap-2 mt-2">
             {['Food & drinks', 'Travel basics', 'Common greetings', 'Numbers 1-100', 'Daily routines', 'At the restaurant'].map((chip) => (
@@ -272,7 +280,7 @@ export default function Generate() {
             <div className="flex-1 h-px bg-warm-300" />
           </div>
 
-          <div className="bg-white border border-warm-200 rounded-2xl p-5 shadow-sm space-y-4">
+          <div className="bg-white hand-drawn p-5 shadow-sm space-y-4" style={fromDeckStyle}>
             <p className="text-sm text-warm-600">
               Generate 10 more cards based on the <span className="font-semibold">{selectedDeck.cardCount} existing cards</span> in this deck.
             </p>
@@ -329,7 +337,8 @@ export default function Generate() {
             {pendingCards.map((card, i) => (
               <div
                 key={i}
-                className={`bg-white border rounded-2xl p-4 transition shadow-sm ${card.selected ? 'border-coral/40' : 'border-warm-200 opacity-60'}`}
+                className={`bg-white hand-drawn p-4 transition shadow-sm ${card.selected ? '!border-coral/40' : 'opacity-60'}`}
+                style={pendingCardStyles[i]}
               >
                 <div className="flex items-start gap-3">
                   <input
@@ -388,7 +397,7 @@ export default function Generate() {
               type="button"
               onClick={() => setPendingCards([])}
               disabled={saving}
-              className="px-4 py-3 text-warm-500 hover:text-warm-900 border border-warm-200 hover:border-warm-300 rounded-xl transition disabled:opacity-50 font-semibold"
+              className="px-4 py-3 text-warm-500 hover:text-warm-900 rounded-xl border-2 border-warm-200 hover:border-warm-300 transition disabled:opacity-50 font-semibold"
             >
               Discard
             </button>

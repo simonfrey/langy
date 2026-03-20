@@ -15,7 +15,7 @@ export default function LanguageSelect({ value, onChange, required, label }: Pro
         value={value}
         onChange={(e) => onChange(e.target.value)}
         required={required}
-        className="w-full bg-warm-100 border border-warm-200 rounded-xl px-4 py-3 text-warm-900 focus:outline-none focus:ring-2 focus:ring-coral"
+        className="w-full bg-warm-100 rounded-xl border border-warm-200 px-4 py-3 text-warm-900 focus:outline-none focus:ring-2 focus:ring-coral"
       >
         <option value="">Select language</option>
         {LANGUAGES.map((l) => (

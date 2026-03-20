@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { addCard, addCardWithFormData } from '../db/mutations';
 import { BlobBackground } from '../components/Blobs';
+import { useHandDrawn } from '../hooks/useHandDrawn';
 
 export default function AddCard() {
   const { deckId } = useParams<{ deckId: string }>();
@@ -10,6 +11,7 @@ export default function AddCard() {
   const [frontImage, setFrontImage] = useState<File | null>(null);
   const [backImage, setBackImage] = useState<File | null>(null);
   const [error, setError] = useState('');
+  const handDrawnStyle = useHandDrawn();
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
@@ -39,7 +41,7 @@ export default function AddCard() {
         <button onClick={() => navigate('/')} className="text-warm-500 hover:text-warm-700 font-semibold text-sm mb-4">
           &larr; Back
         </button>
-        <form onSubmit={handleAdd} className="bg-white rounded-2xl p-6 w-full max-w-sm mx-auto border border-warm-200 shadow-sm">
+        <form onSubmit={handleAdd} className="bg-white hand-drawn p-6 w-full max-w-sm mx-auto shadow-sm" style={handDrawnStyle}>
           <h2 className="text-xl font-bold text-warm-900 mb-4">Add Card</h2>
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-3 mb-4">
@@ -52,14 +54,14 @@ export default function AddCard() {
               onChange={(e) => setCardForm({ ...cardForm, front: e.target.value })}
               placeholder="Front (word/phrase)"
               required
-              className="w-full bg-warm-100 border border-warm-200 rounded-xl px-4 py-3 text-warm-900 placeholder-warm-400 focus:outline-none focus:ring-2 focus:ring-coral"
+              className="w-full bg-warm-100 rounded-xl border border-warm-200 px-4 py-3 text-warm-900 placeholder-warm-400 focus:outline-none focus:ring-2 focus:ring-coral"
             />
             <input
               value={cardForm.back}
               onChange={(e) => setCardForm({ ...cardForm, back: e.target.value })}
               placeholder="Back (translation)"
               required
-              className="w-full bg-warm-100 border border-warm-200 rounded-xl px-4 py-3 text-warm-900 placeholder-warm-400 focus:outline-none focus:ring-2 focus:ring-coral"
+              className="w-full bg-warm-100 rounded-xl border border-warm-200 px-4 py-3 text-warm-900 placeholder-warm-400 focus:outline-none focus:ring-2 focus:ring-coral"
             />
             <div>
               <label className="block text-xs text-warm-500 mb-1 font-semibold">Front image (optional)</label>
