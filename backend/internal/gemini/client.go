@@ -37,7 +37,7 @@ func New(ctx context.Context, apiKey string) (*Client, error) {
 	}
 	return &Client{
 		client: client,
-		model:  "gemini-2.0-flash",
+		model:  "gemini-2.5-pro",
 	}, nil
 }
 
