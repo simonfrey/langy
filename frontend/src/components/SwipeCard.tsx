@@ -35,12 +35,12 @@ export default function SwipeCard({ front, back, frontImageUrl, backImageUrl, on
   const j = jitter ?? { rotate: 0, x: 0, y: 0 };
   const x = useMotionValue(j.x);
   const y = useMotionValue(j.y);
-  const rotate = useTransform(x, [-200, 200], [j.rotate - 15, j.rotate + 15]);
+  const rotate = useTransform(x, [j.x - 200, j.x + 200], [j.rotate - 15, j.rotate + 15]);
   const opacity = useMotionValue(1);
 
-  const greenOpacity = useTransform(x, [0, 100], [0, 1]);
-  const redOpacity = useTransform(x, [-100, 0], [1, 0]);
-  const blueOpacity = useTransform(y, [-100, 0], [1, 0]);
+  const greenOpacity = useTransform(x, [j.x, j.x + 100], [0, 1]);
+  const redOpacity = useTransform(x, [j.x - 100, j.x], [1, 0]);
+  const blueOpacity = useTransform(y, [j.y - 100, j.y], [1, 0]);
 
   function handleDragEnd(_: unknown, info: PanInfo) {
     const threshold = 100;

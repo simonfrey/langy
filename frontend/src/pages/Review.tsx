@@ -191,7 +191,7 @@ export default function Review() {
   const total = cards.length;
 
   return (
-    <div className="p-4 pb-24 relative">
+    <div className="p-4 pb-24 relative overflow-hidden">
       <BlobBackground />
       {isOffline && <div className="mb-4 relative z-10"><OfflineBanner message="You're offline. Reviews will sync when you reconnect." /></div>}
 
