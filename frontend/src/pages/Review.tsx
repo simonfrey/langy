@@ -63,6 +63,10 @@ export default function Review() {
       const due = await api<CardRecord[]>('/review/due');
       setCards(addDirection(due));
       setDone(due.length === 0);
+      // Cache API results in Dexie for offline use
+      if (due.length > 0) {
+        db.cards.bulkPut(due).catch(() => {});
+      }
     } catch {
       const local = await loadDueFromDexie();
       setCards(addDirection(local));

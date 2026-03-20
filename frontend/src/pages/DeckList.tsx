@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatLanguage } from '../lib/languages';
 import { useOffline } from '../hooks/useOffline';
@@ -11,9 +11,12 @@ export default function DeckList() {
   const decks = useDecksWithCounts();
   const navigate = useNavigate();
   const isOffline = useOffline();
+  const [syncError, setSyncError] = useState(false);
 
   useEffect(() => {
-    refreshFromServer().catch(() => {});
+    refreshFromServer()
+      .then(() => setSyncError(false))
+      .catch(() => setSyncError(true));
   }, []);
 
   return (
@@ -21,6 +24,12 @@ export default function DeckList() {
       <BlobBackground />
       <div className="relative z-10">
       {isOffline && <div className="mb-4"><OfflineBanner /></div>}
+      {syncError && !isOffline && (
+        <div className="bg-amber-50 border border-amber-200 text-amber-700 text-sm rounded-xl px-4 py-3 mb-4 flex items-center justify-between">
+          <span>Failed to sync with server. Showing cached data.</span>
+          <button onClick={() => setSyncError(false)} className="text-amber-500 hover:text-amber-700 font-bold ml-2">&times;</button>
+        </div>
+      )}
       <h1 className="text-2xl font-extrabold text-warm-900 mb-6">Your Decks</h1>
 
       {decks.length === 0 ? (

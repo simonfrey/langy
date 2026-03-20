@@ -1,34 +1,44 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { api, apiFormData } from '../lib/api';
+import { api } from '../lib/api';
+import { db } from '../db/dexie';
+import { saveCard, saveCardWithFormData, deleteCard as deleteCardMutation } from '../db/mutations';
+import { useLiveQuery } from 'dexie-react-hooks';
 import AuthImage from '../components/AuthImage';
 import { BlobBackground } from '../components/Blobs';
-
-interface Card {
-  id: string;
-  front: string;
-  back: string;
-  front_image_url?: string;
-  back_image_url?: string;
-  next_review: string;
-}
 
 export default function EditCards() {
   const { deckId } = useParams<{ deckId: string }>();
   const navigate = useNavigate();
-  const [cards, setCards] = useState<Card[]>([]);
   const [editingCardId, setEditingCardId] = useState<string | null>(null);
   const [editCardForm, setEditCardForm] = useState({ front: '', back: '' });
   const [frontImage, setFrontImage] = useState<File | null>(null);
   const [backImage, setBackImage] = useState<File | null>(null);
+  const [error, setError] = useState('');
 
+  const cards = useLiveQuery(
+    () => deckId ? db.cards.where('deck_id').equals(deckId).toArray() : [],
+    [deckId],
+    [],
+  );
+
+  // Fetch from API and populate Dexie
   useEffect(() => {
     if (!deckId) return;
-    api<Card[]>(`/decks/${deckId}/cards`).then(setCards).catch(() => setCards([]));
+    api(`/decks/${deckId}/cards`)
+      .then((serverCards: any) => {
+        if (serverCards.length > 0) {
+          db.cards.bulkPut(serverCards);
+        }
+      })
+      .catch(() => {
+        // Offline — useLiveQuery will show cached cards
+      });
   }, [deckId]);
 
-  async function saveCard(cardId: string) {
+  async function handleSave(cardId: string) {
     if (!editCardForm.front || !editCardForm.back) return;
+    setError('');
     try {
       if (frontImage || backImage) {
         const fd = new FormData();
@@ -36,29 +46,24 @@ export default function EditCards() {
         fd.append('back', editCardForm.back);
         if (frontImage) fd.append('front_image', frontImage);
         if (backImage) fd.append('back_image', backImage);
-        await apiFormData(`/cards/${cardId}`, fd, 'PUT');
+        await saveCardWithFormData(cardId, fd);
       } else {
-        await api(`/cards/${cardId}`, { method: 'PUT', body: JSON.stringify(editCardForm) });
-      }
-      // Reload cards to get updated image URLs
-      if (deckId) {
-        const updated = await api<Card[]>(`/decks/${deckId}/cards`);
-        setCards(updated);
+        await saveCard(cardId, editCardForm);
       }
       setEditingCardId(null);
       setFrontImage(null);
       setBackImage(null);
     } catch {
-      // error
+      setError('Failed to save card. Please check your connection and try again.');
     }
   }
 
-  async function deleteCard(cardId: string) {
+  async function handleDelete(cardId: string) {
+    setError('');
     try {
-      await api(`/cards/${cardId}`, { method: 'DELETE' });
-      setCards((prev) => prev.filter((c) => c.id !== cardId));
+      await deleteCardMutation(cardId);
     } catch {
-      // error
+      setError('Failed to delete card. Please check your connection and try again.');
     }
   }
 
@@ -71,6 +76,12 @@ export default function EditCards() {
         </button>
         <div className="bg-white rounded-2xl p-6 w-full max-w-md mx-auto border border-warm-200 shadow-sm">
           <h2 className="text-xl font-bold text-warm-900 mb-4">Edit Cards</h2>
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-3 mb-4 flex items-center justify-between">
+              <span>{error}</span>
+              <button onClick={() => setError('')} className="text-red-400 hover:text-red-600 font-bold ml-2">&times;</button>
+            </div>
+          )}
           <div className="space-y-2">
             {cards.length === 0 ? (
               <p className="text-warm-400 text-sm text-center py-4">No cards in this deck</p>
@@ -122,7 +133,7 @@ export default function EditCards() {
                         />
                       </div>
                       <div className="flex gap-2">
-                        <button onClick={() => saveCard(card.id)} className="text-xs text-emerald-600 hover:text-emerald-500 font-bold">Save</button>
+                        <button onClick={() => handleSave(card.id)} className="text-xs text-emerald-600 hover:text-emerald-500 font-bold">Save</button>
                         <button onClick={() => { setEditingCardId(null); setFrontImage(null); setBackImage(null); }} className="text-xs text-warm-500 hover:text-warm-700 font-semibold">Cancel</button>
                       </div>
                     </div>
@@ -143,7 +154,7 @@ export default function EditCards() {
                           Edit
                         </button>
                         <button
-                          onClick={() => deleteCard(card.id)}
+                          onClick={() => handleDelete(card.id)}
                           className="text-xs text-red-400 hover:text-red-500 font-bold"
                         >
                           Delete

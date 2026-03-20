@@ -1,17 +1,23 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api } from '../lib/api';
+import { createDeck } from '../db/mutations';
 import LanguageSelect from '../components/LanguageSelect';
 import { BlobBackground } from '../components/Blobs';
 
 export default function CreateDeck() {
   const [form, setForm] = useState({ name: '', source_lang: '', target_lang: '' });
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  async function createDeck(e: React.FormEvent) {
+  async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
-    await api('/decks', { method: 'POST', body: JSON.stringify(form) });
-    navigate('/');
+    setError('');
+    try {
+      await createDeck(form);
+      navigate('/');
+    } catch {
+      setError('Failed to create deck. Please check your connection and try again.');
+    }
   }
 
   return (
@@ -21,8 +27,13 @@ export default function CreateDeck() {
         <button onClick={() => navigate('/')} className="text-warm-500 hover:text-warm-700 font-semibold text-sm mb-4">
           &larr; Back
         </button>
-        <form onSubmit={createDeck} className="bg-white rounded-2xl p-6 w-full max-w-sm mx-auto border border-warm-200 shadow-sm">
+        <form onSubmit={handleCreate} className="bg-white rounded-2xl p-6 w-full max-w-sm mx-auto border border-warm-200 shadow-sm">
           <h2 className="text-xl font-bold text-warm-900 mb-4">New Deck</h2>
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-3 mb-4">
+              {error}
+            </div>
+          )}
           <div className="space-y-3">
             <input
               value={form.name}

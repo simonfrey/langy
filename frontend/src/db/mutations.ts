@@ -34,6 +34,12 @@ export async function saveCard(cardId: string, data: { front: string; back: stri
   return updated;
 }
 
+export async function saveCardWithFormData(cardId: string, formData: FormData) {
+  const updated = await apiFormData<CardRecord>(`/cards/${cardId}`, formData, 'PUT');
+  await db.cards.put(updated);
+  return updated;
+}
+
 export async function deleteCard(cardId: string) {
   await api(`/cards/${cardId}`, { method: 'DELETE' });
   await db.cards.delete(cardId);

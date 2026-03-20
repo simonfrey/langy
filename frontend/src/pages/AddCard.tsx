@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { api, apiFormData } from '../lib/api';
+import { addCard, addCardWithFormData } from '../db/mutations';
 import { BlobBackground } from '../components/Blobs';
 
 export default function AddCard() {
@@ -9,21 +9,27 @@ export default function AddCard() {
   const [cardForm, setCardForm] = useState({ front: '', back: '' });
   const [frontImage, setFrontImage] = useState<File | null>(null);
   const [backImage, setBackImage] = useState<File | null>(null);
+  const [error, setError] = useState('');
 
-  async function addCard(e: React.FormEvent) {
+  async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
     if (!deckId) return;
-    if (frontImage || backImage) {
-      const fd = new FormData();
-      fd.append('front', cardForm.front);
-      fd.append('back', cardForm.back);
-      if (frontImage) fd.append('front_image', frontImage);
-      if (backImage) fd.append('back_image', backImage);
-      await apiFormData(`/decks/${deckId}/cards`, fd);
-    } else {
-      await api(`/decks/${deckId}/cards`, { method: 'POST', body: JSON.stringify(cardForm) });
+    setError('');
+    try {
+      if (frontImage || backImage) {
+        const fd = new FormData();
+        fd.append('front', cardForm.front);
+        fd.append('back', cardForm.back);
+        if (frontImage) fd.append('front_image', frontImage);
+        if (backImage) fd.append('back_image', backImage);
+        await addCardWithFormData(deckId, fd);
+      } else {
+        await addCard(deckId, cardForm);
+      }
+      navigate('/');
+    } catch {
+      setError('Failed to add card. Please check your connection and try again.');
     }
-    navigate('/');
   }
 
   return (
@@ -33,8 +39,13 @@ export default function AddCard() {
         <button onClick={() => navigate('/')} className="text-warm-500 hover:text-warm-700 font-semibold text-sm mb-4">
           &larr; Back
         </button>
-        <form onSubmit={addCard} className="bg-white rounded-2xl p-6 w-full max-w-sm mx-auto border border-warm-200 shadow-sm">
+        <form onSubmit={handleAdd} className="bg-white rounded-2xl p-6 w-full max-w-sm mx-auto border border-warm-200 shadow-sm">
           <h2 className="text-xl font-bold text-warm-900 mb-4">Add Card</h2>
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-3 mb-4">
+              {error}
+            </div>
+          )}
           <div className="space-y-3">
             <input
               value={cardForm.front}
