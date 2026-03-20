@@ -27,14 +27,15 @@ const minCards = 10
 
 func (h *ReviewHandler) GetDueCards(w http.ResponseWriter, r *http.Request) {
 	userID := middleware.GetUserID(r.Context())
+	deckID := r.URL.Query().Get("deck_id")
 
-	dueCards, err := h.DB.GetDueCards(r.Context(), userID)
+	dueCards, err := h.DB.GetDueCards(r.Context(), userID, deckID)
 	if err != nil {
 		slog.Error("failed to get due cards", "error", err, "user_id", userID)
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "failed to get due cards"})
 		return
 	}
-	newCards, err := h.DB.GetNewCards(r.Context(), userID)
+	newCards, err := h.DB.GetNewCards(r.Context(), userID, deckID)
 	if err != nil {
 		slog.Error("failed to get new cards", "error", err, "user_id", userID)
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "failed to get new cards"})
@@ -49,7 +50,7 @@ func (h *ReviewHandler) GetDueCards(w http.ResponseWriter, r *http.Request) {
 		for i, c := range cards {
 			excludeIDs[i] = c.ID
 		}
-		upcoming, err := h.DB.GetUpcomingCards(r.Context(), userID, excludeIDs, minCards-len(cards))
+		upcoming, err := h.DB.GetUpcomingCards(r.Context(), userID, excludeIDs, minCards-len(cards), deckID)
 		if err != nil {
 			slog.Error("failed to get upcoming cards", "error", err, "user_id", userID)
 		} else {

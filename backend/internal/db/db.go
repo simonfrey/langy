@@ -335,12 +335,17 @@ func (d *DB) CreateCards(ctx context.Context, userID, deckID string, pairs []Car
 
 // Reviews
 
-func (d *DB) GetDueCards(ctx context.Context, userID string) ([]Card, error) {
-	rows, err := d.Pool.Query(ctx,
-		`SELECT `+cardSelectColumns+`
+func (d *DB) GetDueCards(ctx context.Context, userID string, deckID string) ([]Card, error) {
+	query := `SELECT ` + cardSelectColumns + `
 		 FROM cards c JOIN decks d ON c.deck_id = d.id
-		 WHERE d.user_id = $1 AND c.next_review <= now() AND c.repetitions > 0
-		 ORDER BY c.next_review ASC`, userID)
+		 WHERE d.user_id = $1 AND c.next_review <= now() AND c.repetitions > 0`
+	args := []any{userID}
+	if deckID != "" {
+		query += ` AND c.deck_id = $2`
+		args = append(args, deckID)
+	}
+	query += ` ORDER BY c.next_review ASC`
+	rows, err := d.Pool.Query(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("get due cards: %w", err)
 	}
@@ -360,12 +365,17 @@ func (d *DB) GetDueCards(ctx context.Context, userID string) ([]Card, error) {
 	return cards, nil
 }
 
-func (d *DB) GetNewCards(ctx context.Context, userID string) ([]Card, error) {
-	rows, err := d.Pool.Query(ctx,
-		`SELECT `+cardSelectColumns+`
+func (d *DB) GetNewCards(ctx context.Context, userID string, deckID string) ([]Card, error) {
+	query := `SELECT ` + cardSelectColumns + `
 		 FROM cards c JOIN decks d ON c.deck_id = d.id
-		 WHERE d.user_id = $1 AND c.repetitions = 0
-		 ORDER BY c.created_at ASC`, userID)
+		 WHERE d.user_id = $1 AND c.repetitions = 0`
+	args := []any{userID}
+	if deckID != "" {
+		query += ` AND c.deck_id = $2`
+		args = append(args, deckID)
+	}
+	query += ` ORDER BY c.created_at ASC`
+	rows, err := d.Pool.Query(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("get new cards: %w", err)
 	}
@@ -385,14 +395,18 @@ func (d *DB) GetNewCards(ctx context.Context, userID string) ([]Card, error) {
 	return cards, nil
 }
 
-func (d *DB) GetUpcomingCards(ctx context.Context, userID string, excludeIDs []string, limit int) ([]Card, error) {
-	rows, err := d.Pool.Query(ctx,
-		`SELECT `+cardSelectColumns+`
+func (d *DB) GetUpcomingCards(ctx context.Context, userID string, excludeIDs []string, limit int, deckID string) ([]Card, error) {
+	query := `SELECT ` + cardSelectColumns + `
 		 FROM cards c JOIN decks d ON c.deck_id = d.id
 		 WHERE d.user_id = $1 AND c.repetitions > 0 AND c.next_review > now()
-		   AND c.id != ALL($2)
-		 ORDER BY c.next_review ASC
-		 LIMIT $3`, userID, excludeIDs, limit)
+		   AND c.id != ALL($2)`
+	args := []any{userID, excludeIDs}
+	if deckID != "" {
+		query += ` AND c.deck_id = $3`
+		args = append(args, deckID)
+	}
+	query += fmt.Sprintf(` ORDER BY c.next_review ASC LIMIT %d`, limit)
+	rows, err := d.Pool.Query(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("get upcoming cards: %w", err)
 	}

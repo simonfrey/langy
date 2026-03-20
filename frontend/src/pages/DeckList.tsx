@@ -57,7 +57,7 @@ export default function DeckList() {
               key={deck.id}
               className="bg-white hand-drawn p-4 active:bg-warm-100 transition shadow-sm cursor-pointer"
               style={deckStyles[i]}
-              onClick={() => navigate('/review')}
+              onClick={() => navigate(`/review/${deck.id}`)}
             >
               <div className="flex items-center gap-4">
                 <div className="flex-1 min-w-0">

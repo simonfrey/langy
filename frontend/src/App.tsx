@@ -48,6 +48,7 @@ function AuthenticatedLayout() {
           <Route path="/decks/:deckId/edit" element={<EditCards />} />
           <Route path="/decks/:deckId/add-card" element={<AddCard />} />
           <Route path="/review" element={<Review />} />
+          <Route path="/review/:deckId" element={<Review />} />
           <Route path="/generate" element={<Generate />} />
         </Routes>
       </div>

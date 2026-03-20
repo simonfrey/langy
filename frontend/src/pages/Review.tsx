@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useParams } from 'react-router-dom';
 import { api, imageUrl } from '../lib/api';
 import { db } from '../db/dexie';
 import type { CardRecord } from '../db/dexie';
@@ -28,6 +29,7 @@ function getJitter(layerIndex: number) {
 }
 
 export default function Review() {
+  const { deckId } = useParams<{ deckId?: string }>();
   const [cards, setCards] = useState<ReviewCard[]>([]);
   const [index, setIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -37,6 +39,7 @@ export default function Review() {
   const [exitDirection, setExitDirection] = useState<'left' | 'right' | null>(null);
   const [cardShownTimestamp, setCardShownTimestamp] = useState<number>(Date.now());
   const isOffline = useOffline();
+  const [deckName, setDeckName] = useState<string | null>(null);
 
   const stackStyles = useMemo(
     () => cards.map(() => getHandDrawnStyle()),
@@ -44,7 +47,10 @@ export default function Review() {
   );
 
   const loadDueFromDexie = useCallback(async (): Promise<CardRecord[]> => {
-    const allCards = await db.cards.toArray();
+    let allCards = await db.cards.toArray();
+    if (deckId) {
+      allCards = allCards.filter((c) => c.deck_id === deckId);
+    }
     const now = new Date();
 
     const dueCards = allCards.filter(
@@ -74,14 +80,22 @@ export default function Review() {
       [result[i], result[j]] = [result[j], result[i]];
     }
     return result;
-  }, []);
+  }, [deckId]);
 
   const addDirection = (cards: CardRecord[]): ReviewCard[] =>
     cards.map((c) => ({ ...c, reversed: Math.random() < 0.5 }));
 
+  useEffect(() => {
+    if (deckId) {
+      db.decks.get(deckId).then((d) => setDeckName(d?.name ?? null)).catch(() => {});
+    }
+  }, [deckId]);
+
+  const dueUrl = deckId ? `/review/due?deck_id=${deckId}` : '/review/due';
+
   const load = useCallback(async () => {
     try {
-      const due = await api<CardRecord[]>('/review/due');
+      const due = await api<CardRecord[]>(dueUrl);
       setCards(addDirection(due));
       setDone(due.length === 0);
       // Cache API results in Dexie for offline use
@@ -96,7 +110,7 @@ export default function Review() {
       setLoading(false);
       setCardShownTimestamp(Date.now());
     }
-  }, [loadDueFromDexie]);
+  }, [loadDueFromDexie, dueUrl]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -159,7 +173,7 @@ export default function Review() {
     try {
       let moreCards: CardRecord[];
       try {
-        moreCards = await api<CardRecord[]>('/review/due');
+        moreCards = await api<CardRecord[]>(dueUrl);
       } catch {
         moreCards = await loadDueFromDexie();
       }
@@ -207,7 +221,9 @@ export default function Review() {
       {isOffline && <div className="mb-4 relative z-10"><OfflineBanner message="You're offline. Reviews will sync when you reconnect." /></div>}
 
 
-      <h1 className="text-2xl font-extrabold text-warm-900 mb-2 relative z-20">Review</h1>
+      <h1 className="text-2xl font-extrabold text-warm-900 mb-2 relative z-20">
+        {deckName ? `Review: ${deckName}` : 'Review'}
+      </h1>
 
       {/* Progress bar */}
       <div className="flex items-center gap-3 mb-4 relative z-20">
