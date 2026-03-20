@@ -73,24 +73,84 @@ func langName(code string) string {
 }
 
 func (c *Client) GenerateCards(ctx context.Context, prompt, sourceLang, targetLang string, images []ImageData, generateImages bool) ([]CardPair, error) {
-	imageNote := ""
-	if len(images) > 0 {
-		imageNote = "\nI have also attached images for additional context. Use the content of these images to inform the flashcard generation."
-	}
-
 	srcName := langName(sourceLang)
 	tgtName := langName(targetLang)
+	hasImages := len(images) > 0
 
-	fullPrompt := fmt.Sprintf(`Generate flashcard pairs for learning %s from %s.
-The "front" field should contain the %s word/phrase.
-The "back" field should contain the %s translation, plus a brief pronunciation hint if applicable.
-Topic/Request: %s%s
+	var fullPrompt string
+	switch {
+	case hasImages && generateImages:
+		// Text + image input, with image output
+		fullPrompt = fmt.Sprintf(`You are a vocabulary flashcard generator. Carefully analyze the attached photo(s) and identify all visible objects, actions, settings, signs, text, food, animals, and contextual details.
+
+Generate flashcard pairs for learning %s from %s based on what you see in the image(s).
+- "front": the %s word/phrase for something visible in the photo
+- "back": the %s translation
+
+Additional context from the user: %s
+
+Guidelines:
+- Start with the most prominent items in the photo, then work outward
+- Keep terms concrete and visually representable (an illustration will be generated for each card)
+- Avoid abstract concepts that are hard to depict visually
+- Include common collocations or idiomatic usage where appropriate
+- For non-Latin script languages, include romanization in the "back" field
+- Do NOT include standalone pronunciation hints
+- Use verb forms for visible actions
+- Vary difficulty levels across the set
+- Generate 8-15 cards unless the user requests a specific number`, tgtName, srcName, tgtName, srcName, prompt)
+
+	case hasImages && !generateImages:
+		// Text + image input, no image output
+		fullPrompt = fmt.Sprintf(`You are a vocabulary flashcard generator. Carefully analyze the attached photo(s) and identify all visible objects, actions, settings, signs, text, food, animals, and contextual details.
+
+Generate flashcard pairs for learning %s from %s based on what you see in the image(s).
+- "front": the %s word/phrase for something visible in the photo
+- "back": the %s translation
+
+Additional context from the user: %s
+
+Guidelines:
+- Start with the most prominent items in the photo, then work outward
+- Include both concrete nouns and action verbs for what you see
+- Include common collocations or idiomatic usage where appropriate
+- For non-Latin script languages, include romanization in the "back" field
+- Do NOT include standalone pronunciation hints
+- Vary difficulty levels across the set
+- Generate 8-15 cards unless the user requests a specific number`, tgtName, srcName, tgtName, srcName, prompt)
+
+	case !hasImages && generateImages:
+		// Text-only input, with image output
+		fullPrompt = fmt.Sprintf(`Generate flashcard pairs for learning %s from %s.
+- "front": the %s word/phrase
+- "back": the %s translation
+
+Topic/Request: %s
+
+Guidelines:
+- Favor concrete, visually representable terms (an illustration will be generated for each card)
+- Avoid abstract concepts that are hard to depict visually
+- Include natural, commonly-used expressions
+- For non-Latin script languages, include romanization in the "back" field
+- Do NOT include standalone pronunciation hints
+- Vary difficulty levels within the set
+- If the request implies a specific number, generate exactly that many. Otherwise, generate around 10.`, tgtName, srcName, tgtName, srcName, prompt)
+
+	default:
+		// Text-only input, no image output
+		fullPrompt = fmt.Sprintf(`Generate flashcard pairs for learning %s from %s.
+- "front": the %s word/phrase
+- "back": the %s translation
+
+Topic/Request: %s
 
 Guidelines:
 - Include natural, commonly-used expressions
-- For languages with different scripts (e.g. Japanese, Chinese, Arabic), include romanization in the back field
+- For non-Latin script languages, include romanization in the "back" field
+- Do NOT include standalone pronunciation hints
 - Vary difficulty levels within the set
-- If the request implies a specific number of items, generate exactly that many. Otherwise, generate around 10.`, tgtName, srcName, tgtName, srcName, prompt, imageNote)
+- If the request implies a specific number, generate exactly that many. Otherwise, generate around 10.`, tgtName, srcName, tgtName, srcName, prompt)
+	}
 
 	parts := []*genai.Part{
 		{Text: fullPrompt},
