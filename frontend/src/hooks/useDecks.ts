@@ -9,6 +9,17 @@ export function useHasDecks() {
   return useLiveQuery(() => db.decks.count().then((c) => c > 0)) ?? false;
 }
 
+export function useHasDecksWithCards() {
+  return useLiveQuery(async () => {
+    const decks = await db.decks.toArray();
+    for (const d of decks) {
+      const count = await db.cards.where('deck_id').equals(d.id).count();
+      if (count > 0) return true;
+    }
+    return false;
+  }) ?? false;
+}
+
 export interface DeckWithCounts {
   id: string;
   user_id: string;

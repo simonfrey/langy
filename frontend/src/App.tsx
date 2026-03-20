@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './hooks/useAuth';
+import { useHasDecksWithCards } from './hooks/useDecks';
 import { useSync } from './hooks/useSync';
 import BottomNav from './components/BottomNav';
 import Login from './pages/Login';
@@ -9,6 +10,14 @@ import EditCards from './pages/EditCards';
 import AddCard from './pages/AddCard';
 import Review from './pages/Review';
 import Generate from './pages/Generate';
+
+function DefaultRoute() {
+  const hasDecksWithCards = useHasDecksWithCards();
+  if (hasDecksWithCards) {
+    return <Navigate to="/review" replace />;
+  }
+  return <DeckList />;
+}
 
 function AuthenticatedLayout() {
   const { user, loading } = useAuth();
@@ -30,7 +39,7 @@ function AuthenticatedLayout() {
     <div className="min-h-screen bg-cream">
       <div className="max-w-[700px] mx-auto">
         <Routes>
-          <Route path="/" element={<DeckList />} />
+          <Route path="/" element={<DefaultRoute />} />
           <Route path="/decks/new" element={<CreateDeck />} />
           <Route path="/decks/:deckId/edit" element={<EditCards />} />
           <Route path="/decks/:deckId/add-card" element={<AddCard />} />
