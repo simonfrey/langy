@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/simonfrey/langy/internal/db"
+	"github.com/simonfrey/langy/internal/dedup"
 	"github.com/simonfrey/langy/internal/gemini"
 	"github.com/simonfrey/langy/internal/middleware"
 )
@@ -94,6 +95,41 @@ func (h *GenerateHandler) Generate(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "failed to generate cards: " + err.Error()})
 		return
 	}
+
+	// Filter out duplicates against existing cards in the deck
+	existingTexts, err := h.DB.ListCardTexts(r.Context(), userID, deckID)
+	if err != nil {
+		slog.Error("failed to list card texts for dedup", "error", err, "user_id", userID, "deck_id", deckID)
+		// Non-fatal: proceed without dedup
+		existingTexts = nil
+	}
+
+	var existingDedup []dedup.CardText
+	for _, ct := range existingTexts {
+		existingDedup = append(existingDedup, dedup.CardText{Front: ct.Front, Back: ct.Back})
+	}
+	var generatedDedup []dedup.CardText
+	for _, p := range pairs {
+		generatedDedup = append(generatedDedup, dedup.CardText{Front: p.Front, Back: p.Back})
+	}
+
+	filtered := dedup.FilterDuplicates(generatedDedup, existingDedup, 0.15)
+
+	// Build a set of kept cards for fast lookup
+	keptSet := make(map[dedup.CardText]bool, len(filtered))
+	for _, f := range filtered {
+		keptSet[f] = true
+	}
+
+	// Filter original pairs to preserve image data
+	var filteredPairs []gemini.CardPair
+	for _, p := range pairs {
+		if keptSet[dedup.CardText{Front: p.Front, Back: p.Back}] {
+			filteredPairs = append(filteredPairs, p)
+			delete(keptSet, dedup.CardText{Front: p.Front, Back: p.Back})
+		}
+	}
+	pairs = filteredPairs
 
 	type generatedCard struct {
 		Front          string `json:"front"`

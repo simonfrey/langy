@@ -220,6 +220,36 @@ func (d *DB) ListCards(ctx context.Context, userID, deckID string) ([]Card, erro
 	return cards, nil
 }
 
+// CardText holds only the text fields of a card, used for duplicate detection.
+type CardText struct {
+	Front string
+	Back  string
+}
+
+func (d *DB) ListCardTexts(ctx context.Context, userID, deckID string) ([]CardText, error) {
+	rows, err := d.Pool.Query(ctx,
+		`SELECT c.front, c.back
+		 FROM cards c JOIN decks d ON c.deck_id = d.id
+		 WHERE c.deck_id = $1 AND d.user_id = $2`, deckID, userID)
+	if err != nil {
+		return nil, fmt.Errorf("list card texts: %w", err)
+	}
+	defer rows.Close()
+
+	var texts []CardText
+	for rows.Next() {
+		var ct CardText
+		if err := rows.Scan(&ct.Front, &ct.Back); err != nil {
+			return nil, fmt.Errorf("list card texts scan: %w", err)
+		}
+		texts = append(texts, ct)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("list card texts rows: %w", err)
+	}
+	return texts, nil
+}
+
 type CardImageData struct {
 	FrontImage     []byte
 	FrontImageType string
