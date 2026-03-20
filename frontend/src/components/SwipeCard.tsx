@@ -10,7 +10,6 @@ interface Props {
   onDragSwipe: (direction: 'left' | 'right' | 'up') => void;
   flipped: boolean;
   onFlipChange: (flipped: boolean) => void;
-  remainingCards: number;
   exitDirection: 'left' | 'right' | 'up' | null;
 }
 
@@ -22,19 +21,10 @@ function getExitTarget(dir: 'left' | 'right' | 'up') {
   }
 }
 
-// Deterministic pseudo-random per layer index for the stack look
-function stackJitter(layerIndex: number) {
-  const rotations = [3, -2.5, 4];
-  const xOffsets = [6, -4, 8];
-  const yOffsets = [4, 4, 3];
-  return {
-    rotate: rotations[layerIndex % rotations.length],
-    x: xOffsets[layerIndex % xOffsets.length],
-    y: yOffsets[layerIndex % yOffsets.length],
-  };
-}
+export default function SwipeCard({ front, back, frontImageUrl, backImageUrl, onSwipeComplete, onDragSwipe, flipped, onFlipChange, exitDirection }: Props) {
+  const effectiveFrontImage = frontImageUrl || backImageUrl;
+  const effectiveBackImage = backImageUrl || frontImageUrl;
 
-export default function SwipeCard({ front, back, frontImageUrl, backImageUrl, onSwipeComplete, onDragSwipe, flipped, onFlipChange, remainingCards, exitDirection }: Props) {
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   const rotate = useTransform(x, [-200, 200], [-15, 15]);
@@ -62,33 +52,12 @@ export default function SwipeCard({ front, back, frontImageUrl, backImageUrl, on
     }
   }
 
-  const stackCards = Math.min(remainingCards - 1, 2);
-
   const animateProps = exitDirection
     ? { ...getExitTarget(exitDirection), transition: { duration: 0.3, ease: 'easeIn' as const } }
     : { x: 0, y: 0, rotate: 0, opacity: 1 };
 
   return (
-    <div className="relative" style={{ isolation: 'isolate' }}>
-      {/* Stack cards behind — rendered bottom-up */}
-      {Array.from({ length: stackCards }).map((_, i) => {
-        const layerIndex = stackCards - i; // 2, 1 (bottom first)
-        const jitter = stackJitter(layerIndex);
-        return (
-          <div
-            key={`stack-${layerIndex}`}
-            className="absolute inset-0"
-            style={{
-              transform: `rotate(${jitter.rotate}deg) translate(${jitter.x}px, ${jitter.y}px)`,
-              opacity: 1 - layerIndex * 0.12,
-              zIndex: 3 - layerIndex,
-            }}
-          >
-            <div className="bg-white rounded-2xl shadow-lg border border-warm-200 p-8 min-h-[340px]" />
-          </div>
-        );
-      })}
-
+    <div className="relative" style={{ isolation: 'isolate', zIndex: 5 }}>
       <motion.div
         className="relative w-full mx-auto cursor-grab active:cursor-grabbing"
         style={{ x, y, rotate, opacity, zIndex: 10 }}
@@ -134,11 +103,11 @@ export default function SwipeCard({ front, back, frontImageUrl, backImageUrl, on
             transition={{ duration: 0.2 }}
             className="text-2xl font-bold text-warm-900 text-center"
           >
-            {!flipped && frontImageUrl && (
-              <AuthImage src={frontImageUrl} alt="" className="max-h-32 mx-auto mb-3 rounded-lg object-contain" />
+            {!flipped && effectiveFrontImage && (
+              <AuthImage src={effectiveFrontImage} alt="" className="max-h-32 mx-auto mb-3 rounded-lg object-contain" />
             )}
-            {flipped && backImageUrl && (
-              <AuthImage src={backImageUrl} alt="" className="max-h-32 mx-auto mb-3 rounded-lg object-contain" />
+            {flipped && effectiveBackImage && (
+              <AuthImage src={effectiveBackImage} alt="" className="max-h-32 mx-auto mb-3 rounded-lg object-contain" />
             )}
             {flipped ? back : front}
           </motion.div>

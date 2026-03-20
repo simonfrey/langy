@@ -3,6 +3,7 @@ import { api, imageUrl } from '../lib/api';
 import { db } from '../db/dexie';
 import type { CardRecord } from '../db/dexie';
 import SwipeCard from '../components/SwipeCard';
+import AuthImage from '../components/AuthImage';
 import { useOffline } from '../hooks/useOffline';
 import OfflineBanner from '../components/OfflineBanner';
 import { BlobBackground, CelebrationIllustration } from '../components/Blobs';
@@ -197,18 +198,56 @@ export default function Review() {
         </div>
       </div>
 
-      <SwipeCard
-        front={card.reversed ? card.back : card.front}
-        back={card.reversed ? card.front : card.back}
-        frontImageUrl={imageUrl(card.reversed ? card.back_image_url : card.front_image_url)}
-        backImageUrl={imageUrl(card.reversed ? card.front_image_url : card.back_image_url)}
-        onSwipeComplete={handleSwipeComplete}
-        onDragSwipe={startSwipe}
-        flipped={flipped}
-        onFlipChange={setFlipped}
-        remainingCards={cards.length - index}
-        exitDirection={exitDirection}
-      />
+      <div className="relative" style={{ isolation: 'isolate' }}>
+        {/* Stack cards behind — rendered bottom-up with real content */}
+        {cards.slice(index + 1, index + 3).reverse().map((stackCard, i, arr) => {
+          const layerIndex = arr.length - i; // 2, 1 (bottom first)
+          const rotations = [3, -2.5, 4];
+          const xOffsets = [6, -4, 8];
+          const yOffsets = [4, 4, 3];
+          const jitter = {
+            rotate: rotations[layerIndex % rotations.length],
+            x: xOffsets[layerIndex % xOffsets.length],
+            y: yOffsets[layerIndex % yOffsets.length],
+          };
+          const frontText = stackCard.reversed ? stackCard.back : stackCard.front;
+          const frontImg = imageUrl(stackCard.reversed ? stackCard.back_image_url : stackCard.front_image_url);
+          return (
+            <div
+              key={stackCard.id}
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                transform: `rotate(${jitter.rotate}deg) translate(${jitter.x}px, ${jitter.y}px)`,
+                opacity: 1 - layerIndex * 0.12,
+                zIndex: 3 - layerIndex,
+              }}
+            >
+              <div className="bg-white rounded-2xl shadow-lg border border-warm-200 p-8 min-h-[340px] flex flex-col items-center justify-center overflow-hidden">
+                <div className="text-xs text-warm-400 uppercase tracking-wider mb-4 font-semibold">Front</div>
+                <div className="text-2xl font-bold text-warm-900 text-center">
+                  {frontImg && (
+                    <AuthImage src={frontImg} alt="" className="max-h-32 mx-auto mb-3 rounded-lg object-contain" />
+                  )}
+                  {frontText}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+
+        <SwipeCard
+          key={card.id}
+          front={card.reversed ? card.back : card.front}
+          back={card.reversed ? card.front : card.back}
+          frontImageUrl={imageUrl(card.reversed ? card.back_image_url : card.front_image_url)}
+          backImageUrl={imageUrl(card.reversed ? card.front_image_url : card.back_image_url)}
+          onSwipeComplete={handleSwipeComplete}
+          onDragSwipe={startSwipe}
+          flipped={flipped}
+          onFlipChange={setFlipped}
+          exitDirection={exitDirection}
+        />
+      </div>
 
       {!flipped ? (
         <div className="flex justify-center mt-6">
