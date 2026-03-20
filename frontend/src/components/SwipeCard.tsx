@@ -38,22 +38,58 @@ export default function SwipeCard({ front, back, frontImageUrl, backImageUrl, on
   const rotate = useTransform(x, [j.x - 200, j.x + 200], [j.rotate - 15, j.rotate + 15]);
   const opacity = useMotionValue(1);
 
+  // Card fades as it moves away from center
+  const opacityFromX = useTransform(x, [j.x - 250, j.x, j.x + 250], [0, 1, 0]);
+  const opacityFromY = useTransform(y, [j.y - 250, j.y, j.y + 250], [0, 1, 0]);
+  // Sync drag-driven opacity into the motion value
+  useTransform(() => {
+    const val = Math.min(opacityFromX.get(), opacityFromY.get());
+    opacity.set(val);
+    return val;
+  });
+
   const greenOpacity = useTransform(x, [j.x, j.x + 100], [0, 1]);
   const redOpacity = useTransform(x, [j.x - 100, j.x], [1, 0]);
   const blueOpacity = useTransform(y, [j.y - 100, j.y], [1, 0]);
 
   function handleDragEnd(_: unknown, info: PanInfo) {
-    const threshold = 100;
-    if (info.offset.y < -threshold && Math.abs(info.offset.x) < threshold) {
-      onDragSwipe('up');
-    } else if (info.offset.x > threshold) {
-      onDragSwipe('right');
-    } else if (info.offset.x < -threshold) {
-      onDragSwipe('left');
+    const pctThreshold = 0.10;
+    const velocityThreshold = 300;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    const absX = Math.abs(info.offset.x);
+    const absY = Math.abs(info.offset.y);
+    const absVx = Math.abs(info.velocity.x);
+    const absVy = Math.abs(info.velocity.y);
+
+    const isUp = info.offset.y < 0 && absY > absX &&
+      (absY > vh * pctThreshold || absVy > velocityThreshold);
+    const isRight = info.offset.x > 0 &&
+      (absX > vw * pctThreshold || absVx > velocityThreshold);
+    const isLeft = info.offset.x < 0 &&
+      (absX > vw * pctThreshold || absVx > velocityThreshold);
+
+    if (isUp) {
+      animateDismiss('up');
+    } else if (isRight) {
+      animateDismiss('right');
+    } else if (isLeft) {
+      animateDismiss('left');
     } else {
       animateValue(x, j.x, { type: 'spring', stiffness: 300, damping: 30 });
       animateValue(y, j.y, { type: 'spring', stiffness: 300, damping: 30 });
+      animateValue(opacity, 1, { type: 'spring', stiffness: 300, damping: 30 });
     }
+  }
+
+  function animateDismiss(dir: 'left' | 'right' | 'up') {
+    const target = getExitTarget(dir);
+    const spring = { type: 'spring' as const, stiffness: 200, damping: 25 };
+    animateValue(x, target.x, spring);
+    animateValue(y, target.y, spring);
+    animateValue(opacity, 0, { duration: 0.25 });
+    onDragSwipe(dir);
   }
 
   const animateProps = exitDirection
@@ -67,6 +103,7 @@ export default function SwipeCard({ front, back, frontImageUrl, backImageUrl, on
         style={{ x, y, rotate, opacity, zIndex: 10 }}
         animate={exitDirection ? animateProps : undefined}
         drag={flipped && !exitDirection}
+        dragElastic={1}
         onDragEnd={handleDragEnd}
         onClick={() => !exitDirection && onFlipChange(!flipped)}
         whileTap={exitDirection ? undefined : { scale: 0.98 }}
