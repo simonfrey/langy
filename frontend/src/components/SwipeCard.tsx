@@ -1,6 +1,12 @@
 import { motion, useMotionValue, useTransform, animate as animateValue, type PanInfo } from 'framer-motion';
 import AuthImage from './AuthImage';
 
+interface Jitter {
+  rotate: number;
+  x: number;
+  y: number;
+}
+
 interface Props {
   front: string;
   back: string;
@@ -11,6 +17,7 @@ interface Props {
   flipped: boolean;
   onFlipChange: (flipped: boolean) => void;
   exitDirection: 'left' | 'right' | 'up' | null;
+  jitter?: Jitter;
 }
 
 function getExitTarget(dir: 'left' | 'right' | 'up') {
@@ -21,18 +28,15 @@ function getExitTarget(dir: 'left' | 'right' | 'up') {
   }
 }
 
-export default function SwipeCard({ front, back, frontImageUrl, backImageUrl, onSwipeComplete, onDragSwipe, flipped, onFlipChange, exitDirection }: Props) {
+export default function SwipeCard({ front, back, frontImageUrl, backImageUrl, onSwipeComplete, onDragSwipe, flipped, onFlipChange, exitDirection, jitter }: Props) {
   const effectiveFrontImage = frontImageUrl || backImageUrl;
   const effectiveBackImage = backImageUrl || frontImageUrl;
 
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-  const rotate = useTransform(x, [-200, 200], [-15, 15]);
-  const opacity = useTransform(
-    x,
-    [-200, -100, 0, 100, 200],
-    [0.5, 0.8, 1, 0.8, 0.5],
-  );
+  const j = jitter ?? { rotate: 0, x: 0, y: 0 };
+  const x = useMotionValue(j.x);
+  const y = useMotionValue(j.y);
+  const rotate = useTransform(x, [-200, 200], [j.rotate - 15, j.rotate + 15]);
+  const opacity = useMotionValue(1);
 
   const greenOpacity = useTransform(x, [0, 100], [0, 1]);
   const redOpacity = useTransform(x, [-100, 0], [1, 0]);
@@ -47,17 +51,17 @@ export default function SwipeCard({ front, back, frontImageUrl, backImageUrl, on
     } else if (info.offset.x < -threshold) {
       onDragSwipe('left');
     } else {
-      animateValue(x, 0, { type: 'spring', stiffness: 300, damping: 30 });
-      animateValue(y, 0, { type: 'spring', stiffness: 300, damping: 30 });
+      animateValue(x, j.x, { type: 'spring', stiffness: 300, damping: 30 });
+      animateValue(y, j.y, { type: 'spring', stiffness: 300, damping: 30 });
     }
   }
 
   const animateProps = exitDirection
     ? { ...getExitTarget(exitDirection), transition: { duration: 0.3, ease: 'easeIn' as const } }
-    : { x: 0, y: 0, rotate: 0, opacity: 1 };
+    : undefined;
 
   return (
-    <div className="relative" style={{ isolation: 'isolate', zIndex: 5 }}>
+    <div className="relative" style={{ zIndex: 5 }}>
       <motion.div
         className="relative w-full mx-auto cursor-grab active:cursor-grabbing"
         style={{ x, y, rotate, opacity, zIndex: 10 }}
@@ -96,11 +100,7 @@ export default function SwipeCard({ front, back, frontImageUrl, backImageUrl, on
           <div className="text-xs text-warm-400 uppercase tracking-wider mb-4 font-semibold">
             {flipped ? 'Back' : 'Front'}
           </div>
-          <motion.div
-            key={flipped ? 'back' : 'front'}
-            initial={{ rotateY: 90, opacity: 0 }}
-            animate={{ rotateY: 0, opacity: 1 }}
-            transition={{ duration: 0.2 }}
+          <div
             className="text-2xl font-bold text-warm-900 text-center"
           >
             {!flipped && effectiveFrontImage && (
@@ -110,7 +110,7 @@ export default function SwipeCard({ front, back, frontImageUrl, backImageUrl, on
               <AuthImage src={effectiveBackImage} alt="" className="max-h-32 mx-auto mb-3 rounded-lg object-contain" />
             )}
             {flipped ? back : front}
-          </motion.div>
+          </div>
           {!flipped && (
             <p className="text-warm-400 text-sm mt-6">Tap to reveal</p>
           )}

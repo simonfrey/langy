@@ -13,6 +13,18 @@ interface ReviewCard extends CardRecord {
   reversed: boolean;
 }
 
+const ROTATIONS = [2.5, -2, 3, -1.5, 1.8];
+const X_OFFSETS = [5, -4, 7, -3, 6];
+const Y_OFFSETS = [3, 4, 2, 5, 3];
+
+function getJitter(layerIndex: number) {
+  return {
+    rotate: ROTATIONS[layerIndex % ROTATIONS.length],
+    x: X_OFFSETS[layerIndex % X_OFFSETS.length],
+    y: Y_OFFSETS[layerIndex % Y_OFFSETS.length],
+  };
+}
+
 export default function Review() {
   const [cards, setCards] = useState<ReviewCard[]>([]);
   const [index, setIndex] = useState(0);
@@ -179,7 +191,7 @@ export default function Review() {
   const total = cards.length;
 
   return (
-    <div className="p-4 pb-24 relative overflow-hidden">
+    <div className="p-4 pb-24 relative">
       <BlobBackground />
       {isOffline && <div className="mb-4 relative z-10"><OfflineBanner message="You're offline. Reviews will sync when you reconnect." /></div>}
 
@@ -202,27 +214,22 @@ export default function Review() {
         {/* Stack cards behind — rendered bottom-up with real content */}
         {cards.slice(index + 1, index + 3).reverse().map((stackCard, i, arr) => {
           const layerIndex = arr.length - i; // 2, 1 (bottom first)
-          const rotations = [3, -2.5, 4];
-          const xOffsets = [6, -4, 8];
-          const yOffsets = [4, 4, 3];
-          const jitter = {
-            rotate: rotations[layerIndex % rotations.length],
-            x: xOffsets[layerIndex % xOffsets.length],
-            y: yOffsets[layerIndex % yOffsets.length],
-          };
+          const originalOffset = arr.length - i; // offset from current top card
+          const jitter = getJitter(index + originalOffset);
           const frontText = stackCard.reversed ? stackCard.back : stackCard.front;
-          const frontImg = imageUrl(stackCard.reversed ? stackCard.back_image_url : stackCard.front_image_url);
+          const frontImg = imageUrl(stackCard.reversed ? stackCard.back_image_url : stackCard.front_image_url)
+            || imageUrl(stackCard.reversed ? stackCard.front_image_url : stackCard.back_image_url);
           return (
             <div
               key={stackCard.id}
               className="absolute inset-0 pointer-events-none"
               style={{
                 transform: `rotate(${jitter.rotate}deg) translate(${jitter.x}px, ${jitter.y}px)`,
-                opacity: 1 - layerIndex * 0.12,
+                opacity: 1,
                 zIndex: 3 - layerIndex,
               }}
             >
-              <div className="bg-white rounded-2xl shadow-lg border border-warm-200 p-8 min-h-[340px] flex flex-col items-center justify-center overflow-hidden">
+              <div className="bg-white rounded-2xl shadow-lg border border-warm-200 p-8 min-h-[340px] flex flex-col items-center justify-center">
                 <div className="text-xs text-warm-400 uppercase tracking-wider mb-4 font-semibold">Front</div>
                 <div className="text-2xl font-bold text-warm-900 text-center">
                   {frontImg && (
@@ -230,6 +237,7 @@ export default function Review() {
                   )}
                   {frontText}
                 </div>
+                <p className="text-warm-400 text-sm mt-6">Tap to reveal</p>
               </div>
             </div>
           );
@@ -246,6 +254,7 @@ export default function Review() {
           flipped={flipped}
           onFlipChange={setFlipped}
           exitDirection={exitDirection}
+          jitter={getJitter(index)}
         />
       </div>
 
