@@ -12,6 +12,32 @@ import (
 	"github.com/simonfrey/langy/internal/middleware"
 )
 
+const maxCardTextLength = 10000
+
+// validImageMagic checks file magic bytes for common image formats.
+func validImageMagic(data []byte) bool {
+	if len(data) < 4 {
+		return false
+	}
+	// JPEG
+	if data[0] == 0xFF && data[1] == 0xD8 && data[2] == 0xFF {
+		return true
+	}
+	// PNG
+	if data[0] == 0x89 && data[1] == 0x50 && data[2] == 0x4E && data[3] == 0x47 {
+		return true
+	}
+	// GIF
+	if string(data[:3]) == "GIF" {
+		return true
+	}
+	// WebP
+	if len(data) >= 12 && string(data[:4]) == "RIFF" && string(data[8:12]) == "WEBP" {
+		return true
+	}
+	return false
+}
+
 type CardsHandler struct {
 	DB *db.DB
 }
@@ -101,7 +127,7 @@ func (h *CardsHandler) CreateCard(w http.ResponseWriter, r *http.Request) {
 
 	contentType := r.Header.Get("Content-Type")
 	if len(contentType) >= 19 && contentType[:19] == "multipart/form-data" {
-		if err := r.ParseMultipartForm(20 << 20); err != nil {
+		if err := r.ParseMultipartForm(5 << 20); err != nil {
 			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid multipart form"})
 			return
 		}
@@ -111,12 +137,32 @@ func (h *CardsHandler) CreateCard(w http.ResponseWriter, r *http.Request) {
 		images = &db.CardImageData{}
 		if file, header, err := r.FormFile("front_image"); err == nil {
 			defer file.Close()
-			images.FrontImage, _ = io.ReadAll(file)
+			data, readErr := io.ReadAll(file)
+			if readErr != nil {
+				slog.Error("failed to read front_image upload", "error", readErr)
+				writeJSON(w, http.StatusBadRequest, map[string]string{"error": "failed to read uploaded file"})
+				return
+			}
+			if !validImageMagic(data) {
+				writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid image file type"})
+				return
+			}
+			images.FrontImage = data
 			images.FrontImageType = header.Header.Get("Content-Type")
 		}
 		if file, header, err := r.FormFile("back_image"); err == nil {
 			defer file.Close()
-			images.BackImage, _ = io.ReadAll(file)
+			data, readErr := io.ReadAll(file)
+			if readErr != nil {
+				slog.Error("failed to read back_image upload", "error", readErr)
+				writeJSON(w, http.StatusBadRequest, map[string]string{"error": "failed to read uploaded file"})
+				return
+			}
+			if !validImageMagic(data) {
+				writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid image file type"})
+				return
+			}
+			images.BackImage = data
 			images.BackImageType = header.Header.Get("Content-Type")
 		}
 		if len(images.FrontImage) == 0 && len(images.BackImage) == 0 {
@@ -133,6 +179,10 @@ func (h *CardsHandler) CreateCard(w http.ResponseWriter, r *http.Request) {
 		if req.FrontImageB64 != "" {
 			imgData, err := base64.StdEncoding.DecodeString(req.FrontImageB64)
 			if err == nil && len(imgData) > 0 {
+				if !validImageMagic(imgData) {
+					writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid image file type"})
+					return
+				}
 				images = &db.CardImageData{
 					FrontImage:     imgData,
 					FrontImageType: req.FrontImageType,
@@ -143,6 +193,10 @@ func (h *CardsHandler) CreateCard(w http.ResponseWriter, r *http.Request) {
 
 	if front == "" || back == "" {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "front and back required"})
+		return
+	}
+	if len(front) > maxCardTextLength || len(back) > maxCardTextLength {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "card text too long"})
 		return
 	}
 
@@ -169,7 +223,7 @@ func (h *CardsHandler) UpdateCard(w http.ResponseWriter, r *http.Request) {
 
 	contentType := r.Header.Get("Content-Type")
 	if len(contentType) >= 19 && contentType[:19] == "multipart/form-data" {
-		if err := r.ParseMultipartForm(20 << 20); err != nil {
+		if err := r.ParseMultipartForm(5 << 20); err != nil {
 			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid multipart form"})
 			return
 		}
@@ -179,12 +233,32 @@ func (h *CardsHandler) UpdateCard(w http.ResponseWriter, r *http.Request) {
 		images = &db.CardImageData{}
 		if file, header, err := r.FormFile("front_image"); err == nil {
 			defer file.Close()
-			images.FrontImage, _ = io.ReadAll(file)
+			data, readErr := io.ReadAll(file)
+			if readErr != nil {
+				slog.Error("failed to read front_image upload", "error", readErr)
+				writeJSON(w, http.StatusBadRequest, map[string]string{"error": "failed to read uploaded file"})
+				return
+			}
+			if !validImageMagic(data) {
+				writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid image file type"})
+				return
+			}
+			images.FrontImage = data
 			images.FrontImageType = header.Header.Get("Content-Type")
 		}
 		if file, header, err := r.FormFile("back_image"); err == nil {
 			defer file.Close()
-			images.BackImage, _ = io.ReadAll(file)
+			data, readErr := io.ReadAll(file)
+			if readErr != nil {
+				slog.Error("failed to read back_image upload", "error", readErr)
+				writeJSON(w, http.StatusBadRequest, map[string]string{"error": "failed to read uploaded file"})
+				return
+			}
+			if !validImageMagic(data) {
+				writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid image file type"})
+				return
+			}
+			images.BackImage = data
 			images.BackImageType = header.Header.Get("Content-Type")
 		}
 		if len(images.FrontImage) == 0 && len(images.BackImage) == 0 {
@@ -202,6 +276,10 @@ func (h *CardsHandler) UpdateCard(w http.ResponseWriter, r *http.Request) {
 
 	if front == "" || back == "" {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "front and back required"})
+		return
+	}
+	if len(front) > maxCardTextLength || len(back) > maxCardTextLength {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "card text too long"})
 		return
 	}
 

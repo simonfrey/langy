@@ -37,7 +37,7 @@ func (h *GenerateHandler) Generate(w http.ResponseWriter, r *http.Request) {
 
 	contentType := r.Header.Get("Content-Type")
 	if len(contentType) >= 19 && contentType[:19] == "multipart/form-data" {
-		if err := r.ParseMultipartForm(40 << 20); err != nil {
+		if err := r.ParseMultipartForm(10 << 20); err != nil {
 			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid multipart form"})
 			return
 		}
@@ -115,16 +115,16 @@ func (h *GenerateHandler) Generate(w http.ResponseWriter, r *http.Request) {
 			examples += ct.Front + " → " + ct.Back + "\n"
 		}
 		if mode == "grammar" {
-			prompt = "Here are existing grammar flashcards in this deck:\n" + examples + "\nGenerate 10 more grammar flashcards covering complementary grammar topics (conjugations, cases, sentence structures, tenses, common patterns). Do NOT repeat any of the existing cards above."
+			prompt = "Here are existing grammar flashcards in this deck:\n<existing_cards>\n" + examples + "</existing_cards>\nGenerate 10 more grammar flashcards covering complementary grammar topics (conjugations, cases, sentence structures, tenses, common patterns). Do NOT repeat any of the existing cards above."
 		} else {
-			prompt = "Here are existing flashcards in this deck:\n" + examples + "\nGenerate 10 more flashcards in the same theme/category/difficulty level. Do NOT repeat any of the existing cards above."
+			prompt = "Here are existing flashcards in this deck:\n<existing_cards>\n" + examples + "</existing_cards>\nGenerate 10 more flashcards in the same theme/category/difficulty level. Do NOT repeat any of the existing cards above."
 		}
 	}
 
 	pairs, err := h.Gemini.GenerateCards(r.Context(), prompt, sourceLang, targetLang, images, generateImages, mode)
 	if err != nil {
 		slog.Error("failed to generate cards via gemini", "error", err, "user_id", userID, "deck_id", deckID)
-		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "failed to generate cards: " + err.Error()})
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "failed to generate cards"})
 		return
 	}
 

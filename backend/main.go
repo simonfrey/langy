@@ -52,6 +52,12 @@ func main() {
 		os.Exit(1)
 	}
 
+	jwtSecret := os.Getenv("JWT_SECRET")
+	if len(jwtSecret) < 32 {
+		slog.Error("JWT_SECRET environment variable must be at least 32 characters")
+		os.Exit(1)
+	}
+
 	switch os.Args[1] {
 	case "serve":
 		runServe(ctx, databaseURL)
@@ -99,4 +105,3 @@ func runServe(ctx context.Context, databaseURL string) {
 		os.Exit(1)
 	}
 }
-

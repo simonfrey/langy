@@ -4,9 +4,11 @@ import (
 	"io/fs"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	chimw "github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/httprate"
 	"github.com/simonfrey/langy/internal/db"
 	"github.com/simonfrey/langy/internal/gemini"
 	"github.com/simonfrey/langy/internal/handler"
@@ -18,6 +20,10 @@ func New(database *db.DB, geminiClient *gemini.Client, staticFiles fs.FS) http.H
 	r.Use(middleware.Logging)
 	r.Use(chimw.Recoverer)
 	r.Use(chimw.RealIP)
+	r.Use(securityHeaders)
+
+	// Global rate limit: 100 requests per minute per IP
+	r.Use(httprate.LimitByIP(100, time.Minute))
 
 	authHandler := &handler.AuthHandler{DB: database}
 	cardsHandler := &handler.CardsHandler{DB: database}
@@ -25,9 +31,12 @@ func New(database *db.DB, geminiClient *gemini.Client, staticFiles fs.FS) http.H
 	syncHandler := &handler.SyncHandler{DB: database}
 	generateHandler := &handler.GenerateHandler{DB: database, Gemini: geminiClient}
 
-	// Public auth routes
-	r.Post("/api/auth/register", authHandler.Register)
-	r.Post("/api/auth/login", authHandler.Login)
+	// Public auth routes — stricter rate limit
+	r.Group(func(r chi.Router) {
+		r.Use(httprate.LimitByIP(10, time.Minute))
+		r.Post("/api/auth/register", authHandler.Register)
+		r.Post("/api/auth/login", authHandler.Login)
+	})
 
 	// Protected API routes
 	r.Group(func(r chi.Router) {
@@ -54,6 +63,16 @@ func New(database *db.DB, geminiClient *gemini.Client, staticFiles fs.FS) http.H
 	r.Get("/*", spaHandler)
 
 	return r
+}
+
+func securityHeaders(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Content-Type-Options", "nosniff")
+		w.Header().Set("X-Frame-Options", "DENY")
+		w.Header().Set("Referrer-Policy", "strict-origin-when-cross-origin")
+		w.Header().Set("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
+		next.ServeHTTP(w, r)
+	})
 }
 
 func spaFileServer(staticFS fs.FS) http.HandlerFunc {
