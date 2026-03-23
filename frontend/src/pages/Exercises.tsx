@@ -30,7 +30,6 @@ export default function Exercises() {
   const [sessionId] = useState(() => crypto.randomUUID());
   const [error, setError] = useState<string | null>(null);
   const [scrambleOrder, setScrambleOrder] = useState<string[]>([]);
-  const [showHint, setShowHint] = useState(false);
   const prefetchingRef = useRef(false);
   const [deckLangs, setDeckLangs] = useState<{ source: string; target: string } | null>(null);
 
@@ -242,7 +241,6 @@ export default function Exercises() {
     setGradeResult(null);
     setAnswer('');
     setScrambleOrder([]);
-    setShowHint(false);
     setIndex(index + 1);
   }
 
@@ -301,6 +299,107 @@ export default function Exercises() {
     );
   }
 
+  function renderHint(hint: string | undefined) {
+    if (!hint) return null;
+    return <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-3">{hint}</p>;
+  }
+
+  function renderExerciseCard(ex: ExerciseRecord) {
+    const type = ex.type;
+
+    switch (type) {
+      case 'full_translation':
+        return (
+          <>
+            <p className="text-sm text-warm-500 font-semibold mb-2">{ex.instruction}</p>
+            <div className="bg-warm-50 border-2 border-warm-200 rounded-xl p-4 mb-3">
+              <p className="text-xl text-warm-900 font-bold">{ex.prompt}</p>
+            </div>
+            <p className="text-sm text-warm-500 font-medium">Translate to {deckLangs?.target || 'target language'}:</p>
+            {renderHint(ex.hint)}
+          </>
+        );
+
+      case 'cloze_with_translation':
+        return (
+          <>
+            <p className="text-sm text-warm-500 font-semibold mb-2">{ex.instruction}</p>
+            {ex.hint && (
+              <div className="bg-sky-50 border border-sky-200 rounded-lg px-3 py-2 mb-3">
+                <p className="text-sm text-sky-700 font-medium">{ex.hint}</p>
+              </div>
+            )}
+            {renderPromptWithBlanks(ex.prompt, ex.correct_answer)}
+          </>
+        );
+
+      case 'error_correction':
+        return (
+          <>
+            <p className="text-sm text-warm-500 font-semibold mb-2">{ex.instruction}</p>
+            <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4 mb-3">
+              <p className="text-xl text-warm-900 font-bold">{ex.prompt}</p>
+            </div>
+            <p className="text-sm text-warm-500 font-medium">Type the corrected word:</p>
+            {renderHint(ex.hint)}
+          </>
+        );
+
+      case 'tense_shifting':
+        return (
+          <>
+            <p className="text-sm text-warm-500 font-semibold mb-2">{ex.instruction}</p>
+            <div className="bg-warm-50 border-2 border-warm-200 rounded-xl p-4 mb-3">
+              <p className="text-lg text-warm-900 font-medium">{ex.prompt}</p>
+            </div>
+            {renderHint(ex.hint)}
+          </>
+        );
+
+      case 'article_check':
+        return (
+          <>
+            <p className="text-sm text-warm-500 font-semibold mb-2">{ex.instruction}</p>
+            <div className="flex items-center justify-center py-4">
+              <p className="text-3xl text-warm-900 font-bold">{ex.prompt}</p>
+            </div>
+            <p className="text-sm text-warm-500 font-medium">Type with correct article:</p>
+            {renderHint(ex.hint)}
+          </>
+        );
+
+      case 'morphing':
+        return (
+          <>
+            <p className="text-sm text-warm-500 font-semibold mb-3">{ex.instruction}</p>
+            <div className="flex items-center justify-center py-4">
+              <p className="text-3xl text-warm-900 font-bold">{ex.prompt}</p>
+            </div>
+            {renderHint(ex.hint)}
+          </>
+        );
+
+      case 'word_order_scramble':
+        return (
+          <>
+            <p className="text-sm text-warm-500 font-semibold mb-3">{ex.instruction}</p>
+            {renderPromptWithBlanks(ex.prompt, ex.correct_answer)}
+            {renderHint(ex.hint)}
+          </>
+        );
+
+      // context_typing, conjugation_cloze, adjective_agreement, paragraph_cloze
+      default:
+        return (
+          <>
+            <p className="text-sm text-warm-500 font-semibold mb-3">{ex.instruction}</p>
+            {renderPromptWithBlanks(ex.prompt, ex.correct_answer)}
+            {renderHint(ex.hint)}
+          </>
+        );
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
@@ -351,22 +450,7 @@ export default function Exercises() {
 
       {/* Exercise card */}
       <div className="bg-white hand-drawn shadow-lg p-6 mb-4" style={handDrawnStyle}>
-        <p className="text-sm text-warm-500 font-semibold mb-3">{currentExercise.instruction}</p>
-        {renderPromptWithBlanks(currentExercise.prompt, currentExercise.correct_answer)}
-        {currentExercise.hint && (
-          <div className="mt-3">
-            {showHint ? (
-              <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">{currentExercise.hint}</p>
-            ) : (
-              <button
-                onClick={() => setShowHint(true)}
-                className="text-sm text-warm-400 hover:text-warm-600 underline transition"
-              >
-                Show hint
-              </button>
-            )}
-          </div>
-        )}
+        {renderExerciseCard(currentExercise)}
       </div>
 
       {/* Input area — only show separate input when there's no inline blank */}

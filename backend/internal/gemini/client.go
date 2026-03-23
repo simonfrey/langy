@@ -318,7 +318,7 @@ func (c *Client) GenerateExercises(ctx context.Context, cards []ExerciseCard, kn
 
 Generate exercises based on the vocabulary words below. Each exercise MUST require the correct GRAMMATICAL form (conjugation, declension, gender, article, agreement) — never accept just the base/dictionary form.
 
-CRITICAL: When constructing sentences for exercises, ONLY use words from the "KNOWN VOCABULARY" list below (plus basic function words like articles, prepositions, pronouns, and conjunctions). Do NOT introduce new vocabulary the learner hasn't seen. The sentences should feel natural but stay within the learner's known word pool.
+When constructing sentences for exercises, primarily use words from the "KNOWN VOCABULARY" list below. You may use additional common words appropriate to the learner's level to make sentences natural. The exercise should test the target word — don't make unknown surrounding words the obstacle.
 
 The "source_card_index" field must be the [index] of the vocabulary word the exercise is based on.
 The "hint" field must contain a helpful clue that guides the user toward the answer WITHOUT giving it away directly. For example: a translation of the surrounding context, the grammar rule being tested, or the base form of the target word. Never put the answer itself in the hint.
@@ -350,7 +350,13 @@ Exercise types for Level 3: paragraph_cloze, tense_shifting, error_correction, f
 - paragraph_cloze: 3-4 sentence %s paragraph with multiple blanks.
 - tense_shifting: Complete %s sentence, user rewrites in different tense.
 - error_correction: %s sentence with intentional grammar error, user types corrected word.
-- full_translation: Complex %s sentence, user translates entire sentence to %s.
+- full_translation: Complex %s sentence, user translates entire sentence to %s. Put the source sentence in "prompt", put a brief grammar/context hint in "hint".
+
+OUTPUT FORMAT RULES per exercise type:
+- cloze_with_translation: Put the cloze sentence (with ___) in "prompt", put the full translation in "hint".
+- error_correction: "correct_answer" should be just the corrected word(s), not the full sentence.
+- tense_shifting: Include the target tense in the "instruction" field.
+- full_translation: Put the source sentence in "prompt", put a brief grammar/context hint in "hint".
 
 Write all "instruction" fields in %s (the learner's native language). Do NOT write instructions in English unless the native language IS English.
 
@@ -443,7 +449,7 @@ Expected correct answer: %s
 User's answer: %s
 
 Rules:
-- Be FORGIVING of minor typos and spelling errors (e.g., "aet" for "ate") — mark as correct with feedback noting the typo.
+- Be STRICT on spelling — wrong spelling is wrong. Only accept correctly spelled forms.
 - Be STRICT on grammar errors (wrong conjugation, wrong case, wrong gender/article, wrong agreement) — mark as incorrect.
 - If the answer is semantically correct but uses a different valid form, mark as correct.
 - Provide brief, encouraging feedback in %s.
