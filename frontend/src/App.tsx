@@ -10,6 +10,7 @@ import EditCards from './pages/EditCards';
 import AddCard from './pages/AddCard';
 import Review from './pages/Review';
 import Generate from './pages/Generate';
+import Exercises from './pages/Exercises';
 import { BlobBackground } from './components/Blobs';
 
 function DefaultRoute() {
@@ -49,6 +50,7 @@ function AuthenticatedLayout() {
           <Route path="/decks/:deckId/add-card" element={<AddCard />} />
           <Route path="/review" element={<Review />} />
           <Route path="/review/:deckId" element={<Review />} />
+          <Route path="/exercises" element={<Exercises />} />
           <Route path="/generate" element={<Generate />} />
         </Routes>
       </div>

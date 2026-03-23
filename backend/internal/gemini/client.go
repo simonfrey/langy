@@ -22,6 +22,30 @@ type CardPair struct {
 	ImgType  string `json:"-"`
 }
 
+type ExerciseCard struct {
+	ID    string `json:"id"`
+	Front string `json:"front"`
+	Back  string `json:"back"`
+	Level int    `json:"level"` // 1=low, 2=medium, 3=high maturity
+}
+
+type Exercise struct {
+	ID            string   `json:"id"`
+	Type          string   `json:"type"`
+	Level         int      `json:"level"`
+	Instruction   string   `json:"instruction"`
+	Prompt        string   `json:"prompt"`
+	CorrectAnswer string   `json:"correct_answer"`
+	Options       []string `json:"options,omitempty"`
+	SourceCardID  string   `json:"source_card_id"`
+}
+
+type GradeResult struct {
+	Correct         bool   `json:"correct"`
+	Feedback        string `json:"feedback"`
+	CorrectedAnswer string `json:"corrected_answer,omitempty"`
+}
+
 type ImageData struct {
 	Data     []byte
 	MimeType string
@@ -227,6 +251,199 @@ Guidelines:
 - If the request implies a specific number, generate exactly that many. Otherwise, generate around 10.`, tgtName, srcName, tgtName, srcName, prompt)
 
 	return basePrompt
+}
+
+var exerciseSchema = &genai.Schema{
+	Type: genai.TypeArray,
+	Items: &genai.Schema{
+		Type: genai.TypeObject,
+		Properties: map[string]*genai.Schema{
+			"type":           {Type: genai.TypeString},
+			"instruction":    {Type: genai.TypeString},
+			"prompt":         {Type: genai.TypeString},
+			"correct_answer": {Type: genai.TypeString},
+			"options": {
+				Type:  genai.TypeArray,
+				Items: &genai.Schema{Type: genai.TypeString},
+			},
+			"source_card_index": {Type: genai.TypeInteger},
+		},
+		Required: []string{"type", "instruction", "prompt", "correct_answer", "source_card_index"},
+	},
+}
+
+var gradeSchema = &genai.Schema{
+	Type: genai.TypeObject,
+	Properties: map[string]*genai.Schema{
+		"correct":          {Type: genai.TypeBoolean},
+		"feedback":         {Type: genai.TypeString},
+		"corrected_answer": {Type: genai.TypeString},
+	},
+	Required: []string{"correct", "feedback"},
+}
+
+func (c *Client) GenerateExercises(ctx context.Context, cards []ExerciseCard, sourceLang, targetLang string) ([]Exercise, error) {
+	srcName := langName(sourceLang)
+	tgtName := langName(targetLang)
+
+	var l1Cards, l2Cards, l3Cards []string
+	for i, card := range cards {
+		entry := fmt.Sprintf("[%d] %s = %s", i, card.Front, card.Back)
+		switch card.Level {
+		case 1:
+			l1Cards = append(l1Cards, entry)
+		case 2:
+			l2Cards = append(l2Cards, entry)
+		default:
+			l3Cards = append(l3Cards, entry)
+		}
+	}
+
+	prompt := fmt.Sprintf(`You are an exercise generator for a %s learner whose native language is %s.
+
+Generate exercises based on the vocabulary words below. Each exercise MUST require the correct GRAMMATICAL form (conjugation, declension, gender, article, agreement) — never accept just the base/dictionary form.
+
+The "source_card_index" field must be the [index] of the vocabulary word the exercise is based on.
+
+LEVEL 1 WORDS (beginner — provide %s translations as hints):
+%s
+
+Exercise types for Level 1: cloze_with_translation, word_order_scramble, article_check, morphing
+- cloze_with_translation: Show a %s sentence with a blank, provide full %s translation as hint. User types the missing word in correct form.
+- word_order_scramble: Show %s sentence, provide jumbled %s words in "options" array. User must order them.
+- article_check: Show %s word, user must type it with correct article/gender marker.
+- morphing: Give base word + grammatical instruction (e.g. "1st person past tense"), user types the correct form.
+
+LEVEL 2 WORDS (intermediate — no native language hints):
+%s
+
+Exercise types for Level 2: context_typing, conjugation_cloze, adjective_agreement
+- context_typing: Show %s sentence with blank, user infers word from context.
+- conjugation_cloze: Show %s sentence with blank + base form in parentheses, user types correct conjugated form.
+- adjective_agreement: Show %s sentence with blank + base adjective, user types with correct gender/number.
+
+LEVEL 3 WORDS (advanced — generative tasks):
+%s
+
+Exercise types for Level 3: paragraph_cloze, tense_shifting, error_correction, full_translation
+- paragraph_cloze: 3-4 sentence %s paragraph with multiple blanks.
+- tense_shifting: Complete %s sentence, user rewrites in different tense.
+- error_correction: %s sentence with intentional grammar error, user types corrected word.
+- full_translation: Complex %s sentence, user translates entire sentence to %s.
+
+Generate one exercise per word. Use the appropriate exercise type for each word's level.`,
+		tgtName, srcName,
+		srcName,
+		joinLines(l1Cards),
+		tgtName, srcName, srcName, tgtName, tgtName,
+		joinLines(l2Cards),
+		tgtName, tgtName, tgtName,
+		joinLines(l3Cards),
+		tgtName, tgtName, tgtName, srcName, tgtName,
+	)
+
+	config := &genai.GenerateContentConfig{
+		ResponseMIMEType: "application/json",
+		ResponseSchema:   exerciseSchema,
+	}
+
+	slog.Info("generating exercises via gemini", "model", c.model, "card_count", len(cards))
+	contents := []*genai.Content{{Parts: []*genai.Part{{Text: prompt}}}}
+	result, err := c.client.Models.GenerateContent(ctx, c.model, contents, config)
+	if err != nil {
+		return nil, fmt.Errorf("gemini API error: %w", err)
+	}
+
+	if len(result.Candidates) == 0 || len(result.Candidates[0].Content.Parts) == 0 {
+		return nil, fmt.Errorf("empty response from Gemini")
+	}
+
+	text := result.Candidates[0].Content.Parts[0].Text
+
+	var rawExercises []struct {
+		Type            string   `json:"type"`
+		Instruction     string   `json:"instruction"`
+		Prompt          string   `json:"prompt"`
+		CorrectAnswer   string   `json:"correct_answer"`
+		Options         []string `json:"options"`
+		SourceCardIndex int      `json:"source_card_index"`
+	}
+	if err := json.Unmarshal([]byte(text), &rawExercises); err != nil {
+		return nil, fmt.Errorf("failed to parse exercises response: %w", err)
+	}
+
+	exercises := make([]Exercise, 0, len(rawExercises))
+	for i, raw := range rawExercises {
+		cardIdx := raw.SourceCardIndex
+		if cardIdx < 0 || cardIdx >= len(cards) {
+			cardIdx = i % len(cards)
+		}
+		exercises = append(exercises, Exercise{
+			ID:            fmt.Sprintf("ex-%d", i),
+			Type:          raw.Type,
+			Level:         cards[cardIdx].Level,
+			Instruction:   raw.Instruction,
+			Prompt:        raw.Prompt,
+			CorrectAnswer: raw.CorrectAnswer,
+			Options:       raw.Options,
+			SourceCardID:  cards[cardIdx].ID,
+		})
+	}
+
+	return exercises, nil
+}
+
+func joinLines(lines []string) string {
+	if len(lines) == 0 {
+		return "(none)"
+	}
+	result := ""
+	for _, l := range lines {
+		result += l + "\n"
+	}
+	return result
+}
+
+func (c *Client) GradeExercise(ctx context.Context, exerciseType, prompt, correctAnswer, userAnswer, sourceLang, targetLang string) (*GradeResult, error) {
+	srcName := langName(sourceLang)
+	tgtName := langName(targetLang)
+
+	gradePrompt := fmt.Sprintf(`You are grading a %s language exercise for a %s speaker.
+
+Exercise type: %s
+Exercise prompt: %s
+Expected correct answer: %s
+User's answer: %s
+
+Rules:
+- Be FORGIVING of minor typos and spelling errors (e.g., "aet" for "ate") — mark as correct with feedback noting the typo.
+- Be STRICT on grammar errors (wrong conjugation, wrong case, wrong gender/article, wrong agreement) — mark as incorrect.
+- If the answer is semantically correct but uses a different valid form, mark as correct.
+- Provide brief, encouraging feedback in %s.
+- If incorrect, provide the corrected answer.`, tgtName, srcName, exerciseType, prompt, correctAnswer, userAnswer, srcName)
+
+	config := &genai.GenerateContentConfig{
+		ResponseMIMEType: "application/json",
+		ResponseSchema:   gradeSchema,
+	}
+
+	contents := []*genai.Content{{Parts: []*genai.Part{{Text: gradePrompt}}}}
+	result, err := c.client.Models.GenerateContent(ctx, c.model, contents, config)
+	if err != nil {
+		return nil, fmt.Errorf("gemini API error: %w", err)
+	}
+
+	if len(result.Candidates) == 0 || len(result.Candidates[0].Content.Parts) == 0 {
+		return nil, fmt.Errorf("empty response from Gemini")
+	}
+
+	text := result.Candidates[0].Content.Parts[0].Text
+	var grade GradeResult
+	if err := json.Unmarshal([]byte(text), &grade); err != nil {
+		return nil, fmt.Errorf("failed to parse grade response: %w", err)
+	}
+
+	return &grade, nil
 }
 
 func (c *Client) generateCardImage(ctx context.Context, front, back, lang, mode string) ([]byte, string, error) {
