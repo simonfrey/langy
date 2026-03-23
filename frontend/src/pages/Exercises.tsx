@@ -124,7 +124,7 @@ export default function Exercises() {
     (async () => {
       try {
         // 1. Load uncompleted exercises from local IndexedDB first (instant)
-        const cached = await db.exercises.where('completed').equals(0).toArray();
+        const cached = await db.exercises.filter(e => !e.completed).toArray();
         if (cached.length > 0 && !cancelled) {
           setExercises(cached);
           const decks = await db.decks.toArray();
@@ -146,7 +146,7 @@ export default function Exercises() {
               }));
               await db.exercises.bulkPut(records);
               // Merge: combine cached and backend, deduplicate by id
-              const all = await db.exercises.where('completed').equals(0).toArray();
+              const all = await db.exercises.filter(e => !e.completed).toArray();
               if (!cancelled) {
                 setExercises(all);
                 const decks = await db.decks.toArray();
