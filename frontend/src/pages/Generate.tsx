@@ -182,7 +182,7 @@ export default function Generate() {
 
         {selectedDeck && (
           <p className="text-warm-500 text-sm font-semibold">
-            {formatLanguage(selectedDeck.source_lang)} ↔ {formatLanguage(selectedDeck.target_lang)}
+            {formatLanguage(selectedDeck.source_lang)} → {formatLanguage(selectedDeck.target_lang)}
           </p>
         )}
 

@@ -63,7 +63,7 @@ export default function DeckList() {
                 <div className="flex-1 min-w-0">
                   <h3 className="text-lg font-bold text-warm-900 truncate">{deck.name}</h3>
                   <p className="text-warm-500 text-sm mt-0.5">
-                    {formatLanguage(deck.source_lang)} ↔ {formatLanguage(deck.target_lang)}
+                    {formatLanguage(deck.source_lang)} → {formatLanguage(deck.target_lang)}
                   </p>
                   <p className="text-warm-400 text-xs mt-1">{deck.cardCount} cards</p>
                 </div>

@@ -46,13 +46,13 @@ export default function CreateDeck() {
               value={form.source_lang}
               onChange={(code) => setForm({ ...form, source_lang: code })}
               required
-              label="Language 1"
+              label="I speak"
             />
             <LanguageSelect
               value={form.target_lang}
               onChange={(code) => setForm({ ...form, target_lang: code })}
               required
-              label="Language 2"
+              label="I'm learning"
             />
           </div>
           <div className="flex gap-3 mt-6">
