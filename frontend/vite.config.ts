@@ -10,7 +10,12 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico'],
+      includeAssets: ['favicon.svg', 'favicon.png', 'icons.svg', 'logo.svg', 'fonts/*.woff2'],
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        navigateFallback: 'index.html',
+        navigateFallbackDenylist: [/^\/api\//],
+      },
       manifest: {
         name: 'Langy',
         short_name: 'Langy',

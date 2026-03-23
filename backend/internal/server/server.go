@@ -62,6 +62,16 @@ func spaFileServer(staticFS fs.FS) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		path := strings.TrimPrefix(r.URL.Path, "/")
 
+		// Service worker must never be cached by the browser
+		if path == "sw.js" || path == "sw.js.map" {
+			w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+		}
+
+		// Hashed assets can be cached forever
+		if strings.HasPrefix(path, "assets/") {
+			w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+		}
+
 		// Try to open the file
 		if path != "" {
 			if f, err := staticFS.Open(path); err == nil {
