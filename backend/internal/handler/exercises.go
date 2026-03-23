@@ -167,6 +167,35 @@ func (h *ExercisesHandler) Grade(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, result)
 }
 
+type exerciseCompleteRequest struct {
+	ExerciseID string `json:"exercise_id"`
+	UserAnswer string `json:"user_answer"`
+	Correct    bool   `json:"correct"`
+}
+
+func (h *ExercisesHandler) Complete(w http.ResponseWriter, r *http.Request) {
+	userID := middleware.GetUserID(r.Context())
+
+	var req exerciseCompleteRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid request body"})
+		return
+	}
+
+	if req.ExerciseID == "" || req.UserAnswer == "" {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "exercise_id and user_answer required"})
+		return
+	}
+
+	if err := h.DB.UpdateExerciseResult(r.Context(), userID, req.ExerciseID, req.UserAnswer, req.Correct, ""); err != nil {
+		slog.Error("failed to complete exercise", "error", err, "user_id", userID, "exercise_id", req.ExerciseID)
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "failed to update exercise"})
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+}
+
 func (h *ExercisesHandler) Due(w http.ResponseWriter, r *http.Request) {
 	userID := middleware.GetUserID(r.Context())
 

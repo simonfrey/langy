@@ -60,6 +60,7 @@ func New(database *db.DB, geminiClient *gemini.Client, staticFiles fs.FS) http.H
 		r.Get("/api/exercises/due", exercisesHandler.Due)
 		r.Post("/api/exercises/generate", exercisesHandler.Generate)
 		r.Post("/api/exercises/grade", exercisesHandler.Grade)
+		r.Post("/api/exercises/complete", exercisesHandler.Complete)
 	})
 
 	// Serve static files with SPA fallback

@@ -258,6 +258,18 @@ export default function Exercises() {
     setGradeResult(result);
     setExplanation(null);
     await db.exercises.update(currentExercise.id, { completed: true, user_answer: answer, correct });
+
+    // Sync completion to backend (fire-and-forget)
+    if (!isOffline && currentExercise.id) {
+      api('/exercises/complete', {
+        method: 'POST',
+        body: JSON.stringify({
+          exercise_id: currentExercise.id,
+          user_answer: answer,
+          correct,
+        }),
+      }).catch(err => console.warn('Failed to sync exercise completion:', err));
+    }
   }
 
   async function handleExplain() {
