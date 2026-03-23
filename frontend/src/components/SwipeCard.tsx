@@ -77,12 +77,10 @@ export default function SwipeCard({ front, back, frontImageUrl, backImageUrl, on
   function animateDismiss(dir: 'left' | 'right') {
     const target = getExitTarget(dir);
     const spring = { type: 'spring' as const, stiffness: 200, damping: 25 };
-    animateValue(x, target.x, {
-      ...spring,
-      onComplete: () => onSwipeComplete(dir),
-    });
+    animateValue(x, target.x, spring);
     animateValue(y, target.y, spring);
     animateValue(opacity, 0, { duration: 0.25 });
+    onSwipeComplete(dir);
   }
 
   const animateProps = exitDirection

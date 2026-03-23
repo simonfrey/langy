@@ -347,13 +347,13 @@ LEVEL 3 WORDS (advanced — generative tasks):
 %s
 
 Exercise types for Level 3: paragraph_cloze, tense_shifting, error_correction, full_translation
-- paragraph_cloze: 3-4 sentence %s paragraph with multiple blanks.
+- paragraph_cloze: 3-4 sentence %s paragraph with exactly one blank.
 - tense_shifting: Complete %s sentence, user rewrites in different tense.
 - error_correction: %s sentence with intentional grammar error, user types corrected word.
 - full_translation: Complex %s sentence, user translates entire sentence to %s. Put the source sentence in "prompt", put a brief grammar/context hint in "hint".
 
 OUTPUT FORMAT RULES per exercise type:
-- cloze_with_translation: Put the cloze sentence (with ___) in "prompt", put the full translation in "hint".
+- cloze_with_translation: Put the cloze sentence (with _) in "prompt", put the full translation in "hint". Each exercise must have exactly one _ blank.
 - error_correction: "correct_answer" should be just the corrected word(s), not the full sentence.
 - tense_shifting: Include the target tense in the "instruction" field.
 - full_translation: Put the source sentence in "prompt", put a brief grammar/context hint in "hint".

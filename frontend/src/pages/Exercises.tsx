@@ -15,6 +15,23 @@ interface GradeResult {
   correct: boolean;
   feedback: string;
   corrected_answer?: string;
+  state: 'correct' | 'close' | 'wrong';
+}
+
+function levenshtein(a: string, b: string): number {
+  const m = a.length, n = b.length;
+  const dp: number[][] = Array.from({ length: m + 1 }, (_, i) => {
+    const row = new Array(n + 1);
+    row[0] = i;
+    return row;
+  });
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+  for (let i = 1; i <= m; i++)
+    for (let j = 1; j <= n; j++)
+      dp[i][j] = a[i - 1] === b[j - 1]
+        ? dp[i - 1][j - 1]
+        : 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+  return dp[m][n];
 }
 
 export default function Exercises() {
@@ -25,8 +42,10 @@ export default function Exercises() {
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [answer, setAnswer] = useState('');
-  const [grading, setGrading] = useState(false);
+  const grading = false; // no async grading needed
   const [gradeResult, setGradeResult] = useState<GradeResult | null>(null);
+  const [explaining, setExplaining] = useState(false);
+  const [explanation, setExplanation] = useState<string | null>(null);
   const [sessionId] = useState(() => crypto.randomUUID());
   const [error, setError] = useState<string | null>(null);
   const [scrambleOrder, setScrambleOrder] = useState<string[]>([]);
@@ -188,73 +207,60 @@ export default function Exercises() {
     if (!currentExercise || !answer.trim()) return;
 
     const normalize = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ');
-    const exactMatch = normalize(answer) === normalize(currentExercise.correct_answer);
+    const stripPunctuation = (s: string) => s.replace(/[^\w\s\u00C0-\u024F]/g, '').replace(/\s+/g, ' ').trim().toLowerCase();
 
-    // Fast path: exact match — no need to call LLM
-    if (exactMatch) {
-      const result: GradeResult = { correct: true, feedback: 'Correct!' };
-      setGradeResult(result);
-      await db.exercises.update(currentExercise.id, { completed: true, user_answer: answer, correct: true });
-      // Persist to backend
-      if (!isOffline && currentExercise.id) {
-        api('/exercises/grade', {
-          method: 'POST',
-          body: JSON.stringify({
-            exercise_id: currentExercise.id,
-            exercise_type: currentExercise.type,
-            prompt: currentExercise.prompt,
-            correct_answer: currentExercise.correct_answer,
-            user_answer: answer,
-            source_lang: deckLangs?.source || 'en',
-            target_lang: deckLangs?.target || 'es',
-          }),
-        }).catch(() => {});
-      }
-      return;
+    const isScramble = currentExercise.type === 'word_order_scramble';
+    const normAnswer = isScramble ? stripPunctuation(answer) : normalize(answer);
+    const normCorrect = isScramble ? stripPunctuation(currentExercise.correct_answer) : normalize(currentExercise.correct_answer);
+
+    let state: 'correct' | 'close' | 'wrong';
+    if (normAnswer === normCorrect) {
+      state = 'correct';
+    } else {
+      const dist = levenshtein(normAnswer, normCorrect);
+      const threshold = Math.max(1, Math.floor(normCorrect.length * 0.2));
+      state = dist <= threshold ? 'close' : 'wrong';
     }
 
-    // Not an exact match — try LLM grading if online
-    setGrading(true);
+    const correct = state !== 'wrong';
+    const result: GradeResult = {
+      correct,
+      state,
+      feedback: state === 'correct' ? 'Correct!' : state === 'close' ? `Almost! Expected: ${currentExercise.correct_answer}` : `Expected: ${currentExercise.correct_answer}`,
+      corrected_answer: state !== 'correct' ? currentExercise.correct_answer : undefined,
+    };
+    setGradeResult(result);
+    setExplanation(null);
+    await db.exercises.update(currentExercise.id, { completed: true, user_answer: answer, correct });
+  }
+
+  async function handleExplain() {
+    if (!currentExercise) return;
+    setExplaining(true);
     try {
-      if (!isOffline) {
-        const result = await api<GradeResult>('/exercises/grade', {
-          method: 'POST',
-          body: JSON.stringify({
-            exercise_id: currentExercise.id,
-            exercise_type: currentExercise.type,
-            prompt: currentExercise.prompt,
-            correct_answer: currentExercise.correct_answer,
-            user_answer: answer,
-            source_lang: deckLangs?.source || 'en',
-            target_lang: deckLangs?.target || 'es',
-          }),
-        });
-        setGradeResult(result);
-        await db.exercises.update(currentExercise.id, { completed: true, user_answer: answer, correct: result.correct });
-      } else {
-        const result: GradeResult = {
-          correct: false,
-          feedback: `Expected: ${currentExercise.correct_answer}`,
-          corrected_answer: currentExercise.correct_answer,
-        };
-        setGradeResult(result);
-        await db.exercises.update(currentExercise.id, { completed: true, user_answer: answer, correct: false });
-      }
+      const result = await api<{ feedback: string }>('/exercises/grade', {
+        method: 'POST',
+        body: JSON.stringify({
+          exercise_id: currentExercise.id,
+          exercise_type: currentExercise.type,
+          prompt: currentExercise.prompt,
+          correct_answer: currentExercise.correct_answer,
+          user_answer: answer,
+          source_lang: deckLangs?.source || 'en',
+          target_lang: deckLangs?.target || 'es',
+        }),
+      });
+      setExplanation(result.feedback);
     } catch {
-      const result: GradeResult = {
-        correct: false,
-        feedback: `Expected: ${currentExercise.correct_answer}`,
-        corrected_answer: currentExercise.correct_answer,
-      };
-      setGradeResult(result);
-      await db.exercises.update(currentExercise.id, { completed: true, user_answer: answer, correct: false });
+      setExplanation('Could not load explanation. Please try again.');
     } finally {
-      setGrading(false);
+      setExplaining(false);
     }
   }
 
   function handleNext() {
     setGradeResult(null);
+    setExplanation(null);
     setAnswer('');
     setScrambleOrder([]);
     setIndex(index + 1);
@@ -280,12 +286,16 @@ export default function Exercises() {
     }
   }
 
-  // Render inline blank input for prompts containing ___
+  // Render inline blank input for prompts containing a blank (_)
   function renderPromptWithBlanks(prompt: string, correctAnswer: string) {
-    if (!prompt.includes('___')) {
-      return <p className="text-lg text-warm-900 font-medium whitespace-pre-wrap">{prompt}</p>;
+    // Normalize any multi-underscore sequences to a single _
+    const normalized = prompt.replace(/_[\s_]*_/g, '_');
+    const blankIdx = normalized.indexOf('_');
+    if (blankIdx === -1) {
+      return <p className="text-lg text-warm-900 font-medium whitespace-pre-wrap">{normalized}</p>;
     }
-    const parts = prompt.split('___');
+    // Split at first blank only — guarantees one input
+    const parts = [normalized.slice(0, blankIdx), normalized.slice(blankIdx + 1)];
     return (
       <p className="text-lg text-warm-900 font-medium whitespace-pre-wrap">
         {parts.map((part, i) => (
@@ -293,8 +303,8 @@ export default function Exercises() {
             {part}
             {i < parts.length - 1 && (
               gradeResult ? (
-                <span className={`inline-block border-b-2 px-1 font-bold ${gradeResult.correct ? 'border-emerald-500 text-emerald-700' : 'border-red-500 text-red-700'}`}>
-                  {answer || '___'}
+                <span className={`inline-block border-b-2 px-1 font-bold ${gradeResult.state === 'correct' ? 'border-emerald-500 text-emerald-700' : gradeResult.state === 'close' ? 'border-amber-500 text-amber-700' : 'border-red-500 text-red-700'}`}>
+                  {answer || '_'}
                 </span>
               ) : (
                 <input
@@ -461,7 +471,7 @@ export default function Exercises() {
 
   return (
     <div className="p-4 pb-24">
-      {isOffline && <div className="mb-4"><OfflineBanner message="You're offline. Exercises use approximate grading." /></div>}
+      {isOffline && <div className="mb-4"><OfflineBanner message={"You're offline. \"Explain this error\" is unavailable."} /></div>}
 
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-extrabold text-warm-900">Practice</h1>
@@ -527,18 +537,41 @@ export default function Exercises() {
       {/* Grade result */}
       {gradeResult && (
         <div className="space-y-3">
-          <div className={`p-4 rounded-xl border-2 ${gradeResult.correct ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'}`}>
+          <div className={`p-4 rounded-xl border-2 ${
+            gradeResult.state === 'correct' ? 'bg-emerald-50 border-emerald-200' :
+            gradeResult.state === 'close' ? 'bg-amber-50 border-amber-200' :
+            'bg-red-50 border-red-200'
+          }`}>
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-2xl">{gradeResult.correct ? '✓' : '✗'}</span>
-              <span className={`font-bold ${gradeResult.correct ? 'text-emerald-700' : 'text-red-700'}`}>
-                {gradeResult.correct ? 'Correct!' : 'Not quite'}
+              <span className="text-2xl">{gradeResult.state === 'correct' ? '✓' : gradeResult.state === 'close' ? '≈' : '✗'}</span>
+              <span className={`font-bold ${
+                gradeResult.state === 'correct' ? 'text-emerald-700' :
+                gradeResult.state === 'close' ? 'text-amber-700' :
+                'text-red-700'
+              }`}>
+                {gradeResult.state === 'correct' ? 'Correct!' : gradeResult.state === 'close' ? 'Almost!' : 'Incorrect'}
               </span>
             </div>
-            <p className="text-warm-700 text-sm">{gradeResult.feedback}</p>
             {gradeResult.corrected_answer && (
-              <p className="text-warm-900 font-medium mt-2">
-                Correct answer: <span className="text-emerald-700">{gradeResult.corrected_answer}</span>
+              <p className="text-warm-900 font-medium mt-1">
+                Expected: <span className={gradeResult.state === 'close' ? 'text-amber-700' : 'text-emerald-700'}>{gradeResult.corrected_answer}</span>
               </p>
+            )}
+            {gradeResult.state === 'wrong' && !isOffline && (
+              <div className="mt-3">
+                {!explanation && (
+                  <button
+                    onClick={handleExplain}
+                    disabled={explaining}
+                    className="text-sm px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 font-medium rounded-lg transition disabled:opacity-50"
+                  >
+                    {explaining ? 'Loading...' : 'Explain this error'}
+                  </button>
+                )}
+                {explanation && (
+                  <p className="text-warm-700 text-sm mt-2 bg-white/50 rounded-lg p-3">{explanation}</p>
+                )}
+              </div>
             )}
           </div>
           <button
