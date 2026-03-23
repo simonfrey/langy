@@ -22,8 +22,8 @@ func New(database *db.DB, geminiClient *gemini.Client, staticFiles fs.FS) http.H
 	r.Use(chimw.RealIP)
 	r.Use(securityHeaders)
 
-	// Global rate limit: 100 requests per minute per IP
-	r.Use(httprate.LimitByIP(100, time.Minute))
+	// Global rate limit: generous limit, only catches obvious abuse
+	r.Use(httprate.LimitByIP(10000, time.Minute))
 
 	authHandler := &handler.AuthHandler{DB: database}
 	cardsHandler := &handler.CardsHandler{DB: database}
@@ -34,7 +34,7 @@ func New(database *db.DB, geminiClient *gemini.Client, staticFiles fs.FS) http.H
 
 	// Public auth routes — stricter rate limit
 	r.Group(func(r chi.Router) {
-		r.Use(httprate.LimitByIP(10, time.Minute))
+		r.Use(httprate.LimitByIP(30, time.Minute))
 		r.Post("/api/auth/register", authHandler.Register)
 		r.Post("/api/auth/login", authHandler.Login)
 	})
