@@ -30,7 +30,7 @@ func New(database *db.DB, geminiClient *gemini.Client, staticFiles fs.FS) http.H
 	reviewHandler := &handler.ReviewHandler{DB: database}
 	syncHandler := &handler.SyncHandler{DB: database}
 	generateHandler := &handler.GenerateHandler{DB: database, Gemini: geminiClient}
-	exercisesHandler := &handler.ExercisesHandler{Gemini: geminiClient}
+	exercisesHandler := &handler.ExercisesHandler{Gemini: geminiClient, DB: database}
 
 	// Public auth routes — stricter rate limit
 	r.Group(func(r chi.Router) {
@@ -57,6 +57,7 @@ func New(database *db.DB, geminiClient *gemini.Client, staticFiles fs.FS) http.H
 
 		r.Post("/api/sync", syncHandler.Sync)
 		r.Post("/api/generate", generateHandler.Generate)
+		r.Get("/api/exercises/due", exercisesHandler.Due)
 		r.Post("/api/exercises/generate", exercisesHandler.Generate)
 		r.Post("/api/exercises/grade", exercisesHandler.Grade)
 	})

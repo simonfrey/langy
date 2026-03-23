@@ -45,6 +45,7 @@ export interface ExerciseRecord {
   instruction: string;
   prompt: string;
   correct_answer: string;
+  hint?: string;
   options?: string[];
   source_card_id: string;
   completed: boolean;

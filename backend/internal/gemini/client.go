@@ -10,8 +10,9 @@ import (
 )
 
 type Client struct {
-	client *genai.Client
-	model  string
+	client        *genai.Client
+	model         string
+	exerciseModel string
 }
 
 type CardPair struct {
@@ -36,8 +37,14 @@ type Exercise struct {
 	Instruction   string   `json:"instruction"`
 	Prompt        string   `json:"prompt"`
 	CorrectAnswer string   `json:"correct_answer"`
+	Hint          string   `json:"hint,omitempty"`
 	Options       []string `json:"options,omitempty"`
 	SourceCardID  string   `json:"source_card_id"`
+}
+
+type KnownWord struct {
+	Front string `json:"front"`
+	Back  string `json:"back"`
 }
 
 type GradeResult struct {
@@ -60,8 +67,9 @@ func New(ctx context.Context, apiKey string) (*Client, error) {
 		return nil, err
 	}
 	return &Client{
-		client: client,
-		model:  "gemini-2.5-pro",
+		client:        client,
+		model:         "gemini-2.5-pro",
+		exerciseModel: "gemini-2.5-flash",
 	}, nil
 }
 
@@ -266,9 +274,10 @@ var exerciseSchema = &genai.Schema{
 				Type:  genai.TypeArray,
 				Items: &genai.Schema{Type: genai.TypeString},
 			},
+			"hint":              {Type: genai.TypeString},
 			"source_card_index": {Type: genai.TypeInteger},
 		},
-		Required: []string{"type", "instruction", "prompt", "correct_answer", "source_card_index"},
+		Required: []string{"type", "instruction", "prompt", "correct_answer", "hint", "source_card_index"},
 	},
 }
 
@@ -282,7 +291,7 @@ var gradeSchema = &genai.Schema{
 	Required: []string{"correct", "feedback"},
 }
 
-func (c *Client) GenerateExercises(ctx context.Context, cards []ExerciseCard, sourceLang, targetLang string) ([]Exercise, error) {
+func (c *Client) GenerateExercises(ctx context.Context, cards []ExerciseCard, knownWords []KnownWord, sourceLang, targetLang string) ([]Exercise, error) {
 	srcName := langName(sourceLang)
 	tgtName := langName(targetLang)
 
@@ -299,11 +308,23 @@ func (c *Client) GenerateExercises(ctx context.Context, cards []ExerciseCard, so
 		}
 	}
 
+	// Build known vocabulary list
+	var knownVocab string
+	for _, w := range knownWords {
+		knownVocab += w.Front + " = " + w.Back + "\n"
+	}
+
 	prompt := fmt.Sprintf(`You are an exercise generator for a %s learner whose native language is %s.
 
 Generate exercises based on the vocabulary words below. Each exercise MUST require the correct GRAMMATICAL form (conjugation, declension, gender, article, agreement) — never accept just the base/dictionary form.
 
+CRITICAL: When constructing sentences for exercises, ONLY use words from the "KNOWN VOCABULARY" list below (plus basic function words like articles, prepositions, pronouns, and conjunctions). Do NOT introduce new vocabulary the learner hasn't seen. The sentences should feel natural but stay within the learner's known word pool.
+
 The "source_card_index" field must be the [index] of the vocabulary word the exercise is based on.
+The "hint" field must contain a helpful clue that guides the user toward the answer WITHOUT giving it away directly. For example: a translation of the surrounding context, the grammar rule being tested, or the base form of the target word. Never put the answer itself in the hint.
+
+KNOWN VOCABULARY (use these words to build sentences):
+%s
 
 LEVEL 1 WORDS (beginner — provide %s translations as hints):
 %s
@@ -331,8 +352,11 @@ Exercise types for Level 3: paragraph_cloze, tense_shifting, error_correction, f
 - error_correction: %s sentence with intentional grammar error, user types corrected word.
 - full_translation: Complex %s sentence, user translates entire sentence to %s.
 
+Write all "instruction" fields in %s (the learner's native language). Do NOT write instructions in English unless the native language IS English.
+
 Generate one exercise per word. Use the appropriate exercise type for each word's level.`,
 		tgtName, srcName,
+		knownVocab,
 		srcName,
 		joinLines(l1Cards),
 		tgtName, srcName, srcName, tgtName, tgtName,
@@ -340,6 +364,7 @@ Generate one exercise per word. Use the appropriate exercise type for each word'
 		tgtName, tgtName, tgtName,
 		joinLines(l3Cards),
 		tgtName, tgtName, tgtName, srcName, tgtName,
+		srcName,
 	)
 
 	config := &genai.GenerateContentConfig{
@@ -347,9 +372,9 @@ Generate one exercise per word. Use the appropriate exercise type for each word'
 		ResponseSchema:   exerciseSchema,
 	}
 
-	slog.Info("generating exercises via gemini", "model", c.model, "card_count", len(cards))
+	slog.Info("generating exercises via gemini", "model", c.exerciseModel, "card_count", len(cards))
 	contents := []*genai.Content{{Parts: []*genai.Part{{Text: prompt}}}}
-	result, err := c.client.Models.GenerateContent(ctx, c.model, contents, config)
+	result, err := c.client.Models.GenerateContent(ctx, c.exerciseModel, contents, config)
 	if err != nil {
 		return nil, fmt.Errorf("gemini API error: %w", err)
 	}
@@ -365,6 +390,7 @@ Generate one exercise per word. Use the appropriate exercise type for each word'
 		Instruction     string   `json:"instruction"`
 		Prompt          string   `json:"prompt"`
 		CorrectAnswer   string   `json:"correct_answer"`
+		Hint            string   `json:"hint"`
 		Options         []string `json:"options"`
 		SourceCardIndex int      `json:"source_card_index"`
 	}
@@ -385,6 +411,7 @@ Generate one exercise per word. Use the appropriate exercise type for each word'
 			Instruction:   raw.Instruction,
 			Prompt:        raw.Prompt,
 			CorrectAnswer: raw.CorrectAnswer,
+			Hint:          raw.Hint,
 			Options:       raw.Options,
 			SourceCardID:  cards[cardIdx].ID,
 		})
@@ -428,7 +455,7 @@ Rules:
 	}
 
 	contents := []*genai.Content{{Parts: []*genai.Part{{Text: gradePrompt}}}}
-	result, err := c.client.Models.GenerateContent(ctx, c.model, contents, config)
+	result, err := c.client.Models.GenerateContent(ctx, c.exerciseModel, contents, config)
 	if err != nil {
 		return nil, fmt.Errorf("gemini API error: %w", err)
 	}
