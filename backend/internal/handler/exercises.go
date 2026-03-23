@@ -92,8 +92,23 @@ func (h *ExercisesHandler) Generate(w http.ResponseWriter, r *http.Request) {
 
 	saved, err := h.DB.SaveExercises(r.Context(), userID, dbExercises)
 	if err != nil {
-		slog.Error("failed to save exercises", "error", err, "user_id", userID)
-		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "failed to save exercises"})
+		slog.Warn("failed to save exercises to DB, returning without IDs", "error", err, "user_id", userID)
+		// Return Gemini exercises directly without DB IDs
+		resp := make([]exerciseResponse, 0, len(exercises))
+		for _, ex := range exercises {
+			resp = append(resp, exerciseResponse{
+				Type:          ex.Type,
+				Level:         ex.Level,
+				Instruction:   ex.Instruction,
+				Prompt:        ex.Prompt,
+				CorrectAnswer: ex.CorrectAnswer,
+				Hint:          ex.Hint,
+				Options:       ex.Options,
+				SourceCardID:  ex.SourceCardID,
+			})
+		}
+		slog.Info("generated exercises (no DB)", "user_id", userID, "count", len(resp))
+		writeJSON(w, http.StatusOK, resp)
 		return
 	}
 
@@ -158,16 +173,14 @@ func (h *ExercisesHandler) Due(w http.ResponseWriter, r *http.Request) {
 	// First get uncompleted exercises, then due (previously wrong) exercises
 	uncompleted, err := h.DB.GetUncompletedExercises(r.Context(), userID)
 	if err != nil {
-		slog.Error("failed to get uncompleted exercises", "error", err, "user_id", userID)
-		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "failed to get exercises"})
+		slog.Warn("failed to get uncompleted exercises, returning empty list", "error", err, "user_id", userID)
+		writeJSON(w, http.StatusOK, []exerciseResponse{})
 		return
 	}
 
 	due, err := h.DB.GetDueExercises(r.Context(), userID)
 	if err != nil {
-		slog.Error("failed to get due exercises", "error", err, "user_id", userID)
-		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "failed to get due exercises"})
-		return
+		slog.Warn("failed to get due exercises, returning uncompleted only", "error", err, "user_id", userID)
 	}
 
 	// Combine: uncompleted first, then due (dedup by ID)
