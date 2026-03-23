@@ -11,6 +11,24 @@ import { getHandDrawnStyle } from '../hooks/useHandDrawn';
 const BATCH_SIZE = 10;
 const PREFETCH_THRESHOLD = 3;
 
+const TYPES_WITHOUT_BLANKS = new Set([
+  'full_translation', 'error_correction', 'tense_shifting', 'article_check', 'morphing',
+]);
+
+function exerciseNeedsBlanks(type: string): boolean {
+  return !TYPES_WITHOUT_BLANKS.has(type);
+}
+
+function normalizeBlankChars(s: string): string {
+  // Normalize Unicode dash/line characters to underscore
+  return s.replace(/[—–―＿]/g, '_');
+}
+
+function promptHasBlank(prompt: string): boolean {
+  const normalized = normalizeBlankChars(prompt).replace(/_[\s_]*_/g, '_');
+  return normalized.includes('_');
+}
+
 interface GradeResult {
   correct: boolean;
   feedback: string;
@@ -110,8 +128,16 @@ export default function Exercises() {
         completed: false,
       }));
 
-      await db.exercises.bulkPut(records);
-      return records;
+      const valid = records.filter(ex => {
+        if (exerciseNeedsBlanks(ex.type) && !promptHasBlank(ex.prompt)) {
+          console.warn('Skipping exercise with missing blank:', ex.type, ex.prompt);
+          return false;
+        }
+        return true;
+      });
+
+      await db.exercises.bulkPut(valid);
+      return valid;
     } catch (err) {
       console.error('Failed to generate exercises:', err);
       throw err;
@@ -288,8 +314,8 @@ export default function Exercises() {
 
   // Render inline blank input for prompts containing a blank (_)
   function renderPromptWithBlanks(prompt: string, correctAnswer: string) {
-    // Normalize any multi-underscore sequences to a single _
-    const normalized = prompt.replace(/_[\s_]*_/g, '_');
+    // Normalize Unicode dashes and multi-underscore sequences to a single _
+    const normalized = normalizeBlankChars(prompt).replace(/_[\s_]*_/g, '_');
     const blankIdx = normalized.indexOf('_');
     if (blankIdx === -1) {
       return <p className="text-lg text-warm-900 font-medium whitespace-pre-wrap">{normalized}</p>;
@@ -465,7 +491,7 @@ export default function Exercises() {
     );
   }
 
-  const hasInlineBlank = currentExercise.prompt.includes('___');
+  const hasInlineBlank = exerciseNeedsBlanks(currentExercise.type) && promptHasBlank(currentExercise.prompt);
   const levelLabel = currentExercise.level === 1 ? 'Beginner' : currentExercise.level === 2 ? 'Intermediate' : 'Advanced';
   const levelColor = currentExercise.level === 1 ? 'text-emerald-600 bg-emerald-50 border-emerald-200' : currentExercise.level === 2 ? 'text-amber-600 bg-amber-50 border-amber-200' : 'text-red-600 bg-red-50 border-red-200';
 
