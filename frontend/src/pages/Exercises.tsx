@@ -303,6 +303,10 @@ export default function Exercises() {
                   onChange={e => setAnswer(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter' && answer.trim()) handleSubmit(); }}
                   autoFocus
+                  autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="off"
+                  spellCheck={false}
                   size={Math.max(correctAnswer.length, 4)}
                   className="inline-block border-b-2 border-warm-400 focus:border-coral bg-transparent text-center text-lg text-warm-900 font-medium outline-none px-1 mx-1"
                   style={{ width: `${Math.max(correctAnswer.length, 4) * 0.65}em` }}
@@ -503,6 +507,10 @@ export default function Exercises() {
               onKeyDown={e => { if (e.key === 'Enter' && answer.trim()) handleSubmit(); }}
               placeholder="Type your answer..."
               autoFocus
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="off"
+              spellCheck={false}
               className="w-full px-4 py-3 border-2 border-warm-200 rounded-xl text-warm-900 focus:border-coral focus:outline-none transition text-lg"
             />
           ) : null}
