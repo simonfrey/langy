@@ -555,9 +555,7 @@ func (d *DB) GetDueExercises(ctx context.Context, userID string) ([]Exercise, er
 	rows, err := d.Pool.Query(ctx,
 		`SELECT e.id, e.user_id, e.session_id, e.source_card_id, e.type, e.level, e.instruction, e.prompt, e.correct_answer, e.hint, e.options, e.completed, e.user_answer, e.correct, e.feedback, e.next_review, e.created_at
 		 FROM exercises e
-		 JOIN cards c ON e.source_card_id = c.id
-		 JOIN decks dk ON c.deck_id = dk.id
-		 WHERE dk.user_id = $1 AND e.correct = false AND e.next_review <= now()
+		 WHERE e.user_id = $1 AND e.correct = false AND e.next_review <= now()
 		 ORDER BY e.next_review ASC`, userID)
 	if err != nil {
 		return nil, fmt.Errorf("get due exercises: %w", err)
@@ -582,9 +580,7 @@ func (d *DB) GetUncompletedExercises(ctx context.Context, userID string) ([]Exer
 	rows, err := d.Pool.Query(ctx,
 		`SELECT e.id, e.user_id, e.session_id, e.source_card_id, e.type, e.level, e.instruction, e.prompt, e.correct_answer, e.hint, e.options, e.completed, e.user_answer, e.correct, e.feedback, e.next_review, e.created_at
 		 FROM exercises e
-		 JOIN cards c ON e.source_card_id = c.id
-		 JOIN decks dk ON c.deck_id = dk.id
-		 WHERE dk.user_id = $1 AND e.completed = false
+		 WHERE e.user_id = $1 AND e.completed = false
 		 ORDER BY e.created_at ASC`, userID)
 	if err != nil {
 		return nil, fmt.Errorf("get uncompleted exercises: %w", err)

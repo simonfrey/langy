@@ -99,28 +99,37 @@ export default function Exercises() {
     }
   }, []);
 
-  // Initial load: check for due/uncompleted exercises first, then generate if needed
+  // Initial load: show cached exercises instantly, refresh from backend in background
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        // Clear old local exercises
-        await db.exercises.clear();
+        // 1. Load uncompleted exercises from local IndexedDB first (instant)
+        const cached = await db.exercises.where('completed').equals(0).toArray();
+        if (cached.length > 0 && !cancelled) {
+          setExercises(cached);
+          const decks = await db.decks.toArray();
+          if (decks.length > 0) {
+            setDeckLangs({ source: decks[0].source_lang, target: decks[0].target_lang });
+          }
+          setLoading(false);
+        }
 
-        // Try loading due exercises from backend first
+        // 2. Fetch from backend in background and merge
         if (!isOffline) {
           try {
             const due = await api<ExerciseRecord[]>('/exercises/due', { method: 'GET' });
-            if (due && due.length > 0) {
+            if (due && due.length > 0 && !cancelled) {
               const records: ExerciseRecord[] = due.map((ex) => ({
                 ...ex,
                 session_id: sessionId,
                 completed: false,
               }));
               await db.exercises.bulkPut(records);
+              // Merge: combine cached and backend, deduplicate by id
+              const all = await db.exercises.where('completed').equals(0).toArray();
               if (!cancelled) {
-                setExercises(records);
-                // Also get deck langs
+                setExercises(all);
                 const decks = await db.decks.toArray();
                 if (decks.length > 0) {
                   setDeckLangs({ source: decks[0].source_lang, target: decks[0].target_lang });
@@ -130,14 +139,21 @@ export default function Exercises() {
               }
             }
           } catch {
-            // Fall through to generate
+            // If we already have cached exercises, that's fine
+            if (cached.length > 0) {
+              if (!cancelled) setLoading(false);
+              return;
+            }
           }
         }
 
-        setGenerating(true);
-        const batch = await generateBatch(sessionId);
-        if (cancelled) return;
-        setExercises(batch);
+        // 3. Only generate if both local and backend had nothing
+        if (cached.length === 0) {
+          setGenerating(true);
+          const batch = await generateBatch(sessionId);
+          if (cancelled) return;
+          setExercises(batch);
+        }
       } catch {
         setError('Failed to generate exercises. Check your connection and try again.');
       } finally {
