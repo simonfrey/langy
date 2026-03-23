@@ -13,7 +13,6 @@ interface Props {
   frontImageUrl?: string;
   backImageUrl?: string;
   onSwipeComplete: (direction: 'left' | 'right') => void;
-  onDragSwipe: (direction: 'left' | 'right') => void;
   flipped: boolean;
   onFlipChange: (flipped: boolean) => void;
   exitDirection: 'left' | 'right' | null;
@@ -28,7 +27,7 @@ function getExitTarget(dir: 'left' | 'right') {
   }
 }
 
-export default function SwipeCard({ front, back, frontImageUrl, backImageUrl, onSwipeComplete, onDragSwipe, flipped, onFlipChange, exitDirection, jitter, handDrawnStyle }: Props) {
+export default function SwipeCard({ front, back, frontImageUrl, backImageUrl, onSwipeComplete, flipped, onFlipChange, exitDirection, jitter, handDrawnStyle }: Props) {
   const effectiveFrontImage = frontImageUrl || backImageUrl;
   const effectiveBackImage = backImageUrl || frontImageUrl;
 
@@ -78,10 +77,12 @@ export default function SwipeCard({ front, back, frontImageUrl, backImageUrl, on
   function animateDismiss(dir: 'left' | 'right') {
     const target = getExitTarget(dir);
     const spring = { type: 'spring' as const, stiffness: 200, damping: 25 };
-    animateValue(x, target.x, spring);
+    animateValue(x, target.x, {
+      ...spring,
+      onComplete: () => onSwipeComplete(dir),
+    });
     animateValue(y, target.y, spring);
     animateValue(opacity, 0, { duration: 0.25 });
-    onDragSwipe(dir);
   }
 
   const animateProps = exitDirection

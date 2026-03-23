@@ -278,7 +278,6 @@ export default function Review() {
           frontImageUrl={imageUrl(card.reversed ? card.back_image_url : card.front_image_url)}
           backImageUrl={imageUrl(card.reversed ? card.front_image_url : card.back_image_url)}
           onSwipeComplete={handleSwipeComplete}
-          onDragSwipe={startSwipe}
           flipped={flipped}
           onFlipChange={(f) => { setFlipped(f); }}
           exitDirection={exitDirection}
