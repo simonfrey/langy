@@ -163,15 +163,20 @@ export default function Exercises() {
         // 2. Fetch from backend in background and merge
         if (!isOffline) {
           try {
+            // Clean up locally-completed exercises — they're already synced to backend
+            await db.exercises.filter(e => e.completed).delete();
+
             const due = await api<ExerciseRecord[]>('/exercises/due', { method: 'GET' });
             if (due && due.length > 0 && !cancelled) {
               const records: ExerciseRecord[] = due.map((ex) => ({
                 ...ex,
-                session_id: sessionId,
                 completed: false,
               }));
+              // Replace local exercises with backend truth: remove stale ones
+              // (e.g., completed on another device but still uncompleted locally)
+              const dueIds = new Set(records.map(r => r.id));
+              await db.exercises.filter(e => !e.completed && !dueIds.has(e.id)).delete();
               await db.exercises.bulkPut(records);
-              // Merge: combine cached and backend, deduplicate by id
               const all = await db.exercises.filter(e => !e.completed).toArray();
               if (!cancelled) {
                 setExercises(all);
