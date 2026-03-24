@@ -31,15 +31,16 @@ type ExerciseCard struct {
 }
 
 type Exercise struct {
-	ID            string   `json:"id"`
-	Type          string   `json:"type"`
-	Level         int      `json:"level"`
-	Instruction   string   `json:"instruction"`
-	Prompt        string   `json:"prompt"`
-	CorrectAnswer string   `json:"correct_answer"`
-	Hint          string   `json:"hint,omitempty"`
-	Options       []string `json:"options,omitempty"`
-	SourceCardID  string   `json:"source_card_id"`
+	ID             string   `json:"id"`
+	Type           string   `json:"type"`
+	Level          int      `json:"level"`
+	Instruction    string   `json:"instruction"`
+	Prompt         string   `json:"prompt"`
+	CorrectAnswer  string   `json:"correct_answer"`
+	Hint           string   `json:"hint,omitempty"`
+	SourceSentence string   `json:"source_sentence,omitempty"`
+	Options        []string `json:"options,omitempty"`
+	SourceCardID   string   `json:"source_card_id"`
 }
 
 type KnownWord struct {
@@ -275,6 +276,7 @@ var exerciseSchema = &genai.Schema{
 				Items: &genai.Schema{Type: genai.TypeString},
 			},
 			"hint":              {Type: genai.TypeString},
+			"source_sentence":   {Type: genai.TypeString},
 			"source_card_index": {Type: genai.TypeInteger},
 		},
 		Required: []string{"type", "instruction", "prompt", "correct_answer", "hint", "source_card_index"},
@@ -321,7 +323,8 @@ Generate exercises based on the vocabulary words below. Each exercise MUST requi
 When constructing sentences for exercises, primarily use words from the "KNOWN VOCABULARY" list below. You may use additional common words appropriate to the learner's level to make sentences natural. The exercise should test the target word — don't make unknown surrounding words the obstacle.
 
 The "source_card_index" field must be the [index] of the vocabulary word the exercise is based on.
-The "hint" field must contain a helpful clue that guides the user toward the answer WITHOUT giving it away directly. For example: a translation of the surrounding context, the grammar rule being tested, or the base form of the target word. Never put the answer itself in the hint.
+The "source_sentence" field must contain the complete sentence translated into the learner's native language (no blanks or placeholders). This tells the learner WHAT to express. Every exercise that contains a blank MUST have a source_sentence.
+The "hint" field must contain a helpful clue that guides the user toward the answer WITHOUT giving it away directly. For example: the grammar rule being tested, or the base form of the target word. Never put the answer itself in the hint.
 
 KNOWN VOCABULARY (use these words to build sentences):
 %s
@@ -330,7 +333,7 @@ LEVEL 1 WORDS (beginner — provide %s translations as hints):
 %s
 
 Exercise types for Level 1: cloze_with_translation, word_order_scramble, article_check, morphing
-- cloze_with_translation: Show a %s sentence with a blank, provide full %s translation as hint. User types the missing word in correct form.
+- cloze_with_translation: Show a %s sentence with a blank, provide full %s translation in "source_sentence". User types the missing word in correct form.
 - word_order_scramble: Show %s sentence, provide jumbled %s words in "options" array. User must order them.
 - article_check: Show %s word, user must type it with correct article/gender marker.
 - morphing: Give base word + grammatical instruction (e.g. "1st person past tense"), user types the correct form.
@@ -339,21 +342,21 @@ LEVEL 2 WORDS (intermediate — no native language hints):
 %s
 
 Exercise types for Level 2: context_typing, conjugation_cloze, adjective_agreement
-- context_typing: Show %s sentence with blank, user infers word from context.
-- conjugation_cloze: Show %s sentence with blank + base form in parentheses, user types correct conjugated form.
-- adjective_agreement: Show %s sentence with blank + base adjective, user types with correct gender/number.
+- context_typing: Show %s sentence with blank, provide the native-language translation in "source_sentence". User types the missing word.
+- conjugation_cloze: Show %s sentence with blank + base form in parentheses, provide native-language translation in "source_sentence". User types correct conjugated form.
+- adjective_agreement: Show %s sentence with blank + base adjective, provide native-language translation in "source_sentence". User types with correct gender/number.
 
 LEVEL 3 WORDS (advanced — generative tasks):
 %s
 
 Exercise types for Level 3: paragraph_cloze, tense_shifting, error_correction, full_translation
-- paragraph_cloze: 3-4 sentence %s paragraph with exactly one blank.
+- paragraph_cloze: 3-4 sentence %s paragraph with exactly one blank. Provide native-language translation in "source_sentence".
 - tense_shifting: Complete %s sentence, user rewrites in different tense.
 - error_correction: %s sentence with intentional grammar error, user types corrected word.
 - full_translation: Complex %s sentence, user translates entire sentence to %s. Put the source sentence in "prompt", put a brief grammar/context hint in "hint".
 
 OUTPUT FORMAT RULES per exercise type:
-- cloze_with_translation: Put the cloze sentence (with _) in "prompt", put the full translation in "hint". Each exercise must have exactly one _ blank.
+- cloze_with_translation: Put the cloze sentence (with _) in "prompt", put the full translation in "source_sentence". Each exercise must have exactly one _ blank.
 - error_correction: "correct_answer" should be just the corrected word(s), not the full sentence.
 - tense_shifting: Include the target tense in the "instruction" field.
 - full_translation: Put the source sentence in "prompt", put a brief grammar/context hint in "hint".
@@ -397,6 +400,7 @@ Generate one exercise per word. Use the appropriate exercise type for each word'
 		Prompt          string   `json:"prompt"`
 		CorrectAnswer   string   `json:"correct_answer"`
 		Hint            string   `json:"hint"`
+		SourceSentence  string   `json:"source_sentence"`
 		Options         []string `json:"options"`
 		SourceCardIndex int      `json:"source_card_index"`
 	}
@@ -411,15 +415,16 @@ Generate one exercise per word. Use the appropriate exercise type for each word'
 			cardIdx = i % len(cards)
 		}
 		exercises = append(exercises, Exercise{
-			ID:            fmt.Sprintf("ex-%d", i),
-			Type:          raw.Type,
-			Level:         cards[cardIdx].Level,
-			Instruction:   raw.Instruction,
-			Prompt:        raw.Prompt,
-			CorrectAnswer: raw.CorrectAnswer,
-			Hint:          raw.Hint,
-			Options:       raw.Options,
-			SourceCardID:  cards[cardIdx].ID,
+			ID:             fmt.Sprintf("ex-%d", i),
+			Type:           raw.Type,
+			Level:          cards[cardIdx].Level,
+			Instruction:    raw.Instruction,
+			Prompt:         raw.Prompt,
+			CorrectAnswer:  raw.CorrectAnswer,
+			Hint:           raw.Hint,
+			SourceSentence: raw.SourceSentence,
+			Options:        raw.Options,
+			SourceCardID:   cards[cardIdx].ID,
 		})
 	}
 

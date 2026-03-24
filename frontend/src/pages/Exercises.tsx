@@ -367,8 +367,18 @@ export default function Exercises() {
     );
   }
 
-  function renderHint(hint: string | undefined) {
-    if (!hint) return null;
+  function renderSourceSentence(ex: ExerciseRecord) {
+    const text = ex.source_sentence || (exerciseNeedsBlanks(ex.type) ? ex.hint : null);
+    if (!text) return null;
+    return (
+      <div className="bg-sky-50 border border-sky-200 rounded-lg px-3 py-2 mb-3">
+        <p className="text-sm text-sky-700 font-medium">{text}</p>
+      </div>
+    );
+  }
+
+  function renderHint(hint: string | undefined, hasSourceSentence: boolean) {
+    if (!hint || hasSourceSentence) return null;
     return <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-3">{hint}</p>;
   }
 
@@ -384,7 +394,7 @@ export default function Exercises() {
               <p className="text-xl text-warm-900 font-bold">{ex.prompt}</p>
             </div>
             <p className="text-sm text-warm-500 font-medium">Translate to {deckLangs?.target || 'target language'}:</p>
-            {renderHint(ex.hint)}
+            {renderHint(ex.hint, false)}
           </>
         );
 
@@ -392,11 +402,7 @@ export default function Exercises() {
         return (
           <>
             <p className="text-sm text-warm-500 font-semibold mb-2">{ex.instruction}</p>
-            {ex.hint && (
-              <div className="bg-sky-50 border border-sky-200 rounded-lg px-3 py-2 mb-3">
-                <p className="text-sm text-sky-700 font-medium">{ex.hint}</p>
-              </div>
-            )}
+            {renderSourceSentence(ex)}
             {renderPromptWithBlanks(ex.prompt, ex.correct_answer)}
           </>
         );
@@ -409,7 +415,7 @@ export default function Exercises() {
               <p className="text-xl text-warm-900 font-bold">{ex.prompt}</p>
             </div>
             <p className="text-sm text-warm-500 font-medium">Type the corrected word:</p>
-            {renderHint(ex.hint)}
+            {renderHint(ex.hint, false)}
           </>
         );
 
@@ -420,7 +426,7 @@ export default function Exercises() {
             <div className="bg-warm-50 border-2 border-warm-200 rounded-xl p-4 mb-3">
               <p className="text-lg text-warm-900 font-medium">{ex.prompt}</p>
             </div>
-            {renderHint(ex.hint)}
+            {renderHint(ex.hint, false)}
           </>
         );
 
@@ -428,11 +434,12 @@ export default function Exercises() {
         return (
           <>
             <p className="text-sm text-warm-500 font-semibold mb-2">{ex.instruction}</p>
+            {renderSourceSentence(ex)}
             <div className="flex items-center justify-center py-4">
               <p className="text-3xl text-warm-900 font-bold">{ex.prompt}</p>
             </div>
             <p className="text-sm text-warm-500 font-medium">Type with correct article:</p>
-            {renderHint(ex.hint)}
+            {renderHint(ex.hint, !!ex.source_sentence)}
           </>
         );
 
@@ -440,10 +447,11 @@ export default function Exercises() {
         return (
           <>
             <p className="text-sm text-warm-500 font-semibold mb-3">{ex.instruction}</p>
+            {renderSourceSentence(ex)}
             <div className="flex items-center justify-center py-4">
               <p className="text-3xl text-warm-900 font-bold">{ex.prompt}</p>
             </div>
-            {renderHint(ex.hint)}
+            {renderHint(ex.hint, !!ex.source_sentence)}
           </>
         );
 
@@ -451,8 +459,9 @@ export default function Exercises() {
         return (
           <>
             <p className="text-sm text-warm-500 font-semibold mb-3">{ex.instruction}</p>
+            {renderSourceSentence(ex)}
             {renderPromptWithBlanks(ex.prompt, ex.correct_answer)}
-            {renderHint(ex.hint)}
+            {renderHint(ex.hint, !!ex.source_sentence)}
           </>
         );
 
@@ -461,8 +470,9 @@ export default function Exercises() {
         return (
           <>
             <p className="text-sm text-warm-500 font-semibold mb-3">{ex.instruction}</p>
+            {renderSourceSentence(ex)}
             {renderPromptWithBlanks(ex.prompt, ex.correct_answer)}
-            {renderHint(ex.hint)}
+            {renderHint(ex.hint, !!ex.source_sentence)}
           </>
         );
     }

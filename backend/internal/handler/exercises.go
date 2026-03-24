@@ -34,15 +34,16 @@ type exerciseGradeRequest struct {
 }
 
 type exerciseResponse struct {
-	ID            string   `json:"id"`
-	Type          string   `json:"type"`
-	Level         int      `json:"level"`
-	Instruction   string   `json:"instruction"`
-	Prompt        string   `json:"prompt"`
-	CorrectAnswer string   `json:"correct_answer"`
-	Hint          string   `json:"hint,omitempty"`
-	Options       []string `json:"options,omitempty"`
-	SourceCardID  string   `json:"source_card_id"`
+	ID             string   `json:"id"`
+	Type           string   `json:"type"`
+	Level          int      `json:"level"`
+	Instruction    string   `json:"instruction"`
+	Prompt         string   `json:"prompt"`
+	CorrectAnswer  string   `json:"correct_answer"`
+	Hint           string   `json:"hint,omitempty"`
+	SourceSentence string   `json:"source_sentence,omitempty"`
+	Options        []string `json:"options,omitempty"`
+	SourceCardID   string   `json:"source_card_id"`
 }
 
 func (h *ExercisesHandler) Generate(w http.ResponseWriter, r *http.Request) {
@@ -74,6 +75,7 @@ func (h *ExercisesHandler) Generate(w http.ResponseWriter, r *http.Request) {
 			optionsJSON, _ = json.Marshal(ex.Options)
 		}
 		hint := ex.Hint
+		sourceSentence := ex.SourceSentence
 		dbEx := db.Exercise{
 			SessionID:     req.SessionID,
 			SourceCardID:  ex.SourceCardID,
@@ -87,6 +89,9 @@ func (h *ExercisesHandler) Generate(w http.ResponseWriter, r *http.Request) {
 		if hint != "" {
 			dbEx.Hint = &hint
 		}
+		if sourceSentence != "" {
+			dbEx.SourceSentence = &sourceSentence
+		}
 		dbExercises = append(dbExercises, dbEx)
 	}
 
@@ -97,14 +102,15 @@ func (h *ExercisesHandler) Generate(w http.ResponseWriter, r *http.Request) {
 		resp := make([]exerciseResponse, 0, len(exercises))
 		for _, ex := range exercises {
 			resp = append(resp, exerciseResponse{
-				Type:          ex.Type,
-				Level:         ex.Level,
-				Instruction:   ex.Instruction,
-				Prompt:        ex.Prompt,
-				CorrectAnswer: ex.CorrectAnswer,
-				Hint:          ex.Hint,
-				Options:       ex.Options,
-				SourceCardID:  ex.SourceCardID,
+				Type:           ex.Type,
+				Level:          ex.Level,
+				Instruction:    ex.Instruction,
+				Prompt:         ex.Prompt,
+				CorrectAnswer:  ex.CorrectAnswer,
+				Hint:           ex.Hint,
+				SourceSentence: ex.SourceSentence,
+				Options:        ex.Options,
+				SourceCardID:   ex.SourceCardID,
 			})
 		}
 		slog.Info("generated exercises (no DB)", "user_id", userID, "count", len(resp))
@@ -125,6 +131,9 @@ func (h *ExercisesHandler) Generate(w http.ResponseWriter, r *http.Request) {
 		}
 		if s.Hint != nil {
 			er.Hint = *s.Hint
+		}
+		if s.SourceSentence != nil {
+			er.SourceSentence = *s.SourceSentence
 		}
 		if len(s.Options) > 0 {
 			json.Unmarshal(s.Options, &er.Options)
@@ -241,6 +250,9 @@ func (h *ExercisesHandler) Due(w http.ResponseWriter, r *http.Request) {
 		}
 		if s.Hint != nil {
 			er.Hint = *s.Hint
+		}
+		if s.SourceSentence != nil {
+			er.SourceSentence = *s.SourceSentence
 		}
 		if len(s.Options) > 0 {
 			json.Unmarshal(s.Options, &er.Options)
