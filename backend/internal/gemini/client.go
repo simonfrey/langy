@@ -70,7 +70,7 @@ func New(ctx context.Context, apiKey string) (*Client, error) {
 	return &Client{
 		client:        client,
 		model:         "gemini-2.5-pro",
-		exerciseModel: "gemini-2.5-flash",
+		exerciseModel: "gemini-2.5-pro",
 	}, nil
 }
 
@@ -325,6 +325,13 @@ When constructing sentences for exercises, primarily use words from the "KNOWN V
 The "source_card_index" field must be the [index] of the vocabulary word the exercise is based on.
 The "source_sentence" field must contain the complete sentence translated into the learner's native language (no blanks or placeholders). This tells the learner WHAT to express. Every exercise that contains a blank MUST have a source_sentence.
 The "hint" field must contain a helpful clue that guides the user toward the answer WITHOUT giving it away directly. For example: the grammar rule being tested, or the base form of the target word. Never put the answer itself in the hint.
+
+CRITICAL RULES:
+- Every exercise MUST have exactly ONE unambiguous correct answer.
+- The blank in a cloze exercise MUST be the vocabulary word being tested. Do NOT blank out other words.
+- The correct answer MUST be determinable from the source_sentence alone — if the source_sentence says "We have five books", then the blank must be "cinco", not any other number.
+- NEVER use vague prompts like "a number between X and Y" or "choose any word". The source_sentence must make the answer obvious.
+- The sentence should naturally use the vocabulary word from the card. Do not invent content unrelated to the card.
 
 KNOWN VOCABULARY (use these words to build sentences):
 %s
