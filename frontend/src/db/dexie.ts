@@ -48,11 +48,38 @@ export interface ExerciseRecord {
   hint?: string;
   source_sentence?: string;
   options?: string[];
+  data?: ExerciseData;
   source_card_id: string;
   completed: boolean;
   user_answer?: string;
   correct?: boolean;
   feedback?: string;
+}
+
+export interface MatchingPair {
+  native?: string;
+  target?: string;
+  left?: string;
+  right?: string;
+}
+
+export interface CategoryWord {
+  word: string;
+  category: string;
+}
+
+export interface ReadingQuestion {
+  question: string;
+  options: string[];
+  answer: string;
+}
+
+export interface ExerciseData {
+  pairs?: MatchingPair[];
+  categories?: string[];
+  words?: CategoryWord[];
+  questions?: ReadingQuestion[];
+  image_url?: string;
 }
 
 class LangyDB extends Dexie {

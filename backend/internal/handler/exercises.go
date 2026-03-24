@@ -34,16 +34,17 @@ type exerciseGradeRequest struct {
 }
 
 type exerciseResponse struct {
-	ID             string   `json:"id"`
-	Type           string   `json:"type"`
-	Level          int      `json:"level"`
-	Instruction    string   `json:"instruction"`
-	Prompt         string   `json:"prompt"`
-	CorrectAnswer  string   `json:"correct_answer"`
-	Hint           string   `json:"hint,omitempty"`
-	SourceSentence string   `json:"source_sentence,omitempty"`
-	Options        []string `json:"options,omitempty"`
-	SourceCardID   string   `json:"source_card_id"`
+	ID             string          `json:"id"`
+	Type           string          `json:"type"`
+	Level          int             `json:"level"`
+	Instruction    string          `json:"instruction"`
+	Prompt         string          `json:"prompt"`
+	CorrectAnswer  string          `json:"correct_answer"`
+	Hint           string          `json:"hint,omitempty"`
+	SourceSentence string          `json:"source_sentence,omitempty"`
+	Options        []string        `json:"options,omitempty"`
+	Data           json.RawMessage `json:"data,omitempty"`
+	SourceCardID   string          `json:"source_card_id"`
 }
 
 func (h *ExercisesHandler) Generate(w http.ResponseWriter, r *http.Request) {
@@ -85,6 +86,7 @@ func (h *ExercisesHandler) Generate(w http.ResponseWriter, r *http.Request) {
 			Prompt:        ex.Prompt,
 			CorrectAnswer: ex.CorrectAnswer,
 			Options:       optionsJSON,
+			Data:          ex.Data,
 		}
 		if hint != "" {
 			dbEx.Hint = &hint
@@ -110,6 +112,7 @@ func (h *ExercisesHandler) Generate(w http.ResponseWriter, r *http.Request) {
 				Hint:           ex.Hint,
 				SourceSentence: ex.SourceSentence,
 				Options:        ex.Options,
+				Data:           ex.Data,
 				SourceCardID:   ex.SourceCardID,
 			})
 		}
@@ -118,8 +121,14 @@ func (h *ExercisesHandler) Generate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp := make([]exerciseResponse, 0, len(saved))
-	for _, s := range saved {
+	resp := dbExercisesToResponse(saved)
+	slog.Info("generated exercises", "user_id", userID, "count", len(resp))
+	writeJSON(w, http.StatusOK, resp)
+}
+
+func dbExercisesToResponse(exercises []db.Exercise) []exerciseResponse {
+	resp := make([]exerciseResponse, 0, len(exercises))
+	for _, s := range exercises {
 		er := exerciseResponse{
 			ID:            s.ID,
 			Type:          s.Type,
@@ -127,6 +136,7 @@ func (h *ExercisesHandler) Generate(w http.ResponseWriter, r *http.Request) {
 			Instruction:   s.Instruction,
 			Prompt:        s.Prompt,
 			CorrectAnswer: s.CorrectAnswer,
+			Data:          s.Data,
 			SourceCardID:  s.SourceCardID,
 		}
 		if s.Hint != nil {
@@ -140,9 +150,7 @@ func (h *ExercisesHandler) Generate(w http.ResponseWriter, r *http.Request) {
 		}
 		resp = append(resp, er)
 	}
-
-	slog.Info("generated exercises", "user_id", userID, "count", len(resp))
-	writeJSON(w, http.StatusOK, resp)
+	return resp
 }
 
 func (h *ExercisesHandler) Grade(w http.ResponseWriter, r *http.Request) {
@@ -237,28 +245,5 @@ func (h *ExercisesHandler) Due(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	resp := make([]exerciseResponse, 0, len(all))
-	for _, s := range all {
-		er := exerciseResponse{
-			ID:            s.ID,
-			Type:          s.Type,
-			Level:         s.Level,
-			Instruction:   s.Instruction,
-			Prompt:        s.Prompt,
-			CorrectAnswer: s.CorrectAnswer,
-			SourceCardID:  s.SourceCardID,
-		}
-		if s.Hint != nil {
-			er.Hint = *s.Hint
-		}
-		if s.SourceSentence != nil {
-			er.SourceSentence = *s.SourceSentence
-		}
-		if len(s.Options) > 0 {
-			json.Unmarshal(s.Options, &er.Options)
-		}
-		resp = append(resp, er)
-	}
-
-	writeJSON(w, http.StatusOK, resp)
+	writeJSON(w, http.StatusOK, dbExercisesToResponse(all))
 }

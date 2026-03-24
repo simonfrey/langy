@@ -7,34 +7,12 @@ import { selectExerciseCards } from '../lib/maturity';
 import { useOffline } from '../hooks/useOffline';
 import OfflineBanner from '../components/OfflineBanner';
 import { getHandDrawnStyle } from '../hooks/useHandDrawn';
+import ExerciseRouter from '../components/exercises/ExerciseRouter';
+import { exerciseNeedsBlanks, exerciseUsesCustomUI, promptHasBlank } from '../components/exercises/shared';
+import type { GradeResult } from '../components/exercises/types';
 
 const BATCH_SIZE = 10;
 const PREFETCH_THRESHOLD = 3;
-
-const TYPES_WITHOUT_BLANKS = new Set([
-  'full_translation', 'error_correction', 'tense_shifting', 'article_check', 'morphing',
-]);
-
-function exerciseNeedsBlanks(type: string): boolean {
-  return !TYPES_WITHOUT_BLANKS.has(type);
-}
-
-function normalizeBlankChars(s: string): string {
-  // Normalize Unicode dash/line characters to underscore
-  return s.replace(/[—–―＿]/g, '_');
-}
-
-function promptHasBlank(prompt: string): boolean {
-  const normalized = normalizeBlankChars(prompt).replace(/_[\s_]*_/g, '_');
-  return normalized.includes('_');
-}
-
-interface GradeResult {
-  correct: boolean;
-  feedback: string;
-  corrected_answer?: string;
-  state: 'correct' | 'close' | 'wrong';
-}
 
 function levenshtein(a: string, b: string): number {
   const m = a.length, n = b.length;
@@ -52,6 +30,11 @@ function levenshtein(a: string, b: string): number {
   return dp[m][n];
 }
 
+// Types that are graded by their component (matching, categorization, reading)
+const SELF_GRADED_TYPES = new Set([
+  'vocab_matching_pairs', 'grammar_matching', 'grammar_categorization', 'integrative_reading',
+]);
+
 export default function Exercises() {
   const navigate = useNavigate();
   const isOffline = useOffline();
@@ -59,14 +42,17 @@ export default function Exercises() {
   const [index, setIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
-  const [answer, setAnswer] = useState('');
-  const grading = false; // no async grading needed
+  const [answer, setAnswerState] = useState('');
+  const answerRef = useRef('');
+  const setAnswer = useCallback((val: string) => {
+    answerRef.current = val;
+    setAnswerState(val);
+  }, []);
   const [gradeResult, setGradeResult] = useState<GradeResult | null>(null);
   const [explaining, setExplaining] = useState(false);
   const [explanation, setExplanation] = useState<string | null>(null);
   const [sessionId] = useState(() => crypto.randomUUID());
   const [error, setError] = useState<string | null>(null);
-  const [scrambleOrder, setScrambleOrder] = useState<string[]>([]);
   const prefetchingRef = useRef(false);
   const [deckLangs, setDeckLangs] = useState<{ source: string; target: string } | null>(null);
 
@@ -82,8 +68,6 @@ export default function Exercises() {
 
     const decks = await db.decks.toArray();
     const deckMap = new Map(decks.map(d => [d.id, d]));
-
-    // Get languages from first card's deck
     const firstDeck = deckMap.get(allCards[0].deck_id);
     if (firstDeck) {
       setDeckLangs({ source: firstDeck.source_lang, target: firstDeck.target_lang });
@@ -107,7 +91,6 @@ export default function Exercises() {
       level: s.level,
     }));
 
-    // Send all known words so the LLM builds sentences from familiar vocabulary
     const knownWords = allCards.map(c => ({ front: c.front, back: c.back }));
 
     try {
@@ -128,8 +111,15 @@ export default function Exercises() {
         completed: false,
       }));
 
+      // Parse data field if it's a string (from JSON response)
+      for (const r of records) {
+        if (typeof r.data === 'string') {
+          try { r.data = JSON.parse(r.data); } catch { /* keep as-is */ }
+        }
+      }
+
       const valid = records.filter(ex => {
-        if (exerciseNeedsBlanks(ex.type) && !promptHasBlank(ex.prompt)) {
+        if (exerciseNeedsBlanks(ex.type) && ex.prompt && !promptHasBlank(ex.prompt)) {
           console.warn('Skipping exercise with missing blank:', ex.type, ex.prompt);
           return false;
         }
@@ -144,12 +134,11 @@ export default function Exercises() {
     }
   }, []);
 
-  // Initial load: show cached exercises instantly, refresh from backend in background
+  // Initial load
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        // 1. Load uncompleted exercises from local IndexedDB first (instant)
         const cached = await db.exercises.filter(e => !e.completed).toArray();
         if (cached.length > 0 && !cancelled) {
           setExercises(cached);
@@ -160,20 +149,17 @@ export default function Exercises() {
           setLoading(false);
         }
 
-        // 2. Fetch from backend in background and merge
         if (!isOffline) {
           try {
-            // Clean up locally-completed exercises — they're already synced to backend
             await db.exercises.filter(e => e.completed).delete();
-
             const due = await api<ExerciseRecord[]>('/exercises/due', { method: 'GET' });
             if (due && due.length > 0 && !cancelled) {
-              const records: ExerciseRecord[] = due.map((ex) => ({
-                ...ex,
-                completed: false,
-              }));
-              // Replace local exercises with backend truth: remove stale ones
-              // (e.g., completed on another device but still uncompleted locally)
+              const records: ExerciseRecord[] = due.map((ex) => ({ ...ex, completed: false }));
+              for (const r of records) {
+                if (typeof r.data === 'string') {
+                  try { r.data = JSON.parse(r.data); } catch { /* keep */ }
+                }
+              }
               const dueIds = new Set(records.map(r => r.id));
               await db.exercises.filter(e => !e.completed && !dueIds.has(e.id)).delete();
               await db.exercises.bulkPut(records);
@@ -189,7 +175,6 @@ export default function Exercises() {
               }
             }
           } catch {
-            // If we already have cached exercises, that's fine
             if (cached.length > 0) {
               if (!cancelled) setLoading(false);
               return;
@@ -197,7 +182,6 @@ export default function Exercises() {
           }
         }
 
-        // 3. Only generate if both local and backend had nothing
         if (cached.length === 0) {
           setGenerating(true);
           const batch = await generateBatch(sessionId);
@@ -216,7 +200,7 @@ export default function Exercises() {
     return () => { cancelled = true; };
   }, [generateBatch, sessionId, isOffline]);
 
-  // Prefetch next batch
+  // Prefetch
   useEffect(() => {
     const remaining = exercises.length - index;
     if (remaining <= PREFETCH_THRESHOLD && !prefetchingRef.current && !isOffline && exercises.length > 0) {
@@ -235,13 +219,47 @@ export default function Exercises() {
   const currentExercise = exercises[index];
 
   async function handleSubmit() {
-    if (!currentExercise || !answer.trim()) return;
+    if (!currentExercise) return;
+    // Read from ref to avoid stale closure (e.g., multiple choice setTimeout)
+    const answer = answerRef.current;
+
+    const isSelfGraded = SELF_GRADED_TYPES.has(currentExercise.type);
+
+    if (isSelfGraded) {
+      if (!answer) return; // Not finished yet (no pairs matched / no words sorted)
+      const correct = answer === 'matched' || answer === 'correct';
+      const result: GradeResult = {
+        correct,
+        state: correct ? 'correct' : 'wrong',
+        feedback: correct ? 'Correct!' : 'Some answers were incorrect.',
+      };
+      setGradeResult(result);
+      setExplanation(null);
+      await db.exercises.update(currentExercise.id, { completed: true, user_answer: answer, correct });
+      syncCompletion(currentExercise.id, answer, correct);
+      return;
+    }
+
+    if (!answer.trim()) return;
+
+    // For multi-blank exercises, reconstruct the full sentence from pipe-delimited answers
+    let finalAnswer = answer;
+    if (answer.includes('|') && currentExercise.prompt) {
+      const blanks = answer.split('|');
+      const parts = currentExercise.prompt.replace(/[—–―＿]/g, '_').replace(/_[\s_]*_/g, '___').split('___');
+      let reconstructed = '';
+      for (let i = 0; i < parts.length; i++) {
+        reconstructed += parts[i];
+        if (i < blanks.length) reconstructed += blanks[i];
+      }
+      finalAnswer = reconstructed;
+    }
 
     const normalize = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ');
     const stripPunctuation = (s: string) => s.replace(/[^\w\s\u00C0-\u024F]/g, '').replace(/\s+/g, ' ').trim().toLowerCase();
 
-    const isScramble = currentExercise.type === 'word_order_scramble';
-    const normAnswer = isScramble ? stripPunctuation(answer) : normalize(answer);
+    const isScramble = currentExercise.type === 'word_order_scramble' || currentExercise.type === 'vocab_word_bank' || currentExercise.type === 'grammar_reorder';
+    const normAnswer = isScramble ? stripPunctuation(finalAnswer) : normalize(finalAnswer);
     const normCorrect = isScramble ? stripPunctuation(currentExercise.correct_answer) : normalize(currentExercise.correct_answer);
 
     let state: 'correct' | 'close' | 'wrong';
@@ -263,16 +281,14 @@ export default function Exercises() {
     setGradeResult(result);
     setExplanation(null);
     await db.exercises.update(currentExercise.id, { completed: true, user_answer: answer, correct });
+    syncCompletion(currentExercise.id, answer, correct);
+  }
 
-    // Sync completion to backend (fire-and-forget)
-    if (!isOffline && currentExercise.id) {
+  function syncCompletion(exerciseId: string, userAnswer: string, correct: boolean) {
+    if (!isOffline && exerciseId) {
       api('/exercises/complete', {
         method: 'POST',
-        body: JSON.stringify({
-          exercise_id: currentExercise.id,
-          user_answer: answer,
-          correct,
-        }),
+        body: JSON.stringify({ exercise_id: exerciseId, user_answer: userAnswer, correct }),
       }).catch(err => console.warn('Failed to sync exercise completion:', err));
     }
   }
@@ -305,182 +321,7 @@ export default function Exercises() {
     setGradeResult(null);
     setExplanation(null);
     setAnswer('');
-    setScrambleOrder([]);
     setIndex(index + 1);
-  }
-
-  // Initialize scramble options when exercise changes
-  useEffect(() => {
-    if (currentExercise?.type === 'word_order_scramble' && currentExercise.options?.length) {
-      setScrambleOrder([]);
-    }
-  }, [currentExercise]);
-
-  function handleScrambleWordClick(word: string) {
-    if (scrambleOrder.includes(word)) {
-      setScrambleOrder(prev => prev.filter(w => w !== word));
-      setAnswer(prev => {
-        const words = prev.split(' ').filter(w => w !== word);
-        return words.join(' ');
-      });
-    } else {
-      setScrambleOrder(prev => [...prev, word]);
-      setAnswer(prev => (prev ? prev + ' ' + word : word));
-    }
-  }
-
-  // Render inline blank input for prompts containing a blank (_)
-  function renderPromptWithBlanks(prompt: string, correctAnswer: string) {
-    // Normalize Unicode dashes and multi-underscore sequences to a single _
-    const normalized = normalizeBlankChars(prompt).replace(/_[\s_]*_/g, '_');
-    const blankIdx = normalized.indexOf('_');
-    if (blankIdx === -1) {
-      return <p className="text-lg text-warm-900 font-medium whitespace-pre-wrap">{normalized}</p>;
-    }
-    // Split at first blank only — guarantees one input
-    const parts = [normalized.slice(0, blankIdx), normalized.slice(blankIdx + 1)];
-    return (
-      <p className="text-lg text-warm-900 font-medium whitespace-pre-wrap">
-        {parts.map((part, i) => (
-          <span key={i}>
-            {part}
-            {i < parts.length - 1 && (
-              gradeResult ? (
-                <span className={`inline-block border-b-2 px-1 font-bold ${gradeResult.state === 'correct' ? 'border-emerald-500 text-emerald-700' : gradeResult.state === 'close' ? 'border-amber-500 text-amber-700' : 'border-red-500 text-red-700'}`}>
-                  {answer || '_'}
-                </span>
-              ) : (
-                <input
-                  type="text"
-                  value={answer}
-                  onChange={e => setAnswer(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter' && answer.trim()) handleSubmit(); }}
-                  autoFocus
-                  autoComplete="off"
-                  autoCorrect="off"
-                  autoCapitalize="off"
-                  spellCheck={false}
-                  size={Math.max(correctAnswer.length, 4)}
-                  className="inline-block border-b-2 border-warm-400 focus:border-coral bg-transparent text-center text-lg text-warm-900 font-medium outline-none px-1 mx-1"
-                  style={{ width: `${Math.max(correctAnswer.length, 4) * 0.65}em` }}
-                />
-              )
-            )}
-          </span>
-        ))}
-      </p>
-    );
-  }
-
-  function renderSourceSentence(ex: ExerciseRecord) {
-    const text = ex.source_sentence || (exerciseNeedsBlanks(ex.type) ? ex.hint : null);
-    if (!text) return null;
-    return (
-      <div className="bg-sky-50 border border-sky-200 rounded-lg px-3 py-2 mb-3">
-        <p className="text-sm text-sky-700 font-medium">{text}</p>
-      </div>
-    );
-  }
-
-  function renderHint(hint: string | undefined, hasSourceSentence: boolean) {
-    if (!hint || hasSourceSentence) return null;
-    return <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-3">{hint}</p>;
-  }
-
-  function renderExerciseCard(ex: ExerciseRecord) {
-    const type = ex.type;
-
-    switch (type) {
-      case 'full_translation':
-        return (
-          <>
-            <p className="text-sm text-warm-500 font-semibold mb-2">{ex.instruction}</p>
-            <div className="bg-warm-50 border-2 border-warm-200 rounded-xl p-4 mb-3">
-              <p className="text-xl text-warm-900 font-bold">{ex.prompt}</p>
-            </div>
-            <p className="text-sm text-warm-500 font-medium">Translate to {deckLangs?.target || 'target language'}:</p>
-            {renderHint(ex.hint, false)}
-          </>
-        );
-
-      case 'cloze_with_translation':
-        return (
-          <>
-            <p className="text-sm text-warm-500 font-semibold mb-2">{ex.instruction}</p>
-            {renderSourceSentence(ex)}
-            {renderPromptWithBlanks(ex.prompt, ex.correct_answer)}
-          </>
-        );
-
-      case 'error_correction':
-        return (
-          <>
-            <p className="text-sm text-warm-500 font-semibold mb-2">{ex.instruction}</p>
-            <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4 mb-3">
-              <p className="text-xl text-warm-900 font-bold">{ex.prompt}</p>
-            </div>
-            <p className="text-sm text-warm-500 font-medium">Type the corrected word:</p>
-            {renderHint(ex.hint, false)}
-          </>
-        );
-
-      case 'tense_shifting':
-        return (
-          <>
-            <p className="text-sm text-warm-500 font-semibold mb-2">{ex.instruction}</p>
-            <div className="bg-warm-50 border-2 border-warm-200 rounded-xl p-4 mb-3">
-              <p className="text-lg text-warm-900 font-medium">{ex.prompt}</p>
-            </div>
-            {renderHint(ex.hint, false)}
-          </>
-        );
-
-      case 'article_check':
-        return (
-          <>
-            <p className="text-sm text-warm-500 font-semibold mb-2">{ex.instruction}</p>
-            {renderSourceSentence(ex)}
-            <div className="flex items-center justify-center py-4">
-              <p className="text-3xl text-warm-900 font-bold">{ex.prompt}</p>
-            </div>
-            <p className="text-sm text-warm-500 font-medium">Type with correct article:</p>
-            {renderHint(ex.hint, !!ex.source_sentence)}
-          </>
-        );
-
-      case 'morphing':
-        return (
-          <>
-            <p className="text-sm text-warm-500 font-semibold mb-3">{ex.instruction}</p>
-            {renderSourceSentence(ex)}
-            <div className="flex items-center justify-center py-4">
-              <p className="text-3xl text-warm-900 font-bold">{ex.prompt}</p>
-            </div>
-            {renderHint(ex.hint, !!ex.source_sentence)}
-          </>
-        );
-
-      case 'word_order_scramble':
-        return (
-          <>
-            <p className="text-sm text-warm-500 font-semibold mb-3">{ex.instruction}</p>
-            {renderSourceSentence(ex)}
-            {renderPromptWithBlanks(ex.prompt, ex.correct_answer)}
-            {renderHint(ex.hint, !!ex.source_sentence)}
-          </>
-        );
-
-      // context_typing, conjugation_cloze, adjective_agreement, paragraph_cloze
-      default:
-        return (
-          <>
-            <p className="text-sm text-warm-500 font-semibold mb-3">{ex.instruction}</p>
-            {renderSourceSentence(ex)}
-            {renderPromptWithBlanks(ex.prompt, ex.correct_answer)}
-            {renderHint(ex.hint, !!ex.source_sentence)}
-          </>
-        );
-    }
   }
 
   if (loading) {
@@ -496,13 +337,8 @@ export default function Exercises() {
     return (
       <div className="p-4 pb-24">
         <h1 className="text-2xl font-extrabold text-warm-900 mb-4">Practice</h1>
-        <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4 text-red-700">
-          {error}
-        </div>
-        <button
-          onClick={() => navigate('/decks')}
-          className="mt-4 px-6 py-3 bg-coral hover:bg-coral-hover text-white font-bold rounded-xl transition"
-        >
+        <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4 text-red-700">{error}</div>
+        <button onClick={() => navigate('/decks')} className="mt-4 px-6 py-3 bg-coral hover:bg-coral-hover text-white font-bold rounded-xl transition">
           Go to Decks
         </button>
       </div>
@@ -518,7 +354,10 @@ export default function Exercises() {
     );
   }
 
-  const hasInlineBlank = exerciseNeedsBlanks(currentExercise.type) && promptHasBlank(currentExercise.prompt);
+  const usesCustomUI = exerciseUsesCustomUI(currentExercise.type);
+  const isSelfGraded = SELF_GRADED_TYPES.has(currentExercise.type);
+  const hasInlineBlank = exerciseNeedsBlanks(currentExercise.type) && currentExercise.prompt && promptHasBlank(currentExercise.prompt);
+  const needsSeparateInput = !usesCustomUI && !hasInlineBlank && exerciseNeedsBlanks(currentExercise.type);
   const levelLabel = currentExercise.level === 1 ? 'Beginner' : currentExercise.level === 2 ? 'Intermediate' : 'Advanced';
   const levelColor = currentExercise.level === 1 ? 'text-emerald-600 bg-emerald-50 border-emerald-200' : currentExercise.level === 2 ? 'text-amber-600 bg-amber-50 border-amber-200' : 'text-red-600 bg-red-50 border-red-200';
 
@@ -526,43 +365,35 @@ export default function Exercises() {
     <div className="p-4 pb-24">
       {isOffline && <div className="mb-4"><OfflineBanner message={"You're offline. \"Explain this error\" is unavailable."} /></div>}
 
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-2">
         <h1 className="text-2xl font-extrabold text-warm-900">Practice</h1>
-        <span className={`text-xs font-bold px-2 py-1 rounded-lg border ${levelColor}`}>{levelLabel}</span>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-warm-400 font-medium">{index + 1}/{exercises.length}</span>
+          <span className={`text-xs font-bold px-2 py-1 rounded-lg border ${levelColor}`}>{levelLabel}</span>
+        </div>
       </div>
 
-      {/* Exercise card */}
+      <div className="w-full bg-warm-100 rounded-full h-1.5 mb-4">
+        <div
+          className="bg-coral h-1.5 rounded-full transition-all duration-300"
+          style={{ width: `${Math.min(((index + 1) / exercises.length) * 100, 100)}%` }}
+        />
+      </div>
+
       <div className="bg-white hand-drawn shadow-lg p-6 mb-4" style={handDrawnStyle}>
-        {renderExerciseCard(currentExercise)}
+        <ExerciseRouter
+          exercise={currentExercise}
+          answer={answer}
+          setAnswer={setAnswer}
+          gradeResult={gradeResult}
+          onSubmit={handleSubmit}
+        />
       </div>
 
-      {/* Input area — only show separate input when there's no inline blank */}
+      {/* Submit button */}
       {!gradeResult && (
         <div className="space-y-3">
-          {currentExercise.type === 'word_order_scramble' && currentExercise.options?.length ? (
-            <div>
-              <div className="flex flex-wrap gap-2 mb-3">
-                {currentExercise.options.map((word, i) => (
-                  <button
-                    key={i}
-                    onClick={() => handleScrambleWordClick(word)}
-                    className={`px-3 py-2 rounded-lg border-2 font-medium transition ${
-                      scrambleOrder.includes(word)
-                        ? 'bg-coral text-white border-coral'
-                        : 'bg-warm-50 text-warm-700 border-warm-200 hover:border-coral'
-                    }`}
-                  >
-                    {word}
-                  </button>
-                ))}
-              </div>
-              {answer && (
-                <div className="bg-warm-50 border-2 border-warm-200 rounded-xl p-3 text-warm-700 font-medium">
-                  {answer}
-                </div>
-              )}
-            </div>
-          ) : !hasInlineBlank ? (
+          {needsSeparateInput && (
             <input
               type="text"
               value={answer}
@@ -576,13 +407,13 @@ export default function Exercises() {
               spellCheck={false}
               className="w-full px-4 py-3 border-2 border-warm-200 rounded-xl text-warm-900 focus:border-coral focus:outline-none transition text-lg"
             />
-          ) : null}
+          )}
           <button
             onClick={handleSubmit}
-            disabled={!answer.trim() || grading}
+            disabled={!answer.trim() && !isSelfGraded}
             className="w-full py-3 bg-coral hover:bg-coral-hover disabled:opacity-50 text-white font-bold rounded-xl transition"
           >
-            {grading ? 'Checking...' : 'Check Answer'}
+            Check Answer
           </button>
         </div>
       )}
@@ -599,8 +430,7 @@ export default function Exercises() {
               <span className="text-2xl">{gradeResult.state === 'correct' ? '✓' : gradeResult.state === 'close' ? '≈' : '✗'}</span>
               <span className={`font-bold ${
                 gradeResult.state === 'correct' ? 'text-emerald-700' :
-                gradeResult.state === 'close' ? 'text-amber-700' :
-                'text-red-700'
+                gradeResult.state === 'close' ? 'text-amber-700' : 'text-red-700'
               }`}>
                 {gradeResult.state === 'correct' ? 'Correct!' : gradeResult.state === 'close' ? 'Almost!' : 'Incorrect'}
               </span>

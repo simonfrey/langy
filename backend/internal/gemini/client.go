@@ -31,16 +31,17 @@ type ExerciseCard struct {
 }
 
 type Exercise struct {
-	ID             string   `json:"id"`
-	Type           string   `json:"type"`
-	Level          int      `json:"level"`
-	Instruction    string   `json:"instruction"`
-	Prompt         string   `json:"prompt"`
-	CorrectAnswer  string   `json:"correct_answer"`
-	Hint           string   `json:"hint,omitempty"`
-	SourceSentence string   `json:"source_sentence,omitempty"`
-	Options        []string `json:"options,omitempty"`
-	SourceCardID   string   `json:"source_card_id"`
+	ID             string          `json:"id"`
+	Type           string          `json:"type"`
+	Level          int             `json:"level"`
+	Instruction    string          `json:"instruction"`
+	Prompt         string          `json:"prompt"`
+	CorrectAnswer  string          `json:"correct_answer"`
+	Hint           string          `json:"hint,omitempty"`
+	SourceSentence string          `json:"source_sentence,omitempty"`
+	Options        []string        `json:"options,omitempty"`
+	Data           json.RawMessage `json:"data,omitempty"`
+	SourceCardID   string          `json:"source_card_id"`
 }
 
 type KnownWord struct {
@@ -262,27 +263,6 @@ Guidelines:
 	return basePrompt
 }
 
-var exerciseSchema = &genai.Schema{
-	Type: genai.TypeArray,
-	Items: &genai.Schema{
-		Type: genai.TypeObject,
-		Properties: map[string]*genai.Schema{
-			"type":           {Type: genai.TypeString},
-			"instruction":    {Type: genai.TypeString},
-			"prompt":         {Type: genai.TypeString},
-			"correct_answer": {Type: genai.TypeString},
-			"options": {
-				Type:  genai.TypeArray,
-				Items: &genai.Schema{Type: genai.TypeString},
-			},
-			"hint":              {Type: genai.TypeString},
-			"source_sentence":   {Type: genai.TypeString},
-			"source_card_index": {Type: genai.TypeInteger},
-		},
-		Required: []string{"type", "instruction", "prompt", "correct_answer", "hint", "source_card_index"},
-	},
-}
-
 var gradeSchema = &genai.Schema{
 	Type: genai.TypeObject,
 	Properties: map[string]*genai.Schema{
@@ -291,162 +271,6 @@ var gradeSchema = &genai.Schema{
 		"corrected_answer": {Type: genai.TypeString},
 	},
 	Required: []string{"correct", "feedback"},
-}
-
-func (c *Client) GenerateExercises(ctx context.Context, cards []ExerciseCard, knownWords []KnownWord, sourceLang, targetLang string) ([]Exercise, error) {
-	srcName := langName(sourceLang)
-	tgtName := langName(targetLang)
-
-	var l1Cards, l2Cards, l3Cards []string
-	for i, card := range cards {
-		entry := fmt.Sprintf("[%d] %s = %s", i, card.Front, card.Back)
-		switch card.Level {
-		case 1:
-			l1Cards = append(l1Cards, entry)
-		case 2:
-			l2Cards = append(l2Cards, entry)
-		default:
-			l3Cards = append(l3Cards, entry)
-		}
-	}
-
-	// Build known vocabulary list
-	var knownVocab string
-	for _, w := range knownWords {
-		knownVocab += w.Front + " = " + w.Back + "\n"
-	}
-
-	prompt := fmt.Sprintf(`You are an exercise generator for a %s learner whose native language is %s.
-
-Generate exercises based on the vocabulary words below. Each exercise MUST require the correct GRAMMATICAL form (conjugation, declension, gender, article, agreement) — never accept just the base/dictionary form.
-
-When constructing sentences for exercises, primarily use words from the "KNOWN VOCABULARY" list below. You may use additional common words appropriate to the learner's level to make sentences natural. The exercise should test the target word — don't make unknown surrounding words the obstacle.
-
-The "source_card_index" field must be the [index] of the vocabulary word the exercise is based on.
-The "source_sentence" field must contain the complete sentence translated into the learner's native language (no blanks or placeholders). This tells the learner WHAT to express. Every exercise that contains a blank MUST have a source_sentence.
-The "hint" field must contain a helpful clue that guides the user toward the answer WITHOUT giving it away directly. For example: the grammar rule being tested, or the base form of the target word. Never put the answer itself in the hint.
-
-CRITICAL RULES:
-- Every exercise MUST have exactly ONE unambiguous correct answer.
-- The blank in a cloze exercise MUST be the vocabulary word being tested. Do NOT blank out other words.
-- The correct answer MUST be determinable from the source_sentence alone — if the source_sentence says "We have five books", then the blank must be "cinco", not any other number.
-- NEVER use vague prompts like "a number between X and Y" or "choose any word". The source_sentence must make the answer obvious.
-- The sentence should naturally use the vocabulary word from the card. Do not invent content unrelated to the card.
-
-KNOWN VOCABULARY (use these words to build sentences):
-%s
-
-LEVEL 1 WORDS (beginner — provide %s translations as hints):
-%s
-
-Exercise types for Level 1: cloze_with_translation, word_order_scramble, article_check, morphing
-- cloze_with_translation: Show a %s sentence with a blank, provide full %s translation in "source_sentence". User types the missing word in correct form.
-- word_order_scramble: Show %s sentence, provide jumbled %s words in "options" array. User must order them.
-- article_check: Show %s word, user must type it with correct article/gender marker.
-- morphing: Give base word + grammatical instruction (e.g. "1st person past tense"), user types the correct form.
-
-LEVEL 2 WORDS (intermediate — no native language hints):
-%s
-
-Exercise types for Level 2: context_typing, conjugation_cloze, adjective_agreement
-- context_typing: Show %s sentence with blank, provide the native-language translation in "source_sentence". User types the missing word.
-- conjugation_cloze: Show %s sentence with blank + base form in parentheses, provide native-language translation in "source_sentence". User types correct conjugated form.
-- adjective_agreement: Show %s sentence with blank + base adjective, provide native-language translation in "source_sentence". User types with correct gender/number.
-
-LEVEL 3 WORDS (advanced — generative tasks):
-%s
-
-Exercise types for Level 3: paragraph_cloze, tense_shifting, error_correction, full_translation
-- paragraph_cloze: 3-4 sentence %s paragraph with exactly one blank. Provide native-language translation in "source_sentence".
-- tense_shifting: Complete %s sentence, user rewrites in different tense.
-- error_correction: %s sentence with intentional grammar error, user types corrected word.
-- full_translation: Complex %s sentence, user translates entire sentence to %s. Put the source sentence in "prompt", put a brief grammar/context hint in "hint".
-
-OUTPUT FORMAT RULES per exercise type:
-- cloze_with_translation: Put the cloze sentence (with _) in "prompt", put the full translation in "source_sentence". Each exercise must have exactly one _ blank.
-- error_correction: "correct_answer" should be just the corrected word(s), not the full sentence.
-- tense_shifting: Include the target tense in the "instruction" field.
-- full_translation: Put the source sentence in "prompt", put a brief grammar/context hint in "hint".
-
-Write all "instruction" fields in %s (the learner's native language). Do NOT write instructions in English unless the native language IS English.
-
-Generate one exercise per word. Use the appropriate exercise type for each word's level.`,
-		tgtName, srcName,
-		knownVocab,
-		srcName,
-		joinLines(l1Cards),
-		tgtName, srcName, srcName, tgtName, tgtName,
-		joinLines(l2Cards),
-		tgtName, tgtName, tgtName,
-		joinLines(l3Cards),
-		tgtName, tgtName, tgtName, srcName, tgtName,
-		srcName,
-	)
-
-	config := &genai.GenerateContentConfig{
-		ResponseMIMEType: "application/json",
-		ResponseSchema:   exerciseSchema,
-	}
-
-	slog.Info("generating exercises via gemini", "model", c.exerciseModel, "card_count", len(cards))
-	contents := []*genai.Content{{Parts: []*genai.Part{{Text: prompt}}}}
-	result, err := c.client.Models.GenerateContent(ctx, c.exerciseModel, contents, config)
-	if err != nil {
-		return nil, fmt.Errorf("gemini API error: %w", err)
-	}
-
-	if len(result.Candidates) == 0 || len(result.Candidates[0].Content.Parts) == 0 {
-		return nil, fmt.Errorf("empty response from Gemini")
-	}
-
-	text := result.Candidates[0].Content.Parts[0].Text
-
-	var rawExercises []struct {
-		Type            string   `json:"type"`
-		Instruction     string   `json:"instruction"`
-		Prompt          string   `json:"prompt"`
-		CorrectAnswer   string   `json:"correct_answer"`
-		Hint            string   `json:"hint"`
-		SourceSentence  string   `json:"source_sentence"`
-		Options         []string `json:"options"`
-		SourceCardIndex int      `json:"source_card_index"`
-	}
-	if err := json.Unmarshal([]byte(text), &rawExercises); err != nil {
-		return nil, fmt.Errorf("failed to parse exercises response: %w", err)
-	}
-
-	exercises := make([]Exercise, 0, len(rawExercises))
-	for i, raw := range rawExercises {
-		cardIdx := raw.SourceCardIndex
-		if cardIdx < 0 || cardIdx >= len(cards) {
-			cardIdx = i % len(cards)
-		}
-		exercises = append(exercises, Exercise{
-			ID:             fmt.Sprintf("ex-%d", i),
-			Type:           raw.Type,
-			Level:          cards[cardIdx].Level,
-			Instruction:    raw.Instruction,
-			Prompt:         raw.Prompt,
-			CorrectAnswer:  raw.CorrectAnswer,
-			Hint:           raw.Hint,
-			SourceSentence: raw.SourceSentence,
-			Options:        raw.Options,
-			SourceCardID:   cards[cardIdx].ID,
-		})
-	}
-
-	return exercises, nil
-}
-
-func joinLines(lines []string) string {
-	if len(lines) == 0 {
-		return "(none)"
-	}
-	result := ""
-	for _, l := range lines {
-		result += l + "\n"
-	}
-	return result
 }
 
 func (c *Client) GradeExercise(ctx context.Context, exerciseType, prompt, correctAnswer, userAnswer, sourceLang, targetLang string) (*GradeResult, error) {

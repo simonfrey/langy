@@ -509,6 +509,7 @@ type Exercise struct {
 	Hint           *string    `json:"hint,omitempty"`
 	SourceSentence *string    `json:"source_sentence,omitempty"`
 	Options        []byte     `json:"options,omitempty"`
+	Data           []byte     `json:"data,omitempty"`
 	Completed      bool       `json:"completed"`
 	UserAnswer     *string    `json:"user_answer,omitempty"`
 	Correct        *bool      `json:"correct,omitempty"`
@@ -522,11 +523,11 @@ func (d *DB) SaveExercises(ctx context.Context, userID string, exercises []Exerc
 	for _, ex := range exercises {
 		var e Exercise
 		err := d.Pool.QueryRow(ctx,
-			`INSERT INTO exercises (user_id, session_id, source_card_id, type, level, instruction, prompt, correct_answer, hint, source_sentence, options)
-			 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-			 RETURNING id, user_id, session_id, source_card_id, type, level, instruction, prompt, correct_answer, hint, source_sentence, options, completed, user_answer, correct, feedback, next_review, created_at`,
-			userID, ex.SessionID, ex.SourceCardID, ex.Type, ex.Level, ex.Instruction, ex.Prompt, ex.CorrectAnswer, ex.Hint, ex.SourceSentence, ex.Options,
-		).Scan(&e.ID, &e.UserID, &e.SessionID, &e.SourceCardID, &e.Type, &e.Level, &e.Instruction, &e.Prompt, &e.CorrectAnswer, &e.Hint, &e.SourceSentence, &e.Options, &e.Completed, &e.UserAnswer, &e.Correct, &e.Feedback, &e.NextReview, &e.CreatedAt)
+			`INSERT INTO exercises (user_id, session_id, source_card_id, type, level, instruction, prompt, correct_answer, hint, source_sentence, options, data)
+			 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+			 RETURNING id, user_id, session_id, source_card_id, type, level, instruction, prompt, correct_answer, hint, source_sentence, options, data, completed, user_answer, correct, feedback, next_review, created_at`,
+			userID, ex.SessionID, ex.SourceCardID, ex.Type, ex.Level, ex.Instruction, ex.Prompt, ex.CorrectAnswer, ex.Hint, ex.SourceSentence, ex.Options, ex.Data,
+		).Scan(&e.ID, &e.UserID, &e.SessionID, &e.SourceCardID, &e.Type, &e.Level, &e.Instruction, &e.Prompt, &e.CorrectAnswer, &e.Hint, &e.SourceSentence, &e.Options, &e.Data, &e.Completed, &e.UserAnswer, &e.Correct, &e.Feedback, &e.NextReview, &e.CreatedAt)
 		if err != nil {
 			return nil, fmt.Errorf("save exercise: %w", err)
 		}
@@ -554,7 +555,7 @@ func (d *DB) UpdateExerciseResult(ctx context.Context, userID, exerciseID, userA
 
 func (d *DB) GetDueExercises(ctx context.Context, userID string) ([]Exercise, error) {
 	rows, err := d.Pool.Query(ctx,
-		`SELECT e.id, e.user_id, e.session_id, e.source_card_id, e.type, e.level, e.instruction, e.prompt, e.correct_answer, e.hint, e.source_sentence, e.options, e.completed, e.user_answer, e.correct, e.feedback, e.next_review, e.created_at
+		`SELECT e.id, e.user_id, e.session_id, e.source_card_id, e.type, e.level, e.instruction, e.prompt, e.correct_answer, e.hint, e.source_sentence, e.options, e.data, e.completed, e.user_answer, e.correct, e.feedback, e.next_review, e.created_at
 		 FROM exercises e
 		 WHERE e.user_id = $1 AND e.correct = false AND e.next_review <= now()
 		 ORDER BY e.next_review ASC`, userID)
@@ -566,7 +567,7 @@ func (d *DB) GetDueExercises(ctx context.Context, userID string) ([]Exercise, er
 	var exercises []Exercise
 	for rows.Next() {
 		var e Exercise
-		if err := rows.Scan(&e.ID, &e.UserID, &e.SessionID, &e.SourceCardID, &e.Type, &e.Level, &e.Instruction, &e.Prompt, &e.CorrectAnswer, &e.Hint, &e.SourceSentence, &e.Options, &e.Completed, &e.UserAnswer, &e.Correct, &e.Feedback, &e.NextReview, &e.CreatedAt); err != nil {
+		if err := rows.Scan(&e.ID, &e.UserID, &e.SessionID, &e.SourceCardID, &e.Type, &e.Level, &e.Instruction, &e.Prompt, &e.CorrectAnswer, &e.Hint, &e.SourceSentence, &e.Options, &e.Data, &e.Completed, &e.UserAnswer, &e.Correct, &e.Feedback, &e.NextReview, &e.CreatedAt); err != nil {
 			return nil, fmt.Errorf("get due exercises scan: %w", err)
 		}
 		exercises = append(exercises, e)
@@ -579,7 +580,7 @@ func (d *DB) GetDueExercises(ctx context.Context, userID string) ([]Exercise, er
 
 func (d *DB) GetUncompletedExercises(ctx context.Context, userID string) ([]Exercise, error) {
 	rows, err := d.Pool.Query(ctx,
-		`SELECT e.id, e.user_id, e.session_id, e.source_card_id, e.type, e.level, e.instruction, e.prompt, e.correct_answer, e.hint, e.source_sentence, e.options, e.completed, e.user_answer, e.correct, e.feedback, e.next_review, e.created_at
+		`SELECT e.id, e.user_id, e.session_id, e.source_card_id, e.type, e.level, e.instruction, e.prompt, e.correct_answer, e.hint, e.source_sentence, e.options, e.data, e.completed, e.user_answer, e.correct, e.feedback, e.next_review, e.created_at
 		 FROM exercises e
 		 WHERE e.user_id = $1 AND e.completed = false
 		 ORDER BY e.created_at ASC`, userID)
@@ -591,7 +592,7 @@ func (d *DB) GetUncompletedExercises(ctx context.Context, userID string) ([]Exer
 	var exercises []Exercise
 	for rows.Next() {
 		var e Exercise
-		if err := rows.Scan(&e.ID, &e.UserID, &e.SessionID, &e.SourceCardID, &e.Type, &e.Level, &e.Instruction, &e.Prompt, &e.CorrectAnswer, &e.Hint, &e.SourceSentence, &e.Options, &e.Completed, &e.UserAnswer, &e.Correct, &e.Feedback, &e.NextReview, &e.CreatedAt); err != nil {
+		if err := rows.Scan(&e.ID, &e.UserID, &e.SessionID, &e.SourceCardID, &e.Type, &e.Level, &e.Instruction, &e.Prompt, &e.CorrectAnswer, &e.Hint, &e.SourceSentence, &e.Options, &e.Data, &e.Completed, &e.UserAnswer, &e.Correct, &e.Feedback, &e.NextReview, &e.CreatedAt); err != nil {
 			return nil, fmt.Errorf("get uncompleted exercises scan: %w", err)
 		}
 		exercises = append(exercises, e)
