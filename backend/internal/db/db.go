@@ -603,6 +603,46 @@ func (d *DB) GetUncompletedExercises(ctx context.Context, userID string) ([]Exer
 	return exercises, nil
 }
 
+// CardNeedingExercise represents a card that has no uncompleted exercises, along with user/deck context.
+type CardNeedingExercise struct {
+	UserID       string
+	CardID       string
+	Front        string
+	Back         string
+	Repetitions  int
+	IntervalDays int
+	SourceLang   string
+	TargetLang   string
+}
+
+// GetCardsNeedingExercises returns cards that have no uncompleted exercises, grouped by user.
+// It limits to `limit` cards total to avoid generating too many at once.
+func (d *DB) GetCardsNeedingExercises(ctx context.Context, limit int) ([]CardNeedingExercise, error) {
+	rows, err := d.Pool.Query(ctx,
+		`SELECT dk.user_id, c.id, c.front, c.back, c.repetitions, c.interval_days, dk.source_lang, dk.target_lang
+		 FROM cards c
+		 JOIN decks dk ON c.deck_id = dk.id
+		 WHERE NOT EXISTS (
+		   SELECT 1 FROM exercises e WHERE e.source_card_id = c.id AND e.completed = false
+		 )
+		 ORDER BY random()
+		 LIMIT $1`, limit)
+	if err != nil {
+		return nil, fmt.Errorf("get cards needing exercises: %w", err)
+	}
+	defer rows.Close()
+
+	var cards []CardNeedingExercise
+	for rows.Next() {
+		var c CardNeedingExercise
+		if err := rows.Scan(&c.UserID, &c.CardID, &c.Front, &c.Back, &c.Repetitions, &c.IntervalDays, &c.SourceLang, &c.TargetLang); err != nil {
+			return nil, fmt.Errorf("scan card needing exercise: %w", err)
+		}
+		cards = append(cards, c)
+	}
+	return cards, rows.Err()
+}
+
 func (d *DB) CreateReviewLog(ctx context.Context, cardID, userID string, grade int, reviewedAt time.Time, responseTimeMs *int) error {
 	_, err := d.Pool.Exec(ctx,
 		`INSERT INTO review_logs (card_id, user_id, grade, reviewed_at, response_time_ms) VALUES ($1, $2, $3, $4, $5)`,

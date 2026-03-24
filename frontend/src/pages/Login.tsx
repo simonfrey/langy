@@ -75,7 +75,7 @@ export default function Login() {
                 className="w-full bg-warm-100 rounded-xl border border-warm-200 px-4 py-3 text-warm-900 placeholder-warm-400 focus:outline-none focus:ring-2 focus:ring-coral focus:border-transparent transition"
                 placeholder="••••••••"
               />
-            </div>
+            </div>/com
           </div>
 
           <button

@@ -33,7 +33,7 @@ export default function ExerciseMatchingPairs({ exercise, setAnswer, gradeResult
   }, [exercise.id]);
 
   function handleTap(side: 'left' | 'right', _value: string, idx: number) {
-    if (matched.has(`L${idx}`) || matched.has(`R${idx}`)) return;
+    if (matched.has(`${side === 'left' ? 'L' : 'R'}${idx}`)) return;
 
     const key = `${side}:${idx}`;
     if (!selected) {
