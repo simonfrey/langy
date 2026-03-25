@@ -5,7 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"strings"
 
+	"github.com/XiaoConstantine/dspy-go/pkg/core"
+	_ "github.com/XiaoConstantine/dspy-go/pkg/llms"
+	"github.com/XiaoConstantine/dspy-go/pkg/modules"
 	"google.golang.org/genai"
 )
 
@@ -68,11 +72,52 @@ func New(ctx context.Context, apiKey string) (*Client, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	if err := core.ConfigureDefaultLLM(apiKey, core.ModelGoogleGeminiPro); err != nil {
+		return nil, fmt.Errorf("failed to configure dspy-go LLM: %w", err)
+	}
+
 	return &Client{
 		client:        client,
 		model:         "gemini-2.5-pro",
 		exerciseModel: "gemini-2.5-pro",
 	}, nil
+}
+
+// dspyGenerate runs a text-only prompt through dspy-go's Predict module.
+func (c *Client) dspyGenerate(ctx context.Context, instruction, prompt string) (string, error) {
+	sig := core.NewSignature(
+		[]core.InputField{{Field: core.NewField("prompt")}},
+		[]core.OutputField{{Field: core.NewField("result")}},
+	).WithInstruction(instruction)
+
+	predict := modules.NewPredict(sig).WithTextOutput()
+	result, err := predict.Process(ctx, map[string]interface{}{
+		"prompt": prompt,
+	})
+	if err != nil {
+		return "", fmt.Errorf("dspy-go error: %w", err)
+	}
+
+	text, ok := result["result"].(string)
+	if !ok {
+		return "", fmt.Errorf("dspy-go returned unexpected type for result")
+	}
+
+	// Strip markdown code fences if present
+	text = strings.TrimSpace(text)
+	if strings.HasPrefix(text, "```") {
+		lines := strings.Split(text, "\n")
+		if len(lines) >= 2 {
+			lines = lines[1:]
+		}
+		if len(lines) > 0 && strings.HasPrefix(strings.TrimSpace(lines[len(lines)-1]), "```") {
+			lines = lines[:len(lines)-1]
+		}
+		text = strings.Join(lines, "\n")
+	}
+
+	return text, nil
 }
 
 var cardPairSchema = &genai.Schema{
@@ -118,32 +163,46 @@ func (c *Client) GenerateCards(ctx context.Context, prompt, sourceLang, targetLa
 		fullPrompt = c.buildVocabularyPrompt(prompt, srcName, tgtName, hasImages, generateImages)
 	}
 
-	parts := []*genai.Part{
-		{Text: fullPrompt},
-	}
-	for _, img := range images {
-		parts = append(parts, &genai.Part{
-			InlineData: &genai.Blob{MIMEType: img.MimeType, Data: img.Data},
-		})
-	}
+	var text string
 
-	config := &genai.GenerateContentConfig{
-		ResponseMIMEType: "application/json",
-		ResponseSchema:   cardPairSchema,
-	}
+	if hasImages {
+		// Multimodal path: use genai directly (dspy-go doesn't support image inputs)
+		parts := []*genai.Part{
+			{Text: fullPrompt},
+		}
+		for _, img := range images {
+			parts = append(parts, &genai.Part{
+				InlineData: &genai.Blob{MIMEType: img.MimeType, Data: img.Data},
+			})
+		}
 
-	slog.Info("calling gemini API", "model", c.model, "source_lang", sourceLang, "target_lang", targetLang, "image_count", len(images))
-	contents := []*genai.Content{{Parts: parts}}
-	result, err := c.client.Models.GenerateContent(ctx, c.model, contents, config)
-	if err != nil {
-		return nil, fmt.Errorf("gemini API error: %w", err)
-	}
+		config := &genai.GenerateContentConfig{
+			ResponseMIMEType: "application/json",
+			ResponseSchema:   cardPairSchema,
+		}
 
-	if len(result.Candidates) == 0 || len(result.Candidates[0].Content.Parts) == 0 {
-		return nil, fmt.Errorf("empty response from Gemini")
-	}
+		slog.Info("calling gemini API (multimodal)", "model", c.model, "source_lang", sourceLang, "target_lang", targetLang, "image_count", len(images))
+		contents := []*genai.Content{{Parts: parts}}
+		result, err := c.client.Models.GenerateContent(ctx, c.model, contents, config)
+		if err != nil {
+			return nil, fmt.Errorf("gemini API error: %w", err)
+		}
 
-	text := result.Candidates[0].Content.Parts[0].Text
+		if len(result.Candidates) == 0 || len(result.Candidates[0].Content.Parts) == 0 {
+			return nil, fmt.Errorf("empty response from Gemini")
+		}
+
+		text = result.Candidates[0].Content.Parts[0].Text
+	} else {
+		// Text-only path: use dspy-go
+		slog.Info("calling dspy-go for card generation", "source_lang", sourceLang, "target_lang", targetLang)
+		instruction := "Generate flashcard pairs as a JSON array. Each object must have \"front\" and \"back\" string fields. Return ONLY valid JSON, no extra text."
+		var err error
+		text, err = c.dspyGenerate(ctx, instruction, fullPrompt)
+		if err != nil {
+			return nil, fmt.Errorf("dspy-go card generation error: %w", err)
+		}
+	}
 
 	var pairs []CardPair
 	if err := json.Unmarshal([]byte(text), &pairs); err != nil {
@@ -263,16 +322,6 @@ Guidelines:
 	return basePrompt
 }
 
-var gradeSchema = &genai.Schema{
-	Type: genai.TypeObject,
-	Properties: map[string]*genai.Schema{
-		"correct":          {Type: genai.TypeBoolean},
-		"feedback":         {Type: genai.TypeString},
-		"corrected_answer": {Type: genai.TypeString},
-	},
-	Required: []string{"correct", "feedback"},
-}
-
 func (c *Client) GradeExercise(ctx context.Context, exerciseType, prompt, correctAnswer, userAnswer, sourceLang, targetLang string) (*GradeResult, error) {
 	srcName := langName(sourceLang)
 	tgtName := langName(targetLang)
@@ -291,22 +340,11 @@ Rules:
 - Provide brief, encouraging feedback in %s.
 - If incorrect, provide the corrected answer.`, tgtName, srcName, exerciseType, prompt, correctAnswer, userAnswer, srcName)
 
-	config := &genai.GenerateContentConfig{
-		ResponseMIMEType: "application/json",
-		ResponseSchema:   gradeSchema,
-	}
-
-	contents := []*genai.Content{{Parts: []*genai.Part{{Text: gradePrompt}}}}
-	result, err := c.client.Models.GenerateContent(ctx, c.exerciseModel, contents, config)
+	instruction := `Grade the exercise and return a JSON object with fields: "correct" (boolean), "feedback" (string), and optionally "corrected_answer" (string). Return ONLY valid JSON, no extra text.`
+	text, err := c.dspyGenerate(ctx, instruction, gradePrompt)
 	if err != nil {
-		return nil, fmt.Errorf("gemini API error: %w", err)
+		return nil, fmt.Errorf("dspy-go grading error: %w", err)
 	}
-
-	if len(result.Candidates) == 0 || len(result.Candidates[0].Content.Parts) == 0 {
-		return nil, fmt.Errorf("empty response from Gemini")
-	}
-
-	text := result.Candidates[0].Content.Parts[0].Text
 	var grade GradeResult
 	if err := json.Unmarshal([]byte(text), &grade); err != nil {
 		return nil, fmt.Errorf("failed to parse grade response: %w", err)
