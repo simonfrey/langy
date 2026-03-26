@@ -1,6 +1,7 @@
 ## Testing frontend code
 
 Always run npm run build after changing code to ensure there are no compilation errors. This will help catch issues early before running tests.
+Always run `npm run format:check` to verify code formatting with Prettier. To auto-fix formatting, run `npm run format`.
 Always test the code after making changes. You can run the tests for frontend with `npm test`. This will execute all tests in the `frontend` directory. Make sure to have the backend server
 
 ## Format backend code
