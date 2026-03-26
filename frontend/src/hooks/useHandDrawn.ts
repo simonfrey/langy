@@ -6,7 +6,7 @@ function rand(min: number, max: number) {
 
 export function getHandDrawnStyle(): React.CSSProperties {
   return {
-    borderRadius: `${rand(180, 255)}px ${rand(10, 25)}px ${rand(180, 240)}px ${rand(10, 25)}px / ${rand(10, 25)}px ${rand(180, 240)}px ${rand(10, 25)}px ${rand(180, 255)}px`,
+    borderRadius: `${rand(18, 28)}px ${rand(12, 22)}px ${rand(18, 28)}px ${rand(12, 22)}px / ${rand(12, 22)}px ${rand(18, 28)}px ${rand(12, 22)}px ${rand(18, 28)}px`,
   };
 }
 

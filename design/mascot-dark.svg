@@ -1,5 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 62" fill="none">
-  <!-- Langy mascot favicon -->
+  <!-- Langy mascot (dark variant): for use on primary-colored backgrounds -->
+  <!-- Card body — wobbly edges -->
   <path d="M13 1.5 C8.5 1.2 4.5 2.5 2.5 5.5 C1 8 0.8 11 1.2 14
            C1.5 21 1 28 0.7 35 C0.5 41 0.3 46 1 50
            C1.8 55 4 58.5 8 60 C10 60.8 12.5 61.2 16 61
@@ -7,11 +8,14 @@
            C86 60.8 89 60 91.5 58 C94 55.8 95.2 52.5 95.5 49
            C95.8 43 95.5 37 95.8 31 C96 25 96.2 18 95.5 13
            C95 8 93 4.5 89.5 2.5 C87 1.2 84 0.8 80 1
-           C68 1.3 56 0.7 44 0.8 C32 0.9 22 1.3 13 1.5Z" fill="#4A90B8"/>
+           C68 1.3 56 0.7 44 0.8 C32 0.9 22 1.3 13 1.5Z" fill="#3A7CA5"/>
+  <!-- Left eye — large, low on face -->
   <path d="M26 30 C26.5 26 29 23.5 32.5 23 C36 22.5 39 24.5 39.5 28.5
            C40 32 38 35.5 34 36.2 C30 36.8 25.5 34 26 30Z" fill="white"/>
+  <!-- Right eye — mirrored -->
   <path d="M56.5 30 C57 26 59.5 23.5 63 23 C66.5 22.5 69.5 24.5 70 28.5
            C70.5 32 68.5 35.5 64.5 36.2 C60.5 36.8 56 34 56.5 30Z" fill="white"/>
+  <!-- Smile — small, sits below the big eyes -->
   <path d="M36 44.5 C38 46.5 40.5 48.5 44 49.5 C46 50 50 50.2 52.5 49.5 C55.5 48.5 58 46.5 60 44"
         stroke="white" stroke-width="3" stroke-linecap="round" fill="none"/>
 </svg>

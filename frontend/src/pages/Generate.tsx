@@ -151,7 +151,7 @@ export default function Generate() {
         <div className="flex items-center gap-3 mb-2">
           <SparkleIllustration className="w-16 h-16 shrink-0" />
           <div>
-            <h1 className="text-2xl font-extrabold text-warm-900">
+            <h1 className="font-display text-2xl font-extrabold text-warm-900">
               Generate Cards
             </h1>
             <p className="text-warm-500 text-sm">
@@ -391,7 +391,7 @@ export default function Generate() {
         {pendingCards.length > 0 && (
           <div className="mt-8">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-warm-900">
+              <h2 className="font-display text-lg font-bold text-warm-900">
                 Review {pendingCards.length} generated cards
               </h2>
               <button

@@ -91,7 +91,9 @@ export default function EditCards() {
           className="bg-white hand-drawn p-6 w-full max-w-md mx-auto shadow-sm"
           style={handDrawnStyle}
         >
-          <h2 className="text-xl font-bold text-warm-900 mb-4">Edit Cards</h2>
+          <h2 className="font-display text-xl font-bold text-warm-900 mb-4">
+            Edit Cards
+          </h2>
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-3 mb-4 flex items-center justify-between">
               <span>{error}</span>

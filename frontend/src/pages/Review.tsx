@@ -232,7 +232,7 @@ export default function Review() {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] p-4 text-center relative">
         <CelebrationIllustration className="mb-2 relative z-10" />
-        <h2 className="text-2xl font-extrabold text-warm-900 mb-2 relative z-10">
+        <h2 className="font-display text-2xl font-extrabold text-warm-900 mb-2 relative z-10">
           {msg.title}
         </h2>
         <p className="text-warm-500 mb-8 relative z-10">{msg.subtitle}</p>
@@ -258,7 +258,7 @@ export default function Review() {
         </div>
       )}
 
-      <h1 className="text-2xl font-extrabold text-warm-900 mb-2 relative z-20">
+      <h1 className="font-display text-2xl font-extrabold text-warm-900 mb-2 relative z-20">
         {deckName ? `Review: ${deckName}` : "Review"}
       </h1>
 

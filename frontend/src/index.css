@@ -4,10 +4,13 @@
 @theme {
   --color-cream: #fffaf5;
   --color-cream-dark: #fff2e5;
+  --color-cream-base: #f5f0eb;
   --color-coral: #4a90b8;
   --color-coral-hover: #3a7ca5;
-  --color-coral-soft: #edf4f8;
+  --color-coral-soft: #b8d8e8;
   --color-coral-muted: #b8d8e8;
+  --color-ink: #2d2926;
+  --color-ink-muted: #8a8380;
   --color-warm-900: #2d2926;
   --color-warm-700: #4a4540;
   --color-warm-500: #7a756e;
@@ -16,6 +19,7 @@
   --color-warm-200: #edebe8;
   --color-warm-100: #f5f3f0;
   --font-sans: "Inter", system-ui, sans-serif;
+  --font-display: "Fraunces", serif;
 }
 
 body {
@@ -23,7 +27,12 @@ body {
   font-family: "Inter", system-ui, sans-serif;
 }
 
-/* Hand-drawn aesthetic — applied only to large content surfaces */
+/* Hand-drawn aesthetic — applied to content surfaces */
 .hand-drawn {
   border: 2px solid var(--color-warm-200);
+}
+
+/* Font display utility */
+.font-display {
+  font-family: var(--font-display);
 }

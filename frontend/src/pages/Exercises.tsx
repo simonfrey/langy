@@ -429,7 +429,9 @@ export default function Exercises() {
   if (error) {
     return (
       <div className="p-4 pb-24">
-        <h1 className="text-2xl font-extrabold text-warm-900 mb-4">Practice</h1>
+        <h1 className="font-display text-2xl font-extrabold text-warm-900 mb-4">
+          Practice
+        </h1>
         <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4 text-red-700">
           {error}
         </div>
@@ -446,7 +448,9 @@ export default function Exercises() {
   if (!currentExercise) {
     return (
       <div className="p-4 pb-24">
-        <h1 className="text-2xl font-extrabold text-warm-900 mb-4">Practice</h1>
+        <h1 className="font-display text-2xl font-extrabold text-warm-900 mb-4">
+          Practice
+        </h1>
         <p className="text-warm-500">No exercises available.</p>
       </div>
     );
@@ -486,7 +490,9 @@ export default function Exercises() {
       )}
 
       <div className="flex items-center justify-between mb-2">
-        <h1 className="text-2xl font-extrabold text-warm-900">Practice</h1>
+        <h1 className="font-display text-2xl font-extrabold text-warm-900">
+          Practice
+        </h1>
         <div className="flex items-center gap-2">
           <span className="text-xs text-warm-400 font-medium">
             {index + 1}/{exercises.length}

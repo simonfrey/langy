@@ -37,7 +37,9 @@ export default function Login() {
       <div className="w-full max-w-sm relative z-10">
         <div className="text-center mb-8">
           <Mascot className="mx-auto mb-4" />
-          <h1 className="text-4xl font-extrabold text-warm-900 mb-2">Langy</h1>
+          <h1 className="font-display text-4xl font-extrabold text-warm-900 mb-2">
+            Langy
+          </h1>
           <p className="text-warm-500">
             Learn languages with spaced repetition
           </p>
@@ -48,7 +50,7 @@ export default function Login() {
           className="bg-white hand-drawn p-6 shadow-lg"
           style={handDrawnStyle}
         >
-          <h2 className="text-xl font-bold text-warm-900 mb-6">
+          <h2 className="font-display text-xl font-bold text-warm-900 mb-6">
             {isRegister ? "Create account" : "Welcome back"}
           </h2>
 

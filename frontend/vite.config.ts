@@ -16,6 +16,8 @@ export default defineConfig({
         "favicon.png",
         "icons.svg",
         "logo.svg",
+        "mascot.svg",
+        "mascot-dark.svg",
         "fonts/*.woff2",
       ],
       workbox: {
@@ -30,8 +32,8 @@ export default defineConfig({
         scope: "/",
         start_url: "/",
         display: "standalone",
-        theme_color: "#FF6B4A",
-        background_color: "#FFF9F5",
+        theme_color: "#4A90B8",
+        background_color: "#FFFAF5",
         icons: [
           { src: "/pwa-192x192.png", sizes: "192x192", type: "image/png" },
           { src: "/pwa-512x512.png", sizes: "512x512", type: "image/png" },

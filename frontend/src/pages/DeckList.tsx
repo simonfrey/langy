@@ -44,7 +44,7 @@ export default function DeckList() {
             </button>
           </div>
         )}
-        <h1 className="text-2xl font-extrabold text-warm-900 mb-6">
+        <h1 className="font-display text-2xl font-extrabold text-warm-900 mb-6">
           Your Decks
         </h1>
 
