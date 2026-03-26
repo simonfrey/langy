@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useState } from "react";
 
 /** Langy mascot — friendly rounded rectangle, white eyes + smile, consistent proportions
  *  Reference face: 96x62 rect rx=12, eyes at ~33%/67% x and ~39% y, smile arc below center.
@@ -131,69 +131,71 @@ export function MascotSmall({ className = "" }: { className?: string }) {
   );
 }
 
+function generateBlobs() {
+  const colors = [BLUE, BLUE_MUTED, BLUE_PALE, BLUE_DEEP, BLUE_LIGHT];
+  const count = 5 + Math.floor(Math.random() * 4); // 5-8 blobs
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const scale = Math.sqrt(vw * vh) / 1000;
+
+  interface Blob {
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+    rx: number;
+    ry: number;
+    rotation: number;
+    opacity: number;
+    color: string;
+    cx: number;
+    cy: number;
+    radius: number;
+  }
+  const placed: Blob[] = [];
+
+  function overlaps(cx: number, cy: number, radius: number) {
+    return placed.some((b) => {
+      const dx = ((cx - b.cx) * vw) / 100;
+      const dy = ((cy - b.cy) * vh) / 100;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      return dist < radius + b.radius;
+    });
+  }
+
+  for (let i = 0; i < count; i++) {
+    const w = (40 + Math.random() * 200) * scale;
+    const h = (0.4 + Math.random() * 1.2) * w;
+    const radius = Math.max(w, h) / 2;
+
+    let x: number, y: number;
+    let attempts = 0;
+    do {
+      x = Math.random() * 100;
+      y = Math.random() * 100;
+      attempts++;
+    } while (overlaps(x, y, radius) && attempts < 50);
+
+    placed.push({
+      x,
+      y,
+      w,
+      h,
+      rx: Math.min(10 + Math.random() * 80, w * 0.25),
+      ry: Math.min(10 + Math.random() * 80, h * 0.25),
+      rotation: Math.random() * 360,
+      opacity: 0.03 + Math.random() * 0.05,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      cx: x,
+      cy: y,
+      radius,
+    });
+  }
+  return placed;
+}
+
 export function BlobBackground({ className = "" }: { className?: string }) {
-  const blobs = useMemo(() => {
-    const colors = [BLUE, BLUE_MUTED, BLUE_PALE, BLUE_DEEP, BLUE_LIGHT];
-    const count = 5 + Math.floor(Math.random() * 4); // 5-8 blobs
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-    const scale = Math.sqrt(vw * vh) / 1000;
-
-    interface Blob {
-      x: number;
-      y: number;
-      w: number;
-      h: number;
-      rx: number;
-      ry: number;
-      rotation: number;
-      opacity: number;
-      color: string;
-      cx: number;
-      cy: number;
-      radius: number;
-    }
-    const placed: Blob[] = [];
-
-    function overlaps(cx: number, cy: number, radius: number) {
-      return placed.some((b) => {
-        const dx = ((cx - b.cx) * vw) / 100;
-        const dy = ((cy - b.cy) * vh) / 100;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        return dist < radius + b.radius;
-      });
-    }
-
-    for (let i = 0; i < count; i++) {
-      const w = (40 + Math.random() * 200) * scale;
-      const h = (0.4 + Math.random() * 1.2) * w;
-      const radius = Math.max(w, h) / 2;
-
-      let x: number, y: number;
-      let attempts = 0;
-      do {
-        x = Math.random() * 100;
-        y = Math.random() * 100;
-        attempts++;
-      } while (overlaps(x, y, radius) && attempts < 50);
-
-      placed.push({
-        x,
-        y,
-        w,
-        h,
-        rx: Math.min(10 + Math.random() * 80, w * 0.25),
-        ry: Math.min(10 + Math.random() * 80, h * 0.25),
-        rotation: Math.random() * 360,
-        opacity: 0.03 + Math.random() * 0.05,
-        color: colors[Math.floor(Math.random() * colors.length)],
-        cx: x,
-        cy: y,
-        radius,
-      });
-    }
-    return placed;
-  }, []);
+  const [blobs] = useState(generateBlobs);
 
   return (
     <div

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { api } from "../lib/api";
 import { db } from "../db/dexie";
+import type { CardRecord } from "../db/dexie";
 import {
   saveCard,
   saveCardWithFormData,
@@ -30,8 +31,8 @@ export default function EditCards() {
   // Fetch from API and populate Dexie
   useEffect(() => {
     if (!deckId) return;
-    api(`/decks/${deckId}/cards`)
-      .then((serverCards: any) => {
+    api<CardRecord[]>(`/decks/${deckId}/cards`)
+      .then((serverCards) => {
         if (serverCards.length > 0) {
           db.cards.bulkPut(serverCards);
         }

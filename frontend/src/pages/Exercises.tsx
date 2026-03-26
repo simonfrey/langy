@@ -12,7 +12,7 @@ import {
   exerciseNeedsBlanks,
   exerciseUsesCustomUI,
   promptHasBlank,
-} from "../components/exercises/shared";
+} from "../components/exercises/sharedUtils";
 import type { GradeResult } from "../components/exercises/types";
 
 const BATCH_SIZE = 10;
@@ -517,6 +517,7 @@ export default function Exercises() {
         style={handDrawnStyle}
       >
         <ExerciseRouter
+          key={currentExercise.id}
           exercise={currentExercise}
           answer={answer}
           setAnswer={setAnswer}

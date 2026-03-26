@@ -14,10 +14,7 @@ export default function AuthImage({
 
   useEffect(() => {
     if (!src) return;
-    if (cache.has(src)) {
-      setObjectUrl(cache.get(src)!);
-      return;
-    }
+    if (cache.has(src)) return;
     let cancelled = false;
     const url = imageUrl(src) || src;
     const token = localStorage.getItem("langy_token");

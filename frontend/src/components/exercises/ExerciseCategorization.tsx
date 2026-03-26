@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import type { ExerciseComponentProps } from "./types";
 import { InstructionText, HintBox } from "./shared";
 
@@ -11,14 +11,10 @@ export default function ExerciseCategorization({
   const categories = exercise.data?.categories || [];
   const words = exercise.data?.words || [];
   const [assignments, setAssignments] = useState<Record<string, string>>({});
-  const [unassigned, setUnassigned] = useState<string[]>([]);
+  const [unassigned, setUnassigned] = useState<string[]>(() =>
+    words.map((w) => w.word),
+  );
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-
-  useEffect(() => {
-    setAssignments({});
-    setUnassigned(words.map((w) => w.word));
-    setSelectedCategory(null);
-  }, [exercise.id]);
 
   function handleWordClick(word: string) {
     if (!selectedCategory || gradeResult) return;

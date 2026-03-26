@@ -16,7 +16,7 @@ export default function DeckList() {
 
   const deckStyles = useMemo(
     () => decks.map(() => getHandDrawnStyle()),
-    [decks.length],
+    [decks],
   );
 
   useEffect(() => {

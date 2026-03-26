@@ -13,7 +13,7 @@ export interface SM2Output {
 }
 
 export function sm2(input: SM2Input): SM2Output {
-  let grade = Math.max(0, Math.min(5, input.grade));
+  const grade = Math.max(0, Math.min(5, input.grade));
 
   let newReps: number;
   let newInterval: number;

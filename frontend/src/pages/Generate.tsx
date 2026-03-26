@@ -37,7 +37,7 @@ export default function Generate() {
 
   const pendingCardStyles = useMemo(
     () => pendingCards.map(() => getHandDrawnStyle()),
-    [pendingCards.length],
+    [pendingCards],
   );
 
   useEffect(() => {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import type { ExerciseComponentProps } from "./types";
 import { InstructionText, PromptBox } from "./shared";
 
@@ -9,11 +9,9 @@ export default function ExerciseReadingComprehension({
   gradeResult,
 }: ExerciseComponentProps) {
   const questions = exercise.data?.questions || [];
-  const [answers, setAnswers] = useState<string[]>([]);
-
-  useEffect(() => {
-    setAnswers(new Array(questions.length).fill(""));
-  }, [exercise.id]);
+  const [answers, setAnswers] = useState<string[]>(() =>
+    new Array(questions.length).fill(""),
+  );
 
   function handleSelect(qIdx: number, option: string) {
     if (gradeResult) return;

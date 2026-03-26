@@ -1,6 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import type { ExerciseComponentProps } from "./types";
 import { InstructionText, HintBox } from "./shared";
+
+function shuffleArray<T>(items: T[]): T[] {
+  const arr = [...items];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
 
 // Used for: vocab_matching_pairs, grammar_matching
 export default function ExerciseMatchingPairs({
@@ -13,12 +22,6 @@ export default function ExerciseMatchingPairs({
   const [matched, setMatched] = useState<Set<string>>(new Set());
   const [wrongPair, setWrongPair] = useState<string | null>(null);
 
-  useEffect(() => {
-    setSelected(null);
-    setMatched(new Set());
-    setWrongPair(null);
-  }, [exercise.id]);
-
   // Determine left/right labels
   const isGrammar = exercise.type === "grammar_matching";
   const leftItems = pairs.map((p) =>
@@ -28,19 +31,10 @@ export default function ExerciseMatchingPairs({
     isGrammar ? p.right || "" : p.target || "",
   );
 
-  // Shuffle right side, reset when exercise changes
-  const [shuffledRight, setShuffledRight] = useState<
-    { item: string; origIdx: number }[]
-  >([]);
-
-  useEffect(() => {
-    const arr = rightItems.map((item, i) => ({ item, origIdx: i }));
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    setShuffledRight(arr);
-  }, [exercise.id]);
+  // Shuffle right side once on mount
+  const [shuffledRight] = useState(() =>
+    shuffleArray(rightItems.map((item, i) => ({ item, origIdx: i }))),
+  );
 
   function handleTap(side: "left" | "right", _value: string, idx: number) {
     if (matched.has(`${side === "left" ? "L" : "R"}${idx}`)) return;

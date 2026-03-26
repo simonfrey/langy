@@ -127,11 +127,14 @@ export default function Review() {
     load();
   }, [load]);
 
-  function startSwipe(dir: "left" | "right") {
-    if (exitDirection) return;
-    setExitDirection(dir);
-    setFlipped(false);
-  }
+  const startSwipe = useCallback(
+    (dir: "left" | "right") => {
+      if (exitDirection) return;
+      setExitDirection(dir);
+      setFlipped(false);
+    },
+    [exitDirection],
+  );
 
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
@@ -147,7 +150,7 @@ export default function Review() {
     }
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [done, loading, flipped, exitDirection]);
+  }, [done, loading, flipped, exitDirection, startSwipe]);
 
   async function handleSwipeComplete(direction: "left" | "right") {
     setExitDirection(null);

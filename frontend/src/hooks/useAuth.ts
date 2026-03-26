@@ -24,22 +24,22 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
+  const [user, setUser] = useState<User | null>(() => {
     const token = localStorage.getItem("langy_token");
     const savedUser = localStorage.getItem("langy_user");
     if (token && savedUser) {
       try {
-        setUser(JSON.parse(savedUser));
+        return JSON.parse(savedUser);
       } catch {
         clearToken();
         localStorage.removeItem("langy_user");
       }
     }
-    setLoading(false);
+    return null;
+  });
+  const loading = false;
 
+  useEffect(() => {
     setOnUnauthorized(() => setUser(null));
   }, []);
 

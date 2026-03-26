@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import type { ExerciseComponentProps } from "./types";
 import { InstructionText, SourceSentenceBox, HintBox } from "./shared";
 
@@ -10,10 +10,6 @@ export default function ExerciseWordBank({
   gradeResult,
 }: ExerciseComponentProps) {
   const [selectedWords, setSelectedWords] = useState<string[]>([]);
-
-  useEffect(() => {
-    setSelectedWords([]);
-  }, [exercise.id]);
 
   function handleWordClick(word: string) {
     if (selectedWords.includes(word)) {
