@@ -118,7 +118,6 @@ export function Mascot({
   );
 }
 
-
 function generateBlobs() {
   const colors = [BLUE, BLUE_MUTED, BLUE_PALE, BLUE_DEEP, BLUE_LIGHT];
   const count = 5 + Math.floor(Math.random() * 4); // 5-8 blobs
