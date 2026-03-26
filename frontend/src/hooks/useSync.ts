@@ -1,6 +1,6 @@
-import { useEffect, useRef } from 'react';
-import { syncAll } from '../db/sync';
-import { useAuth } from './useAuth';
+import { useEffect, useRef } from "react";
+import { syncAll } from "../db/sync";
+import { useAuth } from "./useAuth";
 
 export function useSync() {
   const { user } = useAuth();
@@ -22,12 +22,12 @@ export function useSync() {
     guardedSync();
 
     const handleOnline = () => guardedSync();
-    window.addEventListener('online', handleOnline);
+    window.addEventListener("online", handleOnline);
 
     const interval = setInterval(guardedSync, 60_000);
 
     return () => {
-      window.removeEventListener('online', handleOnline);
+      window.removeEventListener("online", handleOnline);
       clearInterval(interval);
     };
   }, [user]);

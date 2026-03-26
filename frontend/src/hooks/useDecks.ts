@@ -1,5 +1,5 @@
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../db/dexie';
+import { useLiveQuery } from "dexie-react-hooks";
+import { db } from "../db/dexie";
 
 export function useDecks() {
   return useLiveQuery(() => db.decks.toArray()) ?? [];
@@ -10,14 +10,16 @@ export function useHasDecks() {
 }
 
 export function useHasDecksWithCards() {
-  return useLiveQuery(async () => {
-    const decks = await db.decks.toArray();
-    for (const d of decks) {
-      const count = await db.cards.where('deck_id').equals(d.id).count();
-      if (count > 0) return true;
-    }
-    return false;
-  }) ?? false;
+  return (
+    useLiveQuery(async () => {
+      const decks = await db.decks.toArray();
+      for (const d of decks) {
+        const count = await db.cards.where("deck_id").equals(d.id).count();
+        if (count > 0) return true;
+      }
+      return false;
+    }) ?? false
+  );
 }
 
 export interface DeckWithCounts {
@@ -32,15 +34,19 @@ export interface DeckWithCounts {
 }
 
 export function useDecksWithCounts() {
-  return useLiveQuery(async () => {
-    const decks = await db.decks.toArray();
-    const now = new Date();
-    return Promise.all(
-      decks.map(async (d) => {
-        const cards = await db.cards.where('deck_id').equals(d.id).toArray();
-        const dueCount = cards.filter((c) => new Date(c.next_review) <= now).length;
-        return { ...d, cardCount: cards.length, dueCount } as DeckWithCounts;
-      }),
-    );
-  }) ?? [];
+  return (
+    useLiveQuery(async () => {
+      const decks = await db.decks.toArray();
+      const now = new Date();
+      return Promise.all(
+        decks.map(async (d) => {
+          const cards = await db.cards.where("deck_id").equals(d.id).toArray();
+          const dueCount = cards.filter(
+            (c) => new Date(c.next_review) <= now,
+          ).length;
+          return { ...d, cardCount: cards.length, dueCount } as DeckWithCounts;
+        }),
+      );
+    }) ?? []
+  );
 }

@@ -1,9 +1,12 @@
-import { useEffect, useState } from 'react';
-import { imageUrl } from '../lib/api';
+import { useEffect, useState } from "react";
+import { imageUrl } from "../lib/api";
 
 const cache = new Map<string, string>();
 
-export default function AuthImage({ src, ...props }: React.ImgHTMLAttributes<HTMLImageElement>) {
+export default function AuthImage({
+  src,
+  ...props
+}: React.ImgHTMLAttributes<HTMLImageElement>) {
   const [objectUrl, setObjectUrl] = useState<string | null>(() => {
     if (!src) return null;
     return cache.get(src) ?? null;
@@ -17,10 +20,10 @@ export default function AuthImage({ src, ...props }: React.ImgHTMLAttributes<HTM
     }
     let cancelled = false;
     const url = imageUrl(src) || src;
-    const token = localStorage.getItem('langy_token');
+    const token = localStorage.getItem("langy_token");
     fetch(url, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
-      .then(r => r.ok ? r.blob() : null)
-      .then(blob => {
+      .then((r) => (r.ok ? r.blob() : null))
+      .then((blob) => {
         if (blob && !cancelled) {
           const blobUrl = URL.createObjectURL(blob);
           cache.set(src, blobUrl);
@@ -28,7 +31,9 @@ export default function AuthImage({ src, ...props }: React.ImgHTMLAttributes<HTM
         }
       })
       .catch(() => {});
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [src]);
 
   if (!objectUrl) return null;

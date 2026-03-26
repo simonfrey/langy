@@ -1,5 +1,11 @@
-import { motion, useMotionValue, useTransform, animate as animateValue, type PanInfo } from 'framer-motion';
-import AuthImage from './AuthImage';
+import {
+  motion,
+  useMotionValue,
+  useTransform,
+  animate as animateValue,
+  type PanInfo,
+} from "framer-motion";
+import AuthImage from "./AuthImage";
 
 interface Jitter {
   rotate: number;
@@ -12,29 +18,46 @@ interface Props {
   back: string;
   frontImageUrl?: string;
   backImageUrl?: string;
-  onSwipeComplete: (direction: 'left' | 'right') => void;
+  onSwipeComplete: (direction: "left" | "right") => void;
   flipped: boolean;
   onFlipChange: (flipped: boolean) => void;
-  exitDirection: 'left' | 'right' | null;
+  exitDirection: "left" | "right" | null;
   jitter?: Jitter;
   handDrawnStyle?: React.CSSProperties;
 }
 
-function getExitTarget(dir: 'left' | 'right') {
+function getExitTarget(dir: "left" | "right") {
   switch (dir) {
-    case 'left': return { x: -800, y: 0, rotate: -30, opacity: 0 };
-    case 'right': return { x: 800, y: 0, rotate: 30, opacity: 0 };
+    case "left":
+      return { x: -800, y: 0, rotate: -30, opacity: 0 };
+    case "right":
+      return { x: 800, y: 0, rotate: 30, opacity: 0 };
   }
 }
 
-export default function SwipeCard({ front, back, frontImageUrl, backImageUrl, onSwipeComplete, flipped, onFlipChange, exitDirection, jitter, handDrawnStyle }: Props) {
+export default function SwipeCard({
+  front,
+  back,
+  frontImageUrl,
+  backImageUrl,
+  onSwipeComplete,
+  flipped,
+  onFlipChange,
+  exitDirection,
+  jitter,
+  handDrawnStyle,
+}: Props) {
   const effectiveFrontImage = frontImageUrl || backImageUrl;
   const effectiveBackImage = backImageUrl || frontImageUrl;
 
   const j = jitter ?? { rotate: 0, x: 0, y: 0 };
   const x = useMotionValue(j.x);
   const y = useMotionValue(j.y);
-  const rotate = useTransform(x, [j.x - 200, j.x + 200], [j.rotate - 15, j.rotate + 15]);
+  const rotate = useTransform(
+    x,
+    [j.x - 200, j.x + 200],
+    [j.rotate - 15, j.rotate + 15],
+  );
   const opacity = useMotionValue(1);
 
   // Card fades as it moves away from center
@@ -51,32 +74,34 @@ export default function SwipeCard({ front, back, frontImageUrl, backImageUrl, on
   const redOpacity = useTransform(x, [j.x - 100, j.x], [1, 0]);
 
   function handleDragEnd(_: unknown, info: PanInfo) {
-    const pctThreshold = 0.10;
+    const pctThreshold = 0.1;
     const velocityThreshold = 300;
     const vw = window.innerWidth;
 
     const absX = Math.abs(info.offset.x);
     const absVx = Math.abs(info.velocity.x);
 
-    const isRight = info.offset.x > 0 &&
+    const isRight =
+      info.offset.x > 0 &&
       (absX > vw * pctThreshold || absVx > velocityThreshold);
-    const isLeft = info.offset.x < 0 &&
+    const isLeft =
+      info.offset.x < 0 &&
       (absX > vw * pctThreshold || absVx > velocityThreshold);
 
     if (isRight) {
-      animateDismiss('right');
+      animateDismiss("right");
     } else if (isLeft) {
-      animateDismiss('left');
+      animateDismiss("left");
     } else {
-      animateValue(x, j.x, { type: 'spring', stiffness: 300, damping: 30 });
-      animateValue(y, j.y, { type: 'spring', stiffness: 300, damping: 30 });
-      animateValue(opacity, 1, { type: 'spring', stiffness: 300, damping: 30 });
+      animateValue(x, j.x, { type: "spring", stiffness: 300, damping: 30 });
+      animateValue(y, j.y, { type: "spring", stiffness: 300, damping: 30 });
+      animateValue(opacity, 1, { type: "spring", stiffness: 300, damping: 30 });
     }
   }
 
-  function animateDismiss(dir: 'left' | 'right') {
+  function animateDismiss(dir: "left" | "right") {
     const target = getExitTarget(dir);
-    const spring = { type: 'spring' as const, stiffness: 200, damping: 25 };
+    const spring = { type: "spring" as const, stiffness: 200, damping: 25 };
     animateValue(x, target.x, spring);
     animateValue(y, target.y, spring);
     animateValue(opacity, 0, { duration: 0.25 });
@@ -84,7 +109,10 @@ export default function SwipeCard({ front, back, frontImageUrl, backImageUrl, on
   }
 
   const animateProps = exitDirection
-    ? { ...getExitTarget(exitDirection), transition: { duration: 0.3, ease: 'easeIn' as const } }
+    ? {
+        ...getExitTarget(exitDirection),
+        transition: { duration: 0.3, ease: "easeIn" as const },
+      }
     : undefined;
 
   return (
@@ -118,18 +146,27 @@ export default function SwipeCard({ front, back, frontImageUrl, backImageUrl, on
           AGAIN
         </motion.div>
 
-        <div className="bg-white hand-drawn shadow-lg p-8 min-h-[340px] flex flex-col items-center justify-center" style={handDrawnStyle}>
+        <div
+          className="bg-white hand-drawn shadow-lg p-8 min-h-[340px] flex flex-col items-center justify-center"
+          style={handDrawnStyle}
+        >
           <div className="text-xs text-warm-400 uppercase tracking-wider mb-4 font-semibold">
-            {flipped ? 'Back' : 'Front'}
+            {flipped ? "Back" : "Front"}
           </div>
-          <div
-            className="text-2xl font-bold text-warm-900 text-center"
-          >
+          <div className="text-2xl font-bold text-warm-900 text-center">
             {!flipped && effectiveFrontImage && (
-              <AuthImage src={effectiveFrontImage} alt="" className="max-h-32 mx-auto mb-3 rounded-lg object-contain" />
+              <AuthImage
+                src={effectiveFrontImage}
+                alt=""
+                className="max-h-32 mx-auto mb-3 rounded-lg object-contain"
+              />
             )}
             {flipped && effectiveBackImage && (
-              <AuthImage src={effectiveBackImage} alt="" className="max-h-32 mx-auto mb-3 rounded-lg object-contain" />
+              <AuthImage
+                src={effectiveBackImage}
+                alt=""
+                className="max-h-32 mx-auto mb-3 rounded-lg object-contain"
+              />
             )}
             {flipped ? back : front}
           </div>
@@ -138,7 +175,8 @@ export default function SwipeCard({ front, back, frontImageUrl, backImageUrl, on
           )}
           {flipped && (
             <p className="text-warm-400 text-sm mt-6">
-              Swipe: <span className="text-red-400 font-semibold">left</span> again &middot;{' '}
+              Swipe: <span className="text-red-400 font-semibold">left</span>{" "}
+              again &middot;{" "}
               <span className="text-emerald-500 font-semibold">right</span> good
             </p>
           )}

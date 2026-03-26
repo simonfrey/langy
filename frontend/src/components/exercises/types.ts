@@ -1,4 +1,4 @@
-import type { ExerciseRecord } from '../../db/dexie';
+import type { ExerciseRecord } from "../../db/dexie";
 
 export interface ExerciseComponentProps {
   exercise: ExerciseRecord;
@@ -12,5 +12,5 @@ export interface GradeResult {
   correct: boolean;
   feedback: string;
   corrected_answer?: string;
-  state: 'correct' | 'close' | 'wrong';
+  state: "correct" | "close" | "wrong";
 }

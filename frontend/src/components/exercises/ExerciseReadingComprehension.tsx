@@ -1,14 +1,18 @@
-import { useState, useEffect } from 'react';
-import type { ExerciseComponentProps } from './types';
-import { InstructionText, PromptBox } from './shared';
+import { useState, useEffect } from "react";
+import type { ExerciseComponentProps } from "./types";
+import { InstructionText, PromptBox } from "./shared";
 
 // Used for: integrative_reading
-export default function ExerciseReadingComprehension({ exercise, setAnswer, gradeResult }: ExerciseComponentProps) {
+export default function ExerciseReadingComprehension({
+  exercise,
+  setAnswer,
+  gradeResult,
+}: ExerciseComponentProps) {
   const questions = exercise.data?.questions || [];
   const [answers, setAnswers] = useState<string[]>([]);
 
   useEffect(() => {
-    setAnswers(new Array(questions.length).fill(''));
+    setAnswers(new Array(questions.length).fill(""));
   }, [exercise.id]);
 
   function handleSelect(qIdx: number, option: string) {
@@ -18,10 +22,10 @@ export default function ExerciseReadingComprehension({ exercise, setAnswer, grad
     setAnswers(next);
 
     // Update parent answer
-    const allAnswered = next.every(a => a !== '');
+    const allAnswered = next.every((a) => a !== "");
     if (allAnswered) {
       const allCorrect = questions.every((q, i) => next[i] === q.answer);
-      setAnswer(allCorrect ? 'correct' : 'incorrect');
+      setAnswer(allCorrect ? "correct" : "incorrect");
     }
   }
 
@@ -46,10 +50,14 @@ export default function ExerciseReadingComprehension({ exercise, setAnswer, grad
                     disabled={!!gradeResult}
                     className={`w-full text-left px-3 py-2 rounded-lg border-2 text-sm font-medium transition ${
                       showResult
-                        ? isCorrectOption ? 'bg-emerald-50 border-emerald-300 text-emerald-700' : 'bg-red-50 border-red-300 text-red-700'
-                        : gradeResult && isCorrectOption ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
-                        : isSelected ? 'bg-coral/10 border-coral text-coral'
-                        : 'bg-warm-50 border-warm-200 text-warm-700 hover:border-coral'
+                        ? isCorrectOption
+                          ? "bg-emerald-50 border-emerald-300 text-emerald-700"
+                          : "bg-red-50 border-red-300 text-red-700"
+                        : gradeResult && isCorrectOption
+                          ? "bg-emerald-50 border-emerald-300 text-emerald-700"
+                          : isSelected
+                            ? "bg-coral/10 border-coral text-coral"
+                            : "bg-warm-50 border-warm-200 text-warm-700 hover:border-coral"
                     }`}
                   >
                     {opt}

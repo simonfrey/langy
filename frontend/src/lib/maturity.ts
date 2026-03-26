@@ -1,4 +1,4 @@
-import type { CardRecord } from '../db/dexie';
+import type { CardRecord } from "../db/dexie";
 
 export function classifyCard(card: CardRecord): 1 | 2 | 3 {
   if (card.repetitions <= 2 || card.interval_days <= 3) return 1;

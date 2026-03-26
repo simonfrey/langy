@@ -1,4 +1,4 @@
-import Dexie, { type EntityTable } from 'dexie';
+import Dexie, { type EntityTable } from "dexie";
 
 export interface DeckRecord {
   id: string;
@@ -83,31 +83,31 @@ export interface ExerciseData {
 }
 
 class LangyDB extends Dexie {
-  decks!: EntityTable<DeckRecord, 'id'>;
-  cards!: EntityTable<CardRecord, 'id'>;
-  syncQueue!: EntityTable<SyncQueueItem, 'id'>;
-  reviewTimings!: EntityTable<ReviewTiming, 'id'>;
-  exercises!: EntityTable<ExerciseRecord, 'id'>;
+  decks!: EntityTable<DeckRecord, "id">;
+  cards!: EntityTable<CardRecord, "id">;
+  syncQueue!: EntityTable<SyncQueueItem, "id">;
+  reviewTimings!: EntityTable<ReviewTiming, "id">;
+  exercises!: EntityTable<ExerciseRecord, "id">;
 
   constructor() {
-    super('langy');
+    super("langy");
     this.version(1).stores({
-      decks: 'id, user_id',
-      cards: 'id, deck_id, next_review',
-      syncQueue: '++id, card_id',
+      decks: "id, user_id",
+      cards: "id, deck_id, next_review",
+      syncQueue: "++id, card_id",
     });
     this.version(2).stores({
-      decks: 'id, user_id',
-      cards: 'id, deck_id, next_review',
-      syncQueue: '++id, card_id',
-      reviewTimings: '++id',
+      decks: "id, user_id",
+      cards: "id, deck_id, next_review",
+      syncQueue: "++id, card_id",
+      reviewTimings: "++id",
     });
     this.version(3).stores({
-      decks: 'id, user_id',
-      cards: 'id, deck_id, next_review',
-      syncQueue: '++id, card_id',
-      reviewTimings: '++id',
-      exercises: 'id, session_id, completed',
+      decks: "id, user_id",
+      cards: "id, deck_id, next_review",
+      syncQueue: "++id, card_id",
+      reviewTimings: "++id",
+      exercises: "id, session_id, completed",
     });
   }
 }

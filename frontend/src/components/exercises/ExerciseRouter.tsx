@@ -1,13 +1,16 @@
-import type { ExerciseComponentProps } from './types';
-import ExerciseFillBlank from './ExerciseFillBlank';
-import ExerciseTypedAnswer from './ExerciseTypedAnswer';
-import ExerciseWordBank from './ExerciseWordBank';
-import ExerciseMultipleChoice from './ExerciseMultipleChoice';
-import ExerciseMatchingPairs from './ExerciseMatchingPairs';
-import ExerciseCategorization from './ExerciseCategorization';
-import ExerciseReadingComprehension from './ExerciseReadingComprehension';
+import type { ExerciseComponentProps } from "./types";
+import ExerciseFillBlank from "./ExerciseFillBlank";
+import ExerciseTypedAnswer from "./ExerciseTypedAnswer";
+import ExerciseWordBank from "./ExerciseWordBank";
+import ExerciseMultipleChoice from "./ExerciseMultipleChoice";
+import ExerciseMatchingPairs from "./ExerciseMatchingPairs";
+import ExerciseCategorization from "./ExerciseCategorization";
+import ExerciseReadingComprehension from "./ExerciseReadingComprehension";
 
-const EXERCISE_MAP: Record<string, React.ComponentType<ExerciseComponentProps>> = {
+const EXERCISE_MAP: Record<
+  string,
+  React.ComponentType<ExerciseComponentProps>
+> = {
   // Vocabulary - fill blank
   vocab_fill_blank: ExerciseFillBlank,
   cloze_with_translation: ExerciseFillBlank,

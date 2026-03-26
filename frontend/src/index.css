@@ -2,25 +2,25 @@
 @import "tailwindcss";
 
 @theme {
-  --color-cream: #FFFAF5;
-  --color-cream-dark: #FFF2E5;
-  --color-coral: #4A90B8;
-  --color-coral-hover: #3A7CA5;
-  --color-coral-soft: #EDF4F8;
-  --color-coral-muted: #B8D8E8;
-  --color-warm-900: #2D2926;
-  --color-warm-700: #4A4540;
-  --color-warm-500: #7A756E;
-  --color-warm-400: #A8A29E;
-  --color-warm-300: #D6D3D1;
-  --color-warm-200: #EDEBE8;
-  --color-warm-100: #F5F3F0;
-  --font-sans: 'Inter', system-ui, sans-serif;
+  --color-cream: #fffaf5;
+  --color-cream-dark: #fff2e5;
+  --color-coral: #4a90b8;
+  --color-coral-hover: #3a7ca5;
+  --color-coral-soft: #edf4f8;
+  --color-coral-muted: #b8d8e8;
+  --color-warm-900: #2d2926;
+  --color-warm-700: #4a4540;
+  --color-warm-500: #7a756e;
+  --color-warm-400: #a8a29e;
+  --color-warm-300: #d6d3d1;
+  --color-warm-200: #edebe8;
+  --color-warm-100: #f5f3f0;
+  --font-sans: "Inter", system-ui, sans-serif;
 }
 
 body {
-  background-color: #FFFAF5;
-  font-family: 'Inter', system-ui, sans-serif;
+  background-color: #fffaf5;
+  font-family: "Inter", system-ui, sans-serif;
 }
 
 /* Hand-drawn aesthetic — applied only to large content surfaces */

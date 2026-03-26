@@ -1,17 +1,17 @@
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { AuthProvider, useAuth } from './hooks/useAuth';
-import { useHasDecksWithCards } from './hooks/useDecks';
-import { useSync } from './hooks/useSync';
-import BottomNav from './components/BottomNav';
-import Login from './pages/Login';
-import DeckList from './pages/DeckList';
-import CreateDeck from './pages/CreateDeck';
-import EditCards from './pages/EditCards';
-import AddCard from './pages/AddCard';
-import Review from './pages/Review';
-import Generate from './pages/Generate';
-import Exercises from './pages/Exercises';
-import { BlobBackground } from './components/Blobs';
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { AuthProvider, useAuth } from "./hooks/useAuth";
+import { useHasDecksWithCards } from "./hooks/useDecks";
+import { useSync } from "./hooks/useSync";
+import BottomNav from "./components/BottomNav";
+import Login from "./pages/Login";
+import DeckList from "./pages/DeckList";
+import CreateDeck from "./pages/CreateDeck";
+import EditCards from "./pages/EditCards";
+import AddCard from "./pages/AddCard";
+import Review from "./pages/Review";
+import Generate from "./pages/Generate";
+import Exercises from "./pages/Exercises";
+import { BlobBackground } from "./components/Blobs";
 
 function DefaultRoute() {
   const hasDecksWithCards = useHasDecksWithCards();
@@ -62,7 +62,15 @@ function AuthenticatedLayout() {
 function AppRoutes() {
   return (
     <Routes>
-      <Route path="/login" element={<><BlobBackground /><Login /></>} />
+      <Route
+        path="/login"
+        element={
+          <>
+            <BlobBackground />
+            <Login />
+          </>
+        }
+      />
       <Route path="/*" element={<AuthenticatedLayout />} />
     </Routes>
   );

@@ -1,14 +1,14 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
-import { Mascot } from '../components/Blobs';
-import { useHandDrawn } from '../hooks/useHandDrawn';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
+import { Mascot } from "../components/Blobs";
+import { useHandDrawn } from "../hooks/useHandDrawn";
 
 export default function Login() {
   const [isRegister, setIsRegister] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const { login, register } = useAuth();
   const navigate = useNavigate();
@@ -16,7 +16,7 @@ export default function Login() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError('');
+    setError("");
     setLoading(true);
     try {
       if (isRegister) {
@@ -24,9 +24,9 @@ export default function Login() {
       } else {
         await login(email, password);
       }
-      navigate('/');
+      navigate("/");
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
+      setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -38,12 +38,18 @@ export default function Login() {
         <div className="text-center mb-8">
           <Mascot className="mx-auto mb-4" />
           <h1 className="text-4xl font-extrabold text-warm-900 mb-2">Langy</h1>
-          <p className="text-warm-500">Learn languages with spaced repetition</p>
+          <p className="text-warm-500">
+            Learn languages with spaced repetition
+          </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white hand-drawn p-6 shadow-lg" style={handDrawnStyle}>
+        <form
+          onSubmit={handleSubmit}
+          className="bg-white hand-drawn p-6 shadow-lg"
+          style={handDrawnStyle}
+        >
           <h2 className="text-xl font-bold text-warm-900 mb-6">
-            {isRegister ? 'Create account' : 'Welcome back'}
+            {isRegister ? "Create account" : "Welcome back"}
           </h2>
 
           {error && (
@@ -54,7 +60,9 @@ export default function Login() {
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-semibold text-warm-700 mb-1">Email</label>
+              <label className="block text-sm font-semibold text-warm-700 mb-1">
+                Email
+              </label>
               <input
                 type="email"
                 value={email}
@@ -65,7 +73,9 @@ export default function Login() {
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-warm-700 mb-1">Password</label>
+              <label className="block text-sm font-semibold text-warm-700 mb-1">
+                Password
+              </label>
               <input
                 type="password"
                 value={password}
@@ -75,7 +85,8 @@ export default function Login() {
                 className="w-full bg-warm-100 rounded-xl border border-warm-200 px-4 py-3 text-warm-900 placeholder-warm-400 focus:outline-none focus:ring-2 focus:ring-coral focus:border-transparent transition"
                 placeholder="••••••••"
               />
-            </div>/com
+            </div>
+            /com
           </div>
 
           <button
@@ -83,17 +94,24 @@ export default function Login() {
             disabled={loading}
             className="w-full mt-6 bg-coral hover:bg-coral-hover disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition shadow-sm"
           >
-            {loading ? 'Please wait...' : isRegister ? 'Create account' : 'Sign in'}
+            {loading
+              ? "Please wait..."
+              : isRegister
+                ? "Create account"
+                : "Sign in"}
           </button>
 
           <p className="text-center text-sm text-warm-500 mt-4">
-            {isRegister ? 'Already have an account?' : "Don't have an account?"}{' '}
+            {isRegister ? "Already have an account?" : "Don't have an account?"}{" "}
             <button
               type="button"
-              onClick={() => { setIsRegister(!isRegister); setError(''); }}
+              onClick={() => {
+                setIsRegister(!isRegister);
+                setError("");
+              }}
               className="text-coral hover:text-coral-hover font-bold"
             >
-              {isRegister ? 'Sign in' : 'Register'}
+              {isRegister ? "Sign in" : "Register"}
             </button>
           </p>
         </form>

@@ -1,6 +1,12 @@
-import { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { api, setToken, clearToken, setOnUnauthorized } from '../lib/api';
-import React from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+} from "react";
+import { api, setToken, clearToken, setOnUnauthorized } from "../lib/api";
+import React from "react";
 
 interface User {
   id: string;
@@ -22,14 +28,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('langy_token');
-    const savedUser = localStorage.getItem('langy_user');
+    const token = localStorage.getItem("langy_token");
+    const savedUser = localStorage.getItem("langy_user");
     if (token && savedUser) {
       try {
         setUser(JSON.parse(savedUser));
       } catch {
         clearToken();
-        localStorage.removeItem('langy_user');
+        localStorage.removeItem("langy_user");
       }
     }
     setLoading(false);
@@ -38,28 +44,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
-    const res = await api<{ token: string; user: User }>('/auth/login', {
-      method: 'POST',
+    const res = await api<{ token: string; user: User }>("/auth/login", {
+      method: "POST",
       body: JSON.stringify({ email, password }),
     });
     setToken(res.token);
-    localStorage.setItem('langy_user', JSON.stringify(res.user));
+    localStorage.setItem("langy_user", JSON.stringify(res.user));
     setUser(res.user);
   }, []);
 
   const register = useCallback(async (email: string, password: string) => {
-    const res = await api<{ token: string; user: User }>('/auth/register', {
-      method: 'POST',
+    const res = await api<{ token: string; user: User }>("/auth/register", {
+      method: "POST",
       body: JSON.stringify({ email, password }),
     });
     setToken(res.token);
-    localStorage.setItem('langy_user', JSON.stringify(res.user));
+    localStorage.setItem("langy_user", JSON.stringify(res.user));
     setUser(res.user);
   }, []);
 
   const logout = useCallback(() => {
     clearToken();
-    localStorage.removeItem('langy_user');
+    localStorage.removeItem("langy_user");
     setUser(null);
   }, []);
 
@@ -71,6 +77,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 export function useAuth() {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used within AuthProvider');
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
   return ctx;
 }

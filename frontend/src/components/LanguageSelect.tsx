@@ -1,4 +1,4 @@
-import { LANGUAGES } from '../lib/languages';
+import { LANGUAGES } from "../lib/languages";
 
 interface Props {
   value: string;
@@ -7,10 +7,19 @@ interface Props {
   label?: string;
 }
 
-export default function LanguageSelect({ value, onChange, required, label }: Props) {
+export default function LanguageSelect({
+  value,
+  onChange,
+  required,
+  label,
+}: Props) {
   return (
     <div>
-      {label && <label className="block text-sm font-semibold text-warm-700 mb-1">{label}</label>}
+      {label && (
+        <label className="block text-sm font-semibold text-warm-700 mb-1">
+          {label}
+        </label>
+      )}
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}

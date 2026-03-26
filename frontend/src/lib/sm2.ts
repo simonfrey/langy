@@ -40,5 +40,10 @@ export function sm2(input: SM2Input): SM2Output {
   const nextReview = new Date();
   nextReview.setDate(nextReview.getDate() + newInterval);
 
-  return { repetitions: newReps, easeFactor: newEF, intervalDays: newInterval, nextReview };
+  return {
+    repetitions: newReps,
+    easeFactor: newEF,
+    intervalDays: newInterval,
+    nextReview,
+  };
 }

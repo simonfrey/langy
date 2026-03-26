@@ -1,6 +1,6 @@
-import { db } from './dexie';
-import type { CardRecord, DeckRecord } from './dexie';
-import { api } from '../lib/api';
+import { db } from "./dexie";
+import type { CardRecord, DeckRecord } from "./dexie";
+import { api } from "../lib/api";
 
 export async function pushSyncQueue() {
   const items = await db.syncQueue.toArray();
@@ -14,8 +14,8 @@ export async function pushSyncQueue() {
   }));
 
   try {
-    await api('/sync', {
-      method: 'POST',
+    await api("/sync", {
+      method: "POST",
       body: JSON.stringify({ actions }),
     });
     await db.syncQueue.clear();
@@ -27,7 +27,7 @@ export async function pushSyncQueue() {
 export async function pullData() {
   if (!navigator.onLine) return;
 
-  const decks = await api<DeckRecord[]>('/decks');
+  const decks = await api<DeckRecord[]>("/decks");
 
   // Upsert server decks, then remove local decks not on server
   if (decks.length > 0) {
@@ -35,7 +35,9 @@ export async function pullData() {
   }
   const serverDeckIds = new Set(decks.map((d) => d.id));
   const localDecks = await db.decks.toArray();
-  const staleDeckIds = localDecks.filter((d) => !serverDeckIds.has(d.id)).map((d) => d.id);
+  const staleDeckIds = localDecks
+    .filter((d) => !serverDeckIds.has(d.id))
+    .map((d) => d.id);
   if (staleDeckIds.length > 0) {
     await db.decks.bulkDelete(staleDeckIds);
   }
@@ -47,8 +49,13 @@ export async function pullData() {
     }
     // Remove local cards for this deck that are no longer on server
     const serverCardIds = new Set(cards.map((c) => c.id));
-    const localCards = await db.cards.where('deck_id').equals(deck.id).toArray();
-    const staleCardIds = localCards.filter((c) => !serverCardIds.has(c.id)).map((c) => c.id);
+    const localCards = await db.cards
+      .where("deck_id")
+      .equals(deck.id)
+      .toArray();
+    const staleCardIds = localCards
+      .filter((c) => !serverCardIds.has(c.id))
+      .map((c) => c.id);
     if (staleCardIds.length > 0) {
       await db.cards.bulkDelete(staleCardIds);
     }
@@ -57,7 +64,10 @@ export async function pullData() {
   // Delete cards belonging to decks that no longer exist
   if (staleDeckIds.length > 0) {
     for (const deckId of staleDeckIds) {
-      const orphanCards = await db.cards.where('deck_id').equals(deckId).toArray();
+      const orphanCards = await db.cards
+        .where("deck_id")
+        .equals(deckId)
+        .toArray();
       if (orphanCards.length > 0) {
         await db.cards.bulkDelete(orphanCards.map((c) => c.id));
       }
