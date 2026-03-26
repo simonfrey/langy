@@ -410,6 +410,17 @@ export default function Exercises() {
     }
   }
 
+  async function handleSkip() {
+    if (!currentExercise) return;
+    await db.exercises.update(currentExercise.id, {
+      completed: true,
+      user_answer: "skipped",
+      correct: true,
+    });
+    syncCompletion(currentExercise.id, "skipped", true);
+    handleNext();
+  }
+
   function handleNext() {
     setGradeResult(null);
     setExplanation(null);
@@ -554,6 +565,12 @@ export default function Exercises() {
             className="w-full py-3 bg-coral hover:bg-coral-hover disabled:opacity-50 text-white font-bold rounded-xl transition"
           >
             Check Answer
+          </button>
+          <button
+            onClick={handleSkip}
+            className="w-full text-sm text-warm-400 hover:text-warm-600 transition"
+          >
+            Skip
           </button>
         </div>
       )}
