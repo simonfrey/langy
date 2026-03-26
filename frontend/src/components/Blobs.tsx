@@ -118,18 +118,6 @@ export function Mascot({
   );
 }
 
-/** Small inline mascot for headers */
-export function MascotSmall({ className = "" }: { className?: string }) {
-  const w = 30;
-  const x = (40 - w) / 2;
-  const y = (40 - w * (62 / 96)) / 2;
-
-  return (
-    <svg className={className} viewBox="0 0 40 40" fill="none" aria-hidden>
-      <MascotFace x={x} y={y} w={w} />
-    </svg>
-  );
-}
 
 function generateBlobs() {
   const colors = [BLUE, BLUE_MUTED, BLUE_PALE, BLUE_DEEP, BLUE_LIGHT];

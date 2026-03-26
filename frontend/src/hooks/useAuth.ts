@@ -5,7 +5,7 @@ import {
   useCallback,
   useEffect,
 } from "react";
-import { api, setToken, clearToken, setOnUnauthorized } from "../lib/api";
+import { authApi, setToken, clearToken, setOnUnauthorized } from "../lib/api";
 import React from "react";
 
 interface User {
@@ -44,9 +44,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
-    const res = await api<{ token: string; user: User }>("/auth/login", {
-      method: "POST",
-      body: JSON.stringify({ email, password }),
+    const res = await authApi().login({
+      LoginRequest: { email, password },
     });
     setToken(res.token);
     localStorage.setItem("langy_user", JSON.stringify(res.user));
@@ -54,9 +53,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const register = useCallback(async (email: string, password: string) => {
-    const res = await api<{ token: string; user: User }>("/auth/register", {
-      method: "POST",
-      body: JSON.stringify({ email, password }),
+    const res = await authApi().register({
+      RegisterRequest: { email, password },
     });
     setToken(res.token);
     localStorage.setItem("langy_user", JSON.stringify(res.user));

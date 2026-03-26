@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { useParams } from "react-router-dom";
-import { api, imageUrl } from "../lib/api";
+import { reviewApi, cardToRecord } from "../lib/api";
 import { db } from "../db/dexie";
 import type { CardRecord } from "../db/dexie";
 import SwipeCard from "../components/SwipeCard";
@@ -102,16 +102,15 @@ export default function Review() {
     }
   }, [deckId]);
 
-  const dueUrl = deckId ? `/review/due?deck_id=${deckId}` : "/review/due";
-
   const load = useCallback(async () => {
     try {
-      const due = await api<CardRecord[]>(dueUrl);
-      setCards(addDirection(due));
-      setDone(due.length === 0);
+      const due = await reviewApi().getDueCards({ deck_id: deckId });
+      const records = due.map(cardToRecord);
+      setCards(addDirection(records));
+      setDone(records.length === 0);
       // Cache API results in Dexie for offline use
-      if (due.length > 0) {
-        db.cards.bulkPut(due).catch(() => {});
+      if (records.length > 0) {
+        db.cards.bulkPut(records).catch(() => {});
       }
     } catch {
       const local = await loadDueFromDexie();
@@ -121,7 +120,7 @@ export default function Review() {
       setLoading(false);
       setCardShownTimestamp(Date.now());
     }
-  }, [loadDueFromDexie, dueUrl]);
+  }, [loadDueFromDexie, deckId]);
 
   useEffect(() => {
     load();
@@ -189,7 +188,8 @@ export default function Review() {
     try {
       let moreCards: CardRecord[];
       try {
-        moreCards = await api<CardRecord[]>(dueUrl);
+        const due = await reviewApi().getDueCards({ deck_id: deckId });
+        moreCards = due.map(cardToRecord);
       } catch {
         moreCards = await loadDueFromDexie();
       }
@@ -286,17 +286,9 @@ export default function Review() {
             const frontText = stackCard.reversed
               ? stackCard.back
               : stackCard.front;
-            const frontImg =
-              imageUrl(
-                stackCard.reversed
-                  ? stackCard.back_image_url
-                  : stackCard.front_image_url,
-              ) ||
-              imageUrl(
-                stackCard.reversed
-                  ? stackCard.front_image_url
-                  : stackCard.back_image_url,
-              );
+            const frontImg = stackCard.reversed
+              ? stackCard.back_image_url || stackCard.front_image_url
+              : stackCard.front_image_url || stackCard.back_image_url;
             const stackIdx = cards.indexOf(stackCard);
             return (
               <div
@@ -335,12 +327,12 @@ export default function Review() {
           key={card.id}
           front={card.reversed ? card.back : card.front}
           back={card.reversed ? card.front : card.back}
-          frontImageUrl={imageUrl(
-            card.reversed ? card.back_image_url : card.front_image_url,
-          )}
-          backImageUrl={imageUrl(
-            card.reversed ? card.front_image_url : card.back_image_url,
-          )}
+          frontImageUrl={
+            card.reversed ? card.back_image_url : card.front_image_url
+          }
+          backImageUrl={
+            card.reversed ? card.front_image_url : card.back_image_url
+          }
           onSwipeComplete={handleSwipeComplete}
           flipped={flipped}
           onFlipChange={(f) => {

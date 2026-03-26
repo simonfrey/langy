@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { imageUrl } from "../lib/api";
 
 const cache = new Map<string, string>();
 
@@ -16,7 +15,7 @@ export default function AuthImage({
     if (!src) return;
     if (cache.has(src)) return;
     let cancelled = false;
-    const url = imageUrl(src) || src;
+    const url = src;
     const token = localStorage.getItem("langy_token");
     fetch(url, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
       .then((r) => (r.ok ? r.blob() : null))

@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { db } from "../db/dexie";
 import type { ExerciseRecord } from "../db/dexie";
-import { api } from "../lib/api";
+import { exercisesApi, exerciseToRecord } from "../lib/api";
 import { selectExerciseCards } from "../lib/maturity";
 import { useOffline } from "../hooks/useOffline";
 import OfflineBanner from "../components/OfflineBanner";
@@ -109,22 +109,19 @@ export default function Exercises() {
     const knownWords = allCards.map((c) => ({ front: c.front, back: c.back }));
 
     try {
-      const result = await api<ExerciseRecord[]>("/exercises/generate", {
-        method: "POST",
-        body: JSON.stringify({
+      const result = await exercisesApi().generateExercises({
+        ExerciseGenerateRequest: {
           session_id: sid,
           cards: cardsPayload,
           known_words: knownWords,
           source_lang: sourceLang,
           target_lang: targetLang,
-        }),
+        },
       });
 
-      const records: ExerciseRecord[] = result.map((ex) => ({
-        ...ex,
-        session_id: sid,
-        completed: false,
-      }));
+      const records: ExerciseRecord[] = result.map((ex) =>
+        exerciseToRecord(ex, sid),
+      );
 
       // Parse data field if it's a string (from JSON response)
       for (const r of records) {
@@ -182,12 +179,11 @@ export default function Exercises() {
         if (!isOffline) {
           try {
             await db.exercises.filter((e) => e.completed).delete();
-            const due = await api<ExerciseRecord[]>("/exercises/due", {
-              method: "GET",
-            });
+            const due = await exercisesApi().getDueExercises();
             if (due && due.length > 0 && !cancelled) {
               const records: ExerciseRecord[] = due.map((ex) => ({
                 ...ex,
+                session_id: sessionId,
                 completed: false,
               }));
               for (const r of records) {
@@ -377,16 +373,17 @@ export default function Exercises() {
     correct: boolean,
   ) {
     if (!isOffline && exerciseId) {
-      api("/exercises/complete", {
-        method: "POST",
-        body: JSON.stringify({
-          exercise_id: exerciseId,
-          user_answer: userAnswer,
-          correct,
-        }),
-      }).catch((err) =>
-        console.warn("Failed to sync exercise completion:", err),
-      );
+      exercisesApi()
+        .completeExercise({
+          ExerciseCompleteRequest: {
+            exercise_id: exerciseId,
+            user_answer: userAnswer,
+            correct,
+          },
+        })
+        .catch((err) =>
+          console.warn("Failed to sync exercise completion:", err),
+        );
     }
   }
 
@@ -394,9 +391,8 @@ export default function Exercises() {
     if (!currentExercise) return;
     setExplaining(true);
     try {
-      const result = await api<{ feedback: string }>("/exercises/grade", {
-        method: "POST",
-        body: JSON.stringify({
+      const result = await exercisesApi().gradeExercise({
+        ExerciseGradeRequest: {
           exercise_id: currentExercise.id,
           exercise_type: currentExercise.type,
           prompt: currentExercise.prompt,
@@ -404,7 +400,7 @@ export default function Exercises() {
           user_answer: answer,
           source_lang: deckLangs?.source || "en",
           target_lang: deckLangs?.target || "es",
-        }),
+        },
       });
       setExplanation(result.feedback);
     } catch {

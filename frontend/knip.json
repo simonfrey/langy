@@ -1,5 +1,5 @@
 {
   "project": ["src/**/*.{ts,tsx}"],
   "ignore": ["src/api/**"],
-  "ignoreDependencies": ["tailwindcss"]
+  "ignoreDependencies": []
 }

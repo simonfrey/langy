@@ -1,5 +1,5 @@
 
-.PHONY: dev dev-backend dev-frontend migrate migrate-down test build docker-build sqlc
+.PHONY: dev dev-backend dev-frontend migrate migrate-down test build docker-build sqlc codegen codegen-backend codegen-frontend
 
 dev:
 	docker compose up -d
@@ -26,5 +26,13 @@ build:
 
 sqlc:
 	cd backend && sqlc generate
+
+codegen: codegen-backend codegen-frontend
+
+codegen-backend:
+	cd backend && go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen -package api -generate chi-server,models,strict-server ../api/openapi.yaml > internal/api/server.gen.go
+
+codegen-frontend:
+	cd frontend && npx @openapitools/openapi-generator-cli generate -i ../api/openapi.yaml -g typescript-fetch -o src/api --additional-properties=supportsES6=true,typescriptThreePlus=true,modelPropertyNaming=original,paramNaming=original
 
 docker-build: build

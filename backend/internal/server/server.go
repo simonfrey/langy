@@ -9,11 +9,23 @@ import (
 	"github.com/go-chi/chi/v5"
 	chimw "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/httprate"
+	oapiapi "github.com/simonfrey/langy/internal/api"
 	"github.com/simonfrey/langy/internal/db"
 	"github.com/simonfrey/langy/internal/gemini"
-	"github.com/simonfrey/langy/internal/handler"
 	"github.com/simonfrey/langy/internal/middleware"
 )
+
+// publicPaths lists API paths that don't require authentication.
+var publicPaths = map[string]bool{
+	"/api/auth/register": true,
+	"/api/auth/login":    true,
+}
+
+// authRateLimitPaths lists API paths with stricter rate limits.
+var authRateLimitPaths = map[string]bool{
+	"/api/auth/register": true,
+	"/api/auth/login":    true,
+}
 
 func New(database *db.DB, geminiClient *gemini.Client, staticFiles fs.FS) http.Handler {
 	r := chi.NewRouter()
@@ -25,49 +37,45 @@ func New(database *db.DB, geminiClient *gemini.Client, staticFiles fs.FS) http.H
 	// Global rate limit: generous limit, only catches obvious abuse
 	r.Use(httprate.LimitByIP(10000, time.Minute))
 
-	authHandler := &handler.AuthHandler{DB: database}
-	cardsHandler := &handler.CardsHandler{DB: database}
-	reviewHandler := &handler.ReviewHandler{DB: database}
-	syncHandler := &handler.SyncHandler{DB: database}
-	generateHandler := &handler.GenerateHandler{DB: database, Gemini: geminiClient}
-	exercisesHandler := &handler.ExercisesHandler{Gemini: geminiClient, DB: database}
+	// Selective auth: skip public paths
+	r.Use(selectiveAuth)
 
-	// Public auth routes — stricter rate limit
-	r.Group(func(r chi.Router) {
-		r.Use(httprate.LimitByIP(30, time.Minute))
-		r.Post("/api/auth/register", authHandler.Register)
-		r.Post("/api/auth/login", authHandler.Login)
+	// Stricter rate limit on auth endpoints
+	authLimiter := httprate.LimitByIP(30, time.Minute)
+	r.Use(func(next http.Handler) http.Handler {
+		limited := authLimiter(next)
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if authRateLimitPaths[r.URL.Path] {
+				limited.ServeHTTP(w, r)
+				return
+			}
+			next.ServeHTTP(w, r)
+		})
 	})
 
-	// Protected API routes
-	r.Group(func(r chi.Router) {
-		r.Use(middleware.Auth)
+	impl := &oapiapi.Server{DB: database, Gemini: geminiClient}
+	strictHandler := oapiapi.NewStrictHandler(impl, nil)
 
-		r.Get("/api/decks", cardsHandler.ListDecks)
-		r.Post("/api/decks", cardsHandler.CreateDeck)
-		r.Delete("/api/decks/{id}", cardsHandler.DeleteDeck)
-		r.Get("/api/decks/{id}/cards", cardsHandler.ListCards)
-		r.Post("/api/decks/{id}/cards", cardsHandler.CreateCard)
-		r.Put("/api/cards/{id}", cardsHandler.UpdateCard)
-		r.Delete("/api/cards/{id}", cardsHandler.DeleteCard)
-		r.Get("/api/cards/{id}/{side}", cardsHandler.GetCardImage)
-
-		r.Get("/api/review/due", reviewHandler.GetDueCards)
-		r.Post("/api/review", reviewHandler.SubmitReview)
-
-		r.Post("/api/sync", syncHandler.Sync)
-		r.Post("/api/generate", generateHandler.Generate)
-		r.Get("/api/exercises/due", exercisesHandler.Due)
-		r.Post("/api/exercises/generate", exercisesHandler.Generate)
-		r.Post("/api/exercises/grade", exercisesHandler.Grade)
-		r.Post("/api/exercises/complete", exercisesHandler.Complete)
-	})
+	// Mount generated API routes under /api
+	oapiapi.HandlerFromMuxWithBaseURL(strictHandler, r, "/api")
 
 	// Serve static files with SPA fallback
 	spaHandler := spaFileServer(staticFiles)
 	r.Get("/*", spaHandler)
 
 	return r
+}
+
+func selectiveAuth(next http.Handler) http.Handler {
+	authMw := middleware.Auth(next)
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Skip auth for non-API paths and public API paths
+		if !strings.HasPrefix(r.URL.Path, "/api/") || publicPaths[r.URL.Path] {
+			next.ServeHTTP(w, r)
+			return
+		}
+		authMw.ServeHTTP(w, r)
+	})
 }
 
 func securityHeaders(next http.Handler) http.Handler {

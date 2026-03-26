@@ -1,22 +1,26 @@
 import { db } from "./dexie";
-import type { CardRecord, DeckRecord } from "./dexie";
-import { api } from "../lib/api";
+import {
+  syncApi,
+  decksApi,
+  cardsApi,
+  cardToRecord,
+  deckToRecord,
+} from "../lib/api";
 
-export async function pushSyncQueue() {
+async function pushSyncQueue() {
   const items = await db.syncQueue.toArray();
   if (items.length === 0) return;
 
   const actions = items.map((item) => ({
     card_id: item.card_id,
     grade: item.grade,
-    reviewed_at: item.reviewed_at,
+    reviewed_at: new Date(item.reviewed_at),
     response_time_ms: item.response_time_ms,
   }));
 
   try {
-    await api("/sync", {
-      method: "POST",
-      body: JSON.stringify({ actions }),
+    await syncApi().sync({
+      SyncRequest: { actions },
     });
     await db.syncQueue.clear();
   } catch {
@@ -27,13 +31,14 @@ export async function pushSyncQueue() {
 export async function pullData() {
   if (!navigator.onLine) return;
 
-  const decks = await api<DeckRecord[]>("/decks");
+  const decks = await decksApi().listDecks();
+  const deckRecords = decks.map(deckToRecord);
 
   // Upsert server decks, then remove local decks not on server
-  if (decks.length > 0) {
-    await db.decks.bulkPut(decks);
+  if (deckRecords.length > 0) {
+    await db.decks.bulkPut(deckRecords);
   }
-  const serverDeckIds = new Set(decks.map((d) => d.id));
+  const serverDeckIds = new Set(deckRecords.map((d) => d.id));
   const localDecks = await db.decks.toArray();
   const staleDeckIds = localDecks
     .filter((d) => !serverDeckIds.has(d.id))
@@ -42,13 +47,14 @@ export async function pullData() {
     await db.decks.bulkDelete(staleDeckIds);
   }
 
-  for (const deck of decks) {
-    const cards = await api<CardRecord[]>(`/decks/${deck.id}/cards`);
-    if (cards.length > 0) {
-      await db.cards.bulkPut(cards);
+  for (const deck of deckRecords) {
+    const cards = await cardsApi().listCards({ deckId: deck.id });
+    const cardRecords = cards.map(cardToRecord);
+    if (cardRecords.length > 0) {
+      await db.cards.bulkPut(cardRecords);
     }
     // Remove local cards for this deck that are no longer on server
-    const serverCardIds = new Set(cards.map((c) => c.id));
+    const serverCardIds = new Set(cardRecords.map((c) => c.id));
     const localCards = await db.cards
       .where("deck_id")
       .equals(deck.id)

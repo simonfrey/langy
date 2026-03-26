@@ -45,9 +45,7 @@ export const LANGUAGES = [
   { code: "sw", name: "Swahili", flag: "🇰🇪" },
 ] as const;
 
-export type LanguageCode = (typeof LANGUAGES)[number]["code"];
-
-export function getLanguage(code: string) {
+function getLanguage(code: string) {
   return LANGUAGES.find((l) => l.code === code);
 }
 

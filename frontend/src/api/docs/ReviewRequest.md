@@ -1,0 +1,40 @@
+
+# ReviewRequest
+
+
+## Properties
+
+Name | Type
+------------ | -------------
+`card_id` | string
+`grade` | number
+`reviewed_at` | Date
+`response_time_ms` | number
+
+## Example
+
+```typescript
+import type { ReviewRequest } from ''
+
+// TODO: Update the object below with actual values
+const example = {
+  "card_id": null,
+  "grade": null,
+  "reviewed_at": null,
+  "response_time_ms": null,
+} satisfies ReviewRequest
+
+console.log(example)
+
+// Convert the instance to a JSON string
+const exampleJSON: string = JSON.stringify(example)
+console.log(exampleJSON)
+
+// Parse the JSON string back to an object
+const exampleParsed = JSON.parse(exampleJSON) as ReviewRequest
+console.log(exampleParsed)
+```
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+

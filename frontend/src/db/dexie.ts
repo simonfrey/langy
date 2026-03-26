@@ -24,7 +24,7 @@ export interface CardRecord {
   back_image_url?: string;
 }
 
-export interface SyncQueueItem {
+interface SyncQueueItem {
   id?: number;
   card_id: string;
   grade: number;
@@ -32,7 +32,7 @@ export interface SyncQueueItem {
   response_time_ms?: number;
 }
 
-export interface ReviewTiming {
+interface ReviewTiming {
   id?: number;
   response_time_ms: number;
 }

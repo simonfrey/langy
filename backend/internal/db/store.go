@@ -32,7 +32,7 @@ func (d *DB) Close() {
 	d.Pool.Close()
 }
 
-// --- Types with JSON tags (sqlc-generated models use pgtype and lack JSON tags) ---
+// --- Domain types with JSON tags ---
 
 type User struct {
 	ID           string    `json:"id"`
@@ -51,30 +51,28 @@ type Deck struct {
 }
 
 type Card struct {
-	ID             string    `json:"id"`
-	DeckID         string    `json:"deck_id"`
-	Front          string    `json:"front"`
-	Back           string    `json:"back"`
-	FrontImage     []byte    `json:"-"`
-	FrontImageType *string   `json:"-"`
-	BackImage      []byte    `json:"-"`
-	BackImageType  *string   `json:"-"`
-	EaseFactor     float64   `json:"ease_factor"`
-	IntervalDays   int       `json:"interval_days"`
-	Repetitions    int       `json:"repetitions"`
-	NextReview     time.Time `json:"next_review"`
-	CreatedAt      time.Time `json:"created_at"`
-	UpdatedAt      time.Time `json:"updated_at"`
-	FrontImageURL  string    `json:"front_image_url,omitempty"`
-	BackImageURL   string    `json:"back_image_url,omitempty"`
+	ID            string    `json:"id"`
+	DeckID        string    `json:"deck_id"`
+	Front         string    `json:"front"`
+	Back          string    `json:"back"`
+	FrontImageID  string    `json:"-"`
+	BackImageID   string    `json:"-"`
+	EaseFactor    float64   `json:"ease_factor"`
+	IntervalDays  int       `json:"interval_days"`
+	Repetitions   int       `json:"repetitions"`
+	NextReview    time.Time `json:"next_review"`
+	CreatedAt     time.Time `json:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
+	FrontImageURL string    `json:"front_image_url,omitempty"`
+	BackImageURL  string    `json:"back_image_url,omitempty"`
 }
 
 func (c *Card) PopulateImageURLs() {
-	if len(c.FrontImage) > 0 {
-		c.FrontImageURL = "/api/cards/" + c.ID + "/front-image"
+	if c.FrontImageID != "" {
+		c.FrontImageURL = "/api/images/" + c.FrontImageID
 	}
-	if len(c.BackImage) > 0 {
-		c.BackImageURL = "/api/cards/" + c.ID + "/back-image"
+	if c.BackImageID != "" {
+		c.BackImageURL = "/api/images/" + c.BackImageID
 	}
 }
 
@@ -83,18 +81,10 @@ type CardText struct {
 	Back  string
 }
 
-type CardImageData struct {
-	FrontImage     []byte
-	FrontImageType string
-	BackImage      []byte
-	BackImageType  string
-}
-
 type CardPairInput struct {
-	Front          string
-	Back           string
-	FrontImage     []byte
-	FrontImageType string
+	Front        string
+	Back         string
+	FrontImageID string
 }
 
 type Exercise struct {
@@ -196,57 +186,47 @@ func int32Ptr(i int) *int32 {
 
 // --- Row converters ---
 
-func cardFromRow(id, deckID pgtype.UUID, front, back string, frontImage []byte, frontImageType *string, backImage []byte, backImageType *string, easeFactor *float32, intervalDays, repetitions *int32, nextReview, createdAt, updatedAt pgtype.Timestamptz) Card {
+func cardFromRow(id, deckID pgtype.UUID, front, back string, frontImageID, backImageID pgtype.UUID, easeFactor *float32, intervalDays, repetitions *int32, nextReview, createdAt, updatedAt pgtype.Timestamptz) Card {
 	c := Card{
-		ID:             uuidToString(id),
-		DeckID:         uuidToString(deckID),
-		Front:          front,
-		Back:           back,
-		FrontImage:     frontImage,
-		FrontImageType: frontImageType,
-		BackImage:      backImage,
-		BackImageType:  backImageType,
-		EaseFactor:     derefFloat32(easeFactor, 2.5),
-		IntervalDays:   derefInt32(intervalDays, 0),
-		Repetitions:    derefInt32(repetitions, 0),
-		NextReview:     fromTimestamptz(nextReview),
-		CreatedAt:      fromTimestamptz(createdAt),
-		UpdatedAt:      fromTimestamptz(updatedAt),
+		ID:           uuidToString(id),
+		DeckID:       uuidToString(deckID),
+		Front:        front,
+		Back:         back,
+		FrontImageID: uuidToString(frontImageID),
+		BackImageID:  uuidToString(backImageID),
+		EaseFactor:   derefFloat32(easeFactor, 2.5),
+		IntervalDays: derefInt32(intervalDays, 0),
+		Repetitions:  derefInt32(repetitions, 0),
+		NextReview:   fromTimestamptz(nextReview),
+		CreatedAt:    fromTimestamptz(createdAt),
+		UpdatedAt:    fromTimestamptz(updatedAt),
 	}
 	c.PopulateImageURLs()
 	return c
 }
 
 func cardFromCreateRow(r CreateCardRow) Card {
-	return cardFromRow(r.ID, r.DeckID, r.Front, r.Back, r.FrontImage, r.FrontImageType, r.BackImage, r.BackImageType, r.EaseFactor, r.IntervalDays, r.Repetitions, r.NextReview, r.CreatedAt, r.UpdatedAt)
-}
-
-func cardFromCreateFrontRow(r CreateCardWithFrontImageRow) Card {
-	return cardFromRow(r.ID, r.DeckID, r.Front, r.Back, r.FrontImage, r.FrontImageType, r.BackImage, r.BackImageType, r.EaseFactor, r.IntervalDays, r.Repetitions, r.NextReview, r.CreatedAt, r.UpdatedAt)
-}
-
-func cardFromCreateAllRow(r CreateCardWithAllImagesRow) Card {
-	return cardFromRow(r.ID, r.DeckID, r.Front, r.Back, r.FrontImage, r.FrontImageType, r.BackImage, r.BackImageType, r.EaseFactor, r.IntervalDays, r.Repetitions, r.NextReview, r.CreatedAt, r.UpdatedAt)
+	return cardFromRow(r.ID, r.DeckID, r.Front, r.Back, r.FrontImageID, r.BackImageID, r.EaseFactor, r.IntervalDays, r.Repetitions, r.NextReview, r.CreatedAt, r.UpdatedAt)
 }
 
 func cardFromGetRow(r GetCardForUserRow) Card {
-	return cardFromRow(r.ID, r.DeckID, r.Front, r.Back, r.FrontImage, r.FrontImageType, r.BackImage, r.BackImageType, r.EaseFactor, r.IntervalDays, r.Repetitions, r.NextReview, r.CreatedAt, r.UpdatedAt)
+	return cardFromRow(r.ID, r.DeckID, r.Front, r.Back, r.FrontImageID, r.BackImageID, r.EaseFactor, r.IntervalDays, r.Repetitions, r.NextReview, r.CreatedAt, r.UpdatedAt)
 }
 
 func cardFromListRow(r ListCardsRow) Card {
-	return cardFromRow(r.ID, r.DeckID, r.Front, r.Back, r.FrontImage, r.FrontImageType, r.BackImage, r.BackImageType, r.EaseFactor, r.IntervalDays, r.Repetitions, r.NextReview, r.CreatedAt, r.UpdatedAt)
+	return cardFromRow(r.ID, r.DeckID, r.Front, r.Back, r.FrontImageID, r.BackImageID, r.EaseFactor, r.IntervalDays, r.Repetitions, r.NextReview, r.CreatedAt, r.UpdatedAt)
 }
 
 func cardFromDueRow(r GetDueCardsRow) Card {
-	return cardFromRow(r.ID, r.DeckID, r.Front, r.Back, r.FrontImage, r.FrontImageType, r.BackImage, r.BackImageType, r.EaseFactor, r.IntervalDays, r.Repetitions, r.NextReview, r.CreatedAt, r.UpdatedAt)
+	return cardFromRow(r.ID, r.DeckID, r.Front, r.Back, r.FrontImageID, r.BackImageID, r.EaseFactor, r.IntervalDays, r.Repetitions, r.NextReview, r.CreatedAt, r.UpdatedAt)
 }
 
 func cardFromNewRow(r GetNewCardsRow) Card {
-	return cardFromRow(r.ID, r.DeckID, r.Front, r.Back, r.FrontImage, r.FrontImageType, r.BackImage, r.BackImageType, r.EaseFactor, r.IntervalDays, r.Repetitions, r.NextReview, r.CreatedAt, r.UpdatedAt)
+	return cardFromRow(r.ID, r.DeckID, r.Front, r.Back, r.FrontImageID, r.BackImageID, r.EaseFactor, r.IntervalDays, r.Repetitions, r.NextReview, r.CreatedAt, r.UpdatedAt)
 }
 
 func cardFromUpcomingRow(r GetUpcomingCardsRow) Card {
-	return cardFromRow(r.ID, r.DeckID, r.Front, r.Back, r.FrontImage, r.FrontImageType, r.BackImage, r.BackImageType, r.EaseFactor, r.IntervalDays, r.Repetitions, r.NextReview, r.CreatedAt, r.UpdatedAt)
+	return cardFromRow(r.ID, r.DeckID, r.Front, r.Back, r.FrontImageID, r.BackImageID, r.EaseFactor, r.IntervalDays, r.Repetitions, r.NextReview, r.CreatedAt, r.UpdatedAt)
 }
 
 func exerciseFromSaveRow(r SaveExerciseRow) Exercise {
@@ -408,7 +388,7 @@ func (d *DB) ListCardTexts(ctx context.Context, userID, deckID string) ([]CardTe
 	return texts, nil
 }
 
-func (d *DB) CreateCard(ctx context.Context, userID, deckID, front, back string, images *CardImageData) (*Card, error) {
+func (d *DB) CreateCardWithImages(ctx context.Context, userID, deckID, front, back, frontImageID, backImageID string) (*Card, error) {
 	dk, err := d.GetDeck(ctx, userID, deckID)
 	if err != nil {
 		return nil, fmt.Errorf("create card get deck: %w", err)
@@ -417,38 +397,15 @@ func (d *DB) CreateCard(ctx context.Context, userID, deckID, front, back string,
 		return nil, pgx.ErrNoRows
 	}
 
-	dkUUID := ParseUUID(deckID)
-
-	if images != nil && len(images.FrontImage) > 0 && len(images.BackImage) > 0 {
-		frontImgType := &images.FrontImageType
-		backImgType := &images.BackImageType
-		r, err := d.CreateCardWithAllImages(ctx, CreateCardWithAllImagesParams{
-			DeckID: dkUUID, Front: front, Back: back,
-			FrontImage: images.FrontImage, FrontImageType: frontImgType,
-			BackImage: images.BackImage, BackImageType: backImgType,
-		})
-		if err != nil {
-			return nil, fmt.Errorf("create card: %w", err)
-		}
-		c := cardFromCreateAllRow(r)
-		return &c, nil
-	}
-	if images != nil && len(images.FrontImage) > 0 {
-		frontImgType := &images.FrontImageType
-		r, err := d.CreateCardWithFrontImage(ctx, CreateCardWithFrontImageParams{
-			DeckID: dkUUID, Front: front, Back: back,
-			FrontImage: images.FrontImage, FrontImageType: frontImgType,
-		})
-		if err != nil {
-			return nil, fmt.Errorf("create card: %w", err)
-		}
-		c := cardFromCreateFrontRow(r)
-		return &c, nil
-	}
-
-	r, err := d.Queries.CreateCard(ctx, CreateCardParams{DeckID: dkUUID, Front: front, Back: back})
-	if err != nil {
-		return nil, fmt.Errorf("create card: %w", err)
+	r, createErr := d.CreateCard(ctx, CreateCardParams{
+		DeckID:       ParseUUID(deckID),
+		Front:        front,
+		Back:         back,
+		FrontImageID: ParseUUID(frontImageID),
+		BackImageID:  ParseUUID(backImageID),
+	})
+	if createErr != nil {
+		return nil, fmt.Errorf("create card: %w", createErr)
 	}
 	c := cardFromCreateRow(r)
 	return &c, nil
@@ -466,24 +423,16 @@ func (d *DB) CreateCards(ctx context.Context, userID, deckID string, pairs []Car
 	dkUUID := ParseUUID(deckID)
 	var cards []Card
 	for _, p := range pairs {
-		var c Card
-		if len(p.FrontImage) > 0 {
-			imgType := p.FrontImageType
-			r, err := d.CreateCardWithFrontImage(ctx, CreateCardWithFrontImageParams{
-				DeckID: dkUUID, Front: p.Front, Back: p.Back,
-				FrontImage: p.FrontImage, FrontImageType: &imgType,
-			})
-			if err != nil {
-				return nil, fmt.Errorf("create cards insert: %w", err)
-			}
-			c = cardFromCreateFrontRow(r)
-		} else {
-			r, err := d.Queries.CreateCard(ctx, CreateCardParams{DeckID: dkUUID, Front: p.Front, Back: p.Back})
-			if err != nil {
-				return nil, fmt.Errorf("create cards insert: %w", err)
-			}
-			c = cardFromCreateRow(r)
+		r, err := d.CreateCard(ctx, CreateCardParams{
+			DeckID:       dkUUID,
+			Front:        p.Front,
+			Back:         p.Back,
+			FrontImageID: ParseUUID(p.FrontImageID),
+		})
+		if err != nil {
+			return nil, fmt.Errorf("create cards insert: %w", err)
 		}
+		c := cardFromCreateRow(r)
 		cards = append(cards, c)
 	}
 	return cards, nil
@@ -511,37 +460,15 @@ func (d *DB) UpdateCardSRS(ctx context.Context, cardID string, easeFactor float6
 	})
 }
 
-func (d *DB) UpdateCard(ctx context.Context, userID, cardID, front, back string, images *CardImageData) error {
-	cardUUID := ParseUUID(cardID)
-	userUUID := ParseUUID(userID)
-
-	var n int64
-	var err error
-
-	if images != nil && images.FrontImage != nil && images.BackImage != nil {
-		n, err = d.UpdateCardWithBothImages(ctx, UpdateCardWithBothImagesParams{
-			Front: front, Back: back,
-			FrontImage: images.FrontImage, FrontImageType: &images.FrontImageType,
-			BackImage: images.BackImage, BackImageType: &images.BackImageType,
-			ID: cardUUID, UserID: userUUID,
-		})
-	} else if images != nil && images.FrontImage != nil {
-		n, err = d.UpdateCardWithFrontImage(ctx, UpdateCardWithFrontImageParams{
-			Front: front, Back: back,
-			FrontImage: images.FrontImage, FrontImageType: &images.FrontImageType,
-			ID: cardUUID, UserID: userUUID,
-		})
-	} else if images != nil && images.BackImage != nil {
-		n, err = d.UpdateCardWithBackImage(ctx, UpdateCardWithBackImageParams{
-			Front: front, Back: back,
-			BackImage: images.BackImage, BackImageType: &images.BackImageType,
-			ID: cardUUID, UserID: userUUID,
-		})
-	} else {
-		n, err = d.UpdateCardText(ctx, UpdateCardTextParams{
-			Front: front, Back: back, ID: cardUUID, UserID: userUUID,
-		})
-	}
+func (d *DB) UpdateCardFields(ctx context.Context, userID, cardID, front, back, frontImageID, backImageID string) error {
+	n, err := d.UpdateCard(ctx, UpdateCardParams{
+		Front:        front,
+		Back:         back,
+		FrontImageID: ParseUUID(frontImageID),
+		BackImageID:  ParseUUID(backImageID),
+		ID:           ParseUUID(cardID),
+		UserID:       ParseUUID(userID),
+	})
 	if err != nil {
 		return fmt.Errorf("update card: %w", err)
 	}
@@ -627,6 +554,42 @@ func (d *DB) CreateReviewLog(ctx context.Context, cardID, userID string, grade i
 		Grade: int32(grade), ReviewedAt: toTimestamptz(reviewedAt), ResponseTimeMs: rtMs,
 	})
 }
+
+// --- Image methods ---
+
+func (d *DB) CreateImage(ctx context.Context, userID string, data []byte, contentType string) (string, error) {
+	r, err := d.Queries.CreateImage(ctx, CreateImageParams{
+		UserID:      ParseUUID(userID),
+		Data:        data,
+		ContentType: contentType,
+	})
+	if err != nil {
+		return "", fmt.Errorf("create image: %w", err)
+	}
+	return uuidToString(r.ID), nil
+}
+
+type ImageResult struct {
+	Data        []byte
+	ContentType string
+}
+
+func (d *DB) GetImageData(ctx context.Context, imageID string) (*ImageResult, error) {
+	r, err := d.GetImage(ctx, ParseUUID(imageID))
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("get image: %w", err)
+	}
+	return &ImageResult{Data: r.Data, ContentType: r.ContentType}, nil
+}
+
+func (d *DB) CleanupOrphanedImages(ctx context.Context) error {
+	return d.DeleteOrphanedImages(ctx)
+}
+
+// --- Exercise methods ---
 
 func (d *DB) SaveExercises(ctx context.Context, userID string, exercises []Exercise) ([]Exercise, error) {
 	saved := make([]Exercise, 0, len(exercises))

@@ -1,10 +1,6 @@
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../db/dexie";
 
-export function useDecks() {
-  return useLiveQuery(() => db.decks.toArray()) ?? [];
-}
-
 export function useHasDecks() {
   return useLiveQuery(() => db.decks.count().then((c) => c > 0)) ?? false;
 }
@@ -22,7 +18,7 @@ export function useHasDecksWithCards() {
   );
 }
 
-export interface DeckWithCounts {
+interface DeckWithCounts {
   id: string;
   user_id: string;
   name: string;

@@ -15,6 +15,7 @@ sql:
           card: SqlcCard
           exercise: SqlcExercise
           review_log: SqlcReviewLog
+          image: SqlcImage
         overrides:
           - db_type: "uuid"
             go_type: "github.com/jackc/pgx/v5/pgtype.UUID"

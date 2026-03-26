@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
-import { api, apiFormData } from "../lib/api";
+import { generateApi, imagesApi } from "../lib/api";
+import type { GeneratedCard } from "../api";
 import { formatLanguage } from "../lib/languages";
 import { useOffline } from "../hooks/useOffline";
 import OfflineBanner from "../components/OfflineBanner";
@@ -7,13 +8,6 @@ import { SparkleIllustration } from "../components/Blobs";
 import { useDecksWithCounts } from "../hooks/useDecks";
 import { addCardFromGenerate } from "../db/mutations";
 import { useHandDrawn, getHandDrawnStyle } from "../hooks/useHandDrawn";
-
-interface GeneratedCard {
-  front: string;
-  back: string;
-  front_image_base64?: string;
-  front_image_type?: string;
-}
 
 interface PendingCard extends GeneratedCard {
   selected: boolean;
@@ -52,16 +46,15 @@ export default function Generate() {
     setLoading(true);
     setPendingCards([]);
     try {
-      const cards = await api<GeneratedCard[]>("/generate", {
-        method: "POST",
-        body: JSON.stringify({
+      const cards = await generateApi().generateCards({
+        GenerateRequest: {
           from_deck: true,
           source_lang: selectedDeck.source_lang,
           target_lang: selectedDeck.target_lang,
           deck_id: deckId,
           generate_images: generateImages,
           mode,
-        }),
+        },
       });
       setPendingCards(cards.map((c) => ({ ...c, selected: true })));
     } catch (err) {
@@ -77,30 +70,26 @@ export default function Generate() {
     setLoading(true);
     setPendingCards([]);
     try {
-      let cards: GeneratedCard[];
+      let image_ids: string[] | undefined;
       if (images.length > 0) {
-        const fd = new FormData();
-        fd.append("prompt", prompt);
-        fd.append("source_lang", selectedDeck?.source_lang || "");
-        fd.append("target_lang", selectedDeck?.target_lang || "");
-        fd.append("deck_id", deckId);
-        fd.append("generate_images", String(generateImages));
-        fd.append("mode", mode);
-        images.forEach((img) => fd.append("images", img));
-        cards = await apiFormData<GeneratedCard[]>("/generate", fd);
-      } else {
-        cards = await api<GeneratedCard[]>("/generate", {
-          method: "POST",
-          body: JSON.stringify({
-            prompt,
-            source_lang: selectedDeck?.source_lang || "",
-            target_lang: selectedDeck?.target_lang || "",
-            deck_id: deckId,
-            generate_images: generateImages,
-            mode,
-          }),
-        });
+        image_ids = [];
+        for (const img of images) {
+          const res = await imagesApi().uploadImage({ image: img });
+          image_ids.push(res.id);
+        }
       }
+
+      const cards = await generateApi().generateCards({
+        GenerateRequest: {
+          prompt,
+          source_lang: selectedDeck?.source_lang || "",
+          target_lang: selectedDeck?.target_lang || "",
+          deck_id: deckId,
+          generate_images: generateImages,
+          mode,
+          image_ids,
+        },
+      });
       setPendingCards(cards.map((c) => ({ ...c, selected: true })));
       setImages([]);
     } catch (err) {

@@ -1,6 +1,6 @@
 import type { CardRecord } from "../db/dexie";
 
-export function classifyCard(card: CardRecord): 1 | 2 | 3 {
+function classifyCard(card: CardRecord): 1 | 2 | 3 {
   if (card.repetitions <= 2 || card.interval_days <= 3) return 1;
   if (card.repetitions <= 5 || card.interval_days <= 14) return 2;
   return 3;

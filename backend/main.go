@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
+	"github.com/simonfrey/langy/internal/api"
 	"github.com/simonfrey/langy/internal/db"
 	"github.com/simonfrey/langy/internal/gemini"
 	"github.com/simonfrey/langy/internal/server"
@@ -110,6 +111,9 @@ func runServe(ctx context.Context, databaseURL string) {
 		}
 		go w.Start(ctx)
 	}
+
+	// Start background image cleanup worker
+	go api.ImageCleanupWorker(ctx, database, 10*time.Minute)
 
 	handler := server.New(database, geminiClient, staticFS)
 

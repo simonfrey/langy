@@ -1,11 +1,11 @@
-export interface SM2Input {
+interface SM2Input {
   grade: number;
   repetitions: number;
   easeFactor: number;
   intervalDays: number;
 }
 
-export interface SM2Output {
+interface SM2Output {
   repetitions: number;
   easeFactor: number;
   intervalDays: number;

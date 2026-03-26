@@ -1,6 +1,6 @@
 -- name: GetDueCards :many
 SELECT c.id, c.deck_id, c.front, c.back,
-	c.front_image, c.front_image_type, c.back_image, c.back_image_type,
+	c.front_image_id, c.back_image_id,
 	c.ease_factor, c.interval_days, c.repetitions, c.next_review, c.created_at, c.updated_at
 FROM cards c JOIN decks d ON c.deck_id = d.id
 WHERE d.user_id = $1 AND c.next_review <= now() AND c.repetitions > 0
@@ -9,7 +9,7 @@ ORDER BY c.next_review ASC;
 
 -- name: GetNewCards :many
 SELECT c.id, c.deck_id, c.front, c.back,
-	c.front_image, c.front_image_type, c.back_image, c.back_image_type,
+	c.front_image_id, c.back_image_id,
 	c.ease_factor, c.interval_days, c.repetitions, c.next_review, c.created_at, c.updated_at
 FROM cards c JOIN decks d ON c.deck_id = d.id
 WHERE d.user_id = $1 AND c.repetitions = 0
@@ -18,7 +18,7 @@ ORDER BY c.created_at ASC;
 
 -- name: GetUpcomingCards :many
 SELECT c.id, c.deck_id, c.front, c.back,
-	c.front_image, c.front_image_type, c.back_image, c.back_image_type,
+	c.front_image_id, c.back_image_id,
 	c.ease_factor, c.interval_days, c.repetitions, c.next_review, c.created_at, c.updated_at
 FROM cards c JOIN decks d ON c.deck_id = d.id
 WHERE d.user_id = $1 AND c.repetitions > 0 AND c.next_review > now()

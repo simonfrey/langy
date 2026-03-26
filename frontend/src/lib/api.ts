@@ -1,4 +1,16 @@
-const BASE = "/api";
+import {
+  Configuration,
+  AuthApi,
+  DecksApi,
+  CardsApi,
+  ReviewApi,
+  SyncApi,
+  GenerateApi,
+  ExercisesApi,
+  ImagesApi,
+} from "../api";
+import type { Card, Deck, ExerciseResponse } from "../api";
+import type { CardRecord, DeckRecord, ExerciseRecord } from "../db/dexie";
 
 let onUnauthorized: (() => void) | null = null;
 
@@ -24,67 +36,61 @@ function handleUnauthorized() {
   onUnauthorized?.();
 }
 
-export async function api<T = unknown>(
-  path: string,
-  options: RequestInit = {},
-): Promise<T> {
-  const token = getToken();
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    ...((options.headers as Record<string, string>) || {}),
-  };
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
-
-  const res = await fetch(`${BASE}${path}`, { ...options, headers });
-
-  if (res.status === 401) {
-    handleUnauthorized();
-    throw new Error("Unauthorized");
-  }
-
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({ error: "Request failed" }));
-    throw new Error(body.error || `HTTP ${res.status}`);
-  }
-
-  return res.json();
-}
-
-/** Normalize image URLs from the API — strips any reverse-proxy prefix before /api/ */
-export function imageUrl(url: string | undefined): string | undefined {
-  if (!url) return undefined;
-  const idx = url.indexOf("/api/");
-  return idx >= 0 ? url.slice(idx) : url;
-}
-
-export async function apiFormData<T = unknown>(
-  path: string,
-  formData: FormData,
-  method: string = "POST",
-): Promise<T> {
-  const token = getToken();
-  const headers: Record<string, string> = {};
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
-
-  const res = await fetch(`${BASE}${path}`, {
-    method,
-    headers,
-    body: formData,
+/** Shared API configuration with Bearer auth and 401 handling */
+function apiConfig(): Configuration {
+  return new Configuration({
+    basePath: "/api",
+    accessToken: getToken() ?? undefined,
+    middleware: [
+      {
+        post: async (context) => {
+          if (context.response.status === 401) {
+            handleUnauthorized();
+            throw new Error("Unauthorized");
+          }
+          return context.response;
+        },
+      },
+    ],
   });
+}
 
-  if (res.status === 401) {
-    handleUnauthorized();
-    throw new Error("Unauthorized");
-  }
+/** Get a configured API instance. Creates a new one each call to pick up current token. */
+export const authApi = () => new AuthApi(apiConfig());
+export const decksApi = () => new DecksApi(apiConfig());
+export const cardsApi = () => new CardsApi(apiConfig());
+export const reviewApi = () => new ReviewApi(apiConfig());
+export const syncApi = () => new SyncApi(apiConfig());
+export const generateApi = () => new GenerateApi(apiConfig());
+export const exercisesApi = () => new ExercisesApi(apiConfig());
+export const imagesApi = () => new ImagesApi(apiConfig());
 
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({ error: "Request failed" }));
-    throw new Error(body.error || `HTTP ${res.status}`);
-  }
+/** Convert generated API Card (Date fields) to Dexie CardRecord (string fields) */
+export function cardToRecord(card: Card): CardRecord {
+  return {
+    ...card,
+    next_review: card.next_review.toISOString(),
+    created_at: card.created_at.toISOString(),
+    updated_at: card.updated_at.toISOString(),
+  };
+}
 
-  return res.json();
+/** Convert generated API Deck (Date fields) to Dexie DeckRecord (string fields) */
+export function deckToRecord(deck: Deck): DeckRecord {
+  return {
+    ...deck,
+    created_at: deck.created_at.toISOString(),
+  };
+}
+
+/** Convert generated ExerciseResponse to Dexie ExerciseRecord */
+export function exerciseToRecord(
+  ex: ExerciseResponse,
+  sessionId: string,
+): ExerciseRecord {
+  return {
+    ...ex,
+    session_id: sessionId,
+    completed: false,
+  };
 }
