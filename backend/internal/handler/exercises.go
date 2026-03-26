@@ -146,7 +146,7 @@ func dbExercisesToResponse(exercises []db.Exercise) []exerciseResponse {
 			er.SourceSentence = *s.SourceSentence
 		}
 		if len(s.Options) > 0 {
-			json.Unmarshal(s.Options, &er.Options)
+			_ = json.Unmarshal(s.Options, &er.Options)
 		}
 		resp = append(resp, er)
 	}

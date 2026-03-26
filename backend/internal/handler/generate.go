@@ -55,7 +55,7 @@ func (h *GenerateHandler) Generate(w http.ResponseWriter, r *http.Request) {
 				continue
 			}
 			data, err := io.ReadAll(f)
-			f.Close()
+			_ = f.Close()
 			if err != nil {
 				continue
 			}

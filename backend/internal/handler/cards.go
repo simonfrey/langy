@@ -136,7 +136,7 @@ func (h *CardsHandler) CreateCard(w http.ResponseWriter, r *http.Request) {
 
 		images = &db.CardImageData{}
 		if file, header, err := r.FormFile("front_image"); err == nil {
-			defer file.Close()
+			defer func() { _ = file.Close() }()
 			data, readErr := io.ReadAll(file)
 			if readErr != nil {
 				slog.Error("failed to read front_image upload", "error", readErr)
@@ -151,7 +151,7 @@ func (h *CardsHandler) CreateCard(w http.ResponseWriter, r *http.Request) {
 			images.FrontImageType = header.Header.Get("Content-Type")
 		}
 		if file, header, err := r.FormFile("back_image"); err == nil {
-			defer file.Close()
+			defer func() { _ = file.Close() }()
 			data, readErr := io.ReadAll(file)
 			if readErr != nil {
 				slog.Error("failed to read back_image upload", "error", readErr)
@@ -232,7 +232,7 @@ func (h *CardsHandler) UpdateCard(w http.ResponseWriter, r *http.Request) {
 
 		images = &db.CardImageData{}
 		if file, header, err := r.FormFile("front_image"); err == nil {
-			defer file.Close()
+			defer func() { _ = file.Close() }()
 			data, readErr := io.ReadAll(file)
 			if readErr != nil {
 				slog.Error("failed to read front_image upload", "error", readErr)
@@ -247,7 +247,7 @@ func (h *CardsHandler) UpdateCard(w http.ResponseWriter, r *http.Request) {
 			images.FrontImageType = header.Header.Get("Content-Type")
 		}
 		if file, header, err := r.FormFile("back_image"); err == nil {
-			defer file.Close()
+			defer func() { _ = file.Close() }()
 			data, readErr := io.ReadAll(file)
 			if readErr != nil {
 				slog.Error("failed to read back_image upload", "error", readErr)
@@ -338,5 +338,5 @@ func (h *CardsHandler) GetCardImage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", contentType)
-	w.Write(data)
+	_, _ = w.Write(data)
 }
