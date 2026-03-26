@@ -23,6 +23,13 @@ jobs:
         with:
           working-directory: backend
 
+      - name: Install sqlc
+        run: go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
+
+      - name: sqlc diff
+        run: sqlc diff
+        working-directory: backend
+
   frontend-lint:
     runs-on: ubuntu-latest
     steps:
