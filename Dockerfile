@@ -11,6 +11,8 @@ COPY backend/go.mod backend/go.sum ./
 RUN go mod download
 COPY backend/ ./
 COPY --from=frontend /app/frontend/dist ./static/
+RUN go install github.com/sqlc-dev/sqlc/cmd/sqlc@v1.26.0
+RUN sqlc generate
 RUN CGO_ENABLED=0 go build -o langy .
 
 FROM alpine:3.20

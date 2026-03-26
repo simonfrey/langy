@@ -6,9 +6,9 @@ import (
 )
 
 type SM2Input struct {
-	Grade       int
-	Repetitions int
-	EaseFactor  float64
+	Grade        int
+	Repetitions  int
+	EaseFactor   float64
 	IntervalDays int
 }
 

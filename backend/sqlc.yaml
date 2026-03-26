@@ -1,0 +1,26 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    queries: "sql/queries/"
+    schema: "migrations/"
+    gen:
+      go:
+        package: "db"
+        out: "internal/db"
+        sql_package: "pgx/v5"
+        emit_pointers_for_null_types: true
+        rename:
+          user: SqlcUser
+          deck: SqlcDeck
+          card: SqlcCard
+          exercise: SqlcExercise
+          review_log: SqlcReviewLog
+        overrides:
+          - db_type: "uuid"
+            go_type: "github.com/jackc/pgx/v5/pgtype.UUID"
+          - db_type: "timestamptz"
+            go_type: "github.com/jackc/pgx/v5/pgtype.Timestamptz"
+          - db_type: "jsonb"
+            go_type:
+              type: "RawMessage"
+              import: "encoding/json"

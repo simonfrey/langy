@@ -70,7 +70,7 @@ func main() {
 }
 
 func runServe(ctx context.Context, databaseURL string) {
-	database, err := db.New(ctx, databaseURL)
+	database, err := db.NewDB(ctx, databaseURL)
 	if err != nil {
 		slog.Error("failed to connect to database", "error", err)
 		os.Exit(1)

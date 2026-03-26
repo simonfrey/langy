@@ -1,5 +1,5 @@
 
-.PHONY: dev dev-backend dev-frontend migrate migrate-down test build docker-build
+.PHONY: dev dev-backend dev-frontend migrate migrate-down test build docker-build sqlc
 
 dev:
 	docker compose up -d
@@ -23,5 +23,8 @@ test:
 
 build:
 	docker build -t langy .
+
+sqlc:
+	cd backend && sqlc generate
 
 docker-build: build
