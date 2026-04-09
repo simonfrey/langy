@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/XiaoConstantine/dspy-go/pkg/core"
+	"github.com/XiaoConstantine/dspy-go/pkg/llms"
 	"github.com/joho/godotenv"
 	"github.com/simonfrey/langy/internal/api"
 	"github.com/simonfrey/langy/internal/db"
@@ -44,7 +46,7 @@ func main() {
 	_ = godotenv.Load(".env")
 
 	if len(os.Args) < 2 {
-		fmt.Println("Usage: langy <serve>")
+		fmt.Println("Usage: langy <serve|optimize>")
 		os.Exit(1)
 	}
 
@@ -64,6 +66,8 @@ func main() {
 	switch os.Args[1] {
 	case "serve":
 		runServe(ctx, databaseURL)
+	case "optimize":
+		runOptimize(ctx, databaseURL)
 	default:
 		fmt.Printf("Unknown command: %s\n", os.Args[1])
 		os.Exit(1)
@@ -127,4 +131,62 @@ func runServe(ctx context.Context, databaseURL string) {
 		slog.Error("server failed", "error", err)
 		os.Exit(1)
 	}
+}
+
+func runOptimize(ctx context.Context, databaseURL string) {
+	database, err := db.NewDB(ctx, databaseURL)
+	if err != nil {
+		slog.Error("failed to connect to database", "error", err)
+		os.Exit(1)
+	}
+	defer database.Close()
+
+	geminiKey := os.Getenv("GEMINI_API_KEY")
+	if geminiKey == "" {
+		slog.Error("GEMINI_API_KEY environment variable is required for optimization")
+		os.Exit(1)
+	}
+
+	llm, err := llms.NewGeminiLLM(geminiKey, core.ModelGoogleGeminiPro)
+	if err != nil {
+		slog.Error("failed to create Gemini LLM", "error", err)
+		os.Exit(1)
+	}
+
+	rows, err := database.GetCompletedGradedExercises(ctx, 200)
+	if err != nil {
+		slog.Error("failed to fetch completed exercises", "error", err)
+		os.Exit(1)
+	}
+
+	exercises := make([]gemini.CompletedExercise, 0, len(rows))
+	for _, r := range rows {
+		if r.Correct == nil || r.UserAnswer == nil {
+			continue
+		}
+		exercises = append(exercises, gemini.CompletedExercise{
+			ExerciseType:  r.Type,
+			Prompt:        r.Prompt,
+			CorrectAnswer: r.CorrectAnswer,
+			UserAnswer:    *r.UserAnswer,
+			Correct:       *r.Correct,
+			Feedback:      deref(r.Feedback),
+			SourceLang:    r.SourceLang,
+			TargetLang:    r.TargetLang,
+		})
+	}
+
+	if err := gemini.Optimize(ctx, llm, exercises, "prompts/optimized/grade.json"); err != nil {
+		slog.Error("optimization failed", "error", err)
+		os.Exit(1)
+	}
+
+	slog.Info("optimization complete")
+}
+
+func deref(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
 }

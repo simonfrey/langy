@@ -16,6 +16,7 @@ type Client struct {
 	imageLLM      core.LLM // gemini-2.5-flash-image for card image generation
 	model         string
 	exerciseModel string
+	gradeProgram  core.Program
 }
 
 type CardPair struct {
@@ -77,6 +78,7 @@ func New(_ context.Context, apiKey string) (*Client, error) {
 		imageLLM:      imageLLM,
 		model:         string(core.ModelGoogleGeminiPro),
 		exerciseModel: string(core.ModelGoogleGeminiPro),
+		gradeProgram:  loadGradeProgram(textLLM, "prompts/optimized/grade.json"),
 	}, nil
 }
 
@@ -293,27 +295,28 @@ Guidelines:
 }
 
 func (c *Client) GradeExercise(ctx context.Context, exerciseType, prompt, correctAnswer, userAnswer, sourceLang, targetLang string) (*GradeResult, error) {
-	srcName := langName(sourceLang)
-	tgtName := langName(targetLang)
+	inputs := map[string]any{
+		"exercise_type":  exerciseType,
+		"prompt":         prompt,
+		"correct_answer": correctAnswer,
+		"user_answer":    userAnswer,
+		"source_lang":    langName(sourceLang),
+		"target_lang":    langName(targetLang),
+	}
 
-	gradePrompt := fmt.Sprintf(`You are grading a %s language exercise for a %s speaker.
+	outputs, err := c.gradeProgram.Execute(ctx, inputs)
+	if err != nil {
+		return nil, fmt.Errorf("grade exercise: %w", err)
+	}
 
-Exercise type: %s
-Exercise prompt: %s
-Expected correct answer: %s
-User's answer: %s
-
-Rules:
-- Be STRICT on spelling — wrong spelling is wrong. Only accept correctly spelled forms.
-- Be STRICT on grammar errors (wrong conjugation, wrong case, wrong gender/article, wrong agreement) — mark as incorrect.
-- If the answer is semantically correct but uses a different valid form, mark as correct.
-- Provide brief, encouraging feedback in %s.
-- If incorrect, provide the corrected answer.`, tgtName, srcName, exerciseType, prompt, correctAnswer, userAnswer, srcName)
-	gradePrompt += jsonInstruction(`{"correct": true|false, "feedback": "...", "corrected_answer": "..."}`)
+	resultStr, ok := outputs["result"].(string)
+	if !ok {
+		return nil, fmt.Errorf("grade exercise: unexpected output type")
+	}
 
 	var grade GradeResult
-	if err := c.generateJSON(ctx, gradePrompt, &grade); err != nil {
-		return nil, err
+	if err := json.Unmarshal([]byte(stripJSONFence(resultStr)), &grade); err != nil {
+		return nil, fmt.Errorf("parse grade result: %w", err)
 	}
 	return &grade, nil
 }

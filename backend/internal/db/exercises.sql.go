@@ -62,6 +62,57 @@ func (q *Queries) GetCardsNeedingExercises(ctx context.Context, limit int32) ([]
 	return items, nil
 }
 
+const getCompletedGradedExercises = `-- name: GetCompletedGradedExercises :many
+SELECT e.type, e.prompt, e.correct_answer, e.user_answer, e.correct, e.feedback,
+       dk.source_lang, dk.target_lang
+FROM exercises e
+JOIN cards c ON e.source_card_id = c.id
+JOIN decks dk ON c.deck_id = dk.id
+WHERE e.completed = true AND e.correct IS NOT NULL
+ORDER BY e.created_at DESC
+LIMIT $1
+`
+
+type GetCompletedGradedExercisesRow struct {
+	Type          string
+	Prompt        string
+	CorrectAnswer string
+	UserAnswer    *string
+	Correct       *bool
+	Feedback      *string
+	SourceLang    string
+	TargetLang    string
+}
+
+func (q *Queries) GetCompletedGradedExercises(ctx context.Context, limit int32) ([]GetCompletedGradedExercisesRow, error) {
+	rows, err := q.db.Query(ctx, getCompletedGradedExercises, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetCompletedGradedExercisesRow
+	for rows.Next() {
+		var i GetCompletedGradedExercisesRow
+		if err := rows.Scan(
+			&i.Type,
+			&i.Prompt,
+			&i.CorrectAnswer,
+			&i.UserAnswer,
+			&i.Correct,
+			&i.Feedback,
+			&i.SourceLang,
+			&i.TargetLang,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getDueExercises = `-- name: GetDueExercises :many
 SELECT e.id, e.user_id, e.session_id, e.source_card_id, e.type, e.level, e.instruction, e.prompt, e.correct_answer, e.hint, e.source_sentence, e.options, e.data, e.completed, e.user_answer, e.correct, e.feedback, e.next_review, e.created_at
 FROM exercises e

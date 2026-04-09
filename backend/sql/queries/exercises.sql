@@ -25,6 +25,16 @@ FROM exercises e
 WHERE e.user_id = $1 AND e.completed = false
 ORDER BY e.created_at ASC;
 
+-- name: GetCompletedGradedExercises :many
+SELECT e.type, e.prompt, e.correct_answer, e.user_answer, e.correct, e.feedback,
+       dk.source_lang, dk.target_lang
+FROM exercises e
+JOIN cards c ON e.source_card_id = c.id
+JOIN decks dk ON c.deck_id = dk.id
+WHERE e.completed = true AND e.correct IS NOT NULL
+ORDER BY e.created_at DESC
+LIMIT $1;
+
 -- name: GetCardsNeedingExercises :many
 SELECT dk.user_id, c.id AS card_id, c.front, c.back, c.repetitions, c.interval_days, dk.source_lang, dk.target_lang
 FROM cards c
