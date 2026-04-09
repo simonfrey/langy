@@ -6,14 +6,11 @@ import (
 	"fmt"
 	"log/slog"
 	"math/rand"
-
-	"google.golang.org/genai"
 )
 
 // exerciseTypePrompt builds a dedicated Gemini prompt for a specific exercise type.
 type exerciseTypePrompt struct {
 	typeName string
-	schema   *genai.Schema
 	build    func(cards []indexedCard, knownVocab, srcName, tgtName string) string
 }
 
@@ -60,27 +57,21 @@ func pickExerciseType(level int) string {
 	}
 }
 
-// Shared schema for single-exercise-per-card response
-var singleExerciseSchema = &genai.Schema{
-	Type: genai.TypeArray,
-	Items: &genai.Schema{
-		Type: genai.TypeObject,
-		Properties: map[string]*genai.Schema{
-			"instruction":    {Type: genai.TypeString},
-			"prompt":         {Type: genai.TypeString},
-			"correct_answer": {Type: genai.TypeString},
-			"options": {
-				Type:  genai.TypeArray,
-				Items: &genai.Schema{Type: genai.TypeString},
-			},
-			"hint":              {Type: genai.TypeString},
-			"source_sentence":   {Type: genai.TypeString},
-			"source_card_index": {Type: genai.TypeInteger},
-			"data":              {Type: genai.TypeString, Description: "JSON string with type-specific structured data"},
-		},
-		Required: []string{"instruction", "correct_answer", "source_card_index"},
-	},
-}
+// singleExerciseShape describes the JSON shape returned by the LLM for every
+// exercise type. It is appended to each per-type prompt so the model emits
+// raw JSON without relying on provider-side response schemas.
+const singleExerciseShape = `[
+  {
+    "instruction": "...",
+    "prompt": "...",
+    "correct_answer": "...",
+    "options": ["..."],
+    "hint": "...",
+    "source_sentence": "...",
+    "source_card_index": 0,
+    "data": "JSON string with type-specific structured data"
+  }
+]`
 
 func buildCardList(cards []indexedCard) string {
 	result := ""
@@ -112,7 +103,6 @@ Generate exactly one exercise per word listed below.
 var exercisePrompts = map[string]exerciseTypePrompt{
 	"vocab_fill_blank": {
 		typeName: "vocab_fill_blank",
-		schema:   singleExerciseSchema,
 		build: func(cards []indexedCard, knownVocab, srcName, tgtName string) string {
 			return commonPreamble(srcName, tgtName, knownVocab) + fmt.Sprintf(`
 EXERCISE TYPE: vocab_fill_blank (Fill in the Blank — Vocabulary)
@@ -133,7 +123,6 @@ WORDS:
 
 	"vocab_matching_pairs": {
 		typeName: "vocab_matching_pairs",
-		schema:   singleExerciseSchema,
 		build: func(cards []indexedCard, knownVocab, srcName, tgtName string) string {
 			return commonPreamble(srcName, tgtName, knownVocab) + fmt.Sprintf(`
 EXERCISE TYPE: vocab_matching_pairs (Match native↔target word pairs)
@@ -154,7 +143,6 @@ WORDS:
 
 	"vocab_word_bank": {
 		typeName: "vocab_word_bank",
-		schema:   singleExerciseSchema,
 		build: func(cards []indexedCard, knownVocab, srcName, tgtName string) string {
 			return commonPreamble(srcName, tgtName, knownVocab) + fmt.Sprintf(`
 EXERCISE TYPE: vocab_word_bank (Build a sentence from scrambled words)
@@ -175,7 +163,6 @@ WORDS:
 
 	"grammar_fill_conjugation": {
 		typeName: "grammar_fill_conjugation",
-		schema:   singleExerciseSchema,
 		build: func(cards []indexedCard, knownVocab, srcName, tgtName string) string {
 			return commonPreamble(srcName, tgtName, knownVocab) + fmt.Sprintf(`
 EXERCISE TYPE: grammar_fill_conjugation (Fill in the Blank — Conjugation)
@@ -196,7 +183,6 @@ WORDS:
 
 	"grammar_fill_article": {
 		typeName: "grammar_fill_article",
-		schema:   singleExerciseSchema,
 		build: func(cards []indexedCard, knownVocab, srcName, tgtName string) string {
 			return commonPreamble(srcName, tgtName, knownVocab) + fmt.Sprintf(`
 EXERCISE TYPE: grammar_fill_article (Fill in the correct article)
@@ -217,7 +203,6 @@ WORDS:
 
 	"grammar_fill_preposition": {
 		typeName: "grammar_fill_preposition",
-		schema:   singleExerciseSchema,
 		build: func(cards []indexedCard, knownVocab, srcName, tgtName string) string {
 			return commonPreamble(srcName, tgtName, knownVocab) + fmt.Sprintf(`
 EXERCISE TYPE: grammar_fill_preposition (Fill in the correct preposition)
@@ -238,7 +223,6 @@ WORDS:
 
 	"grammar_conjugation_drill": {
 		typeName: "grammar_conjugation_drill",
-		schema:   singleExerciseSchema,
 		build: func(cards []indexedCard, knownVocab, srcName, tgtName string) string {
 			return commonPreamble(srcName, tgtName, knownVocab) + fmt.Sprintf(`
 EXERCISE TYPE: grammar_conjugation_drill (Isolated conjugation)
@@ -258,7 +242,6 @@ WORDS:
 
 	"grammar_reorder": {
 		typeName: "grammar_reorder",
-		schema:   singleExerciseSchema,
 		build: func(cards []indexedCard, knownVocab, srcName, tgtName string) string {
 			return commonPreamble(srcName, tgtName, knownVocab) + fmt.Sprintf(`
 EXERCISE TYPE: grammar_reorder (Put words in correct order)
@@ -279,7 +262,6 @@ WORDS:
 
 	"grammar_multiple_choice": {
 		typeName: "grammar_multiple_choice",
-		schema:   singleExerciseSchema,
 		build: func(cards []indexedCard, knownVocab, srcName, tgtName string) string {
 			return commonPreamble(srcName, tgtName, knownVocab) + fmt.Sprintf(`
 EXERCISE TYPE: grammar_multiple_choice (Choose the correct form)
@@ -300,7 +282,6 @@ WORDS:
 
 	"grammar_error_correction": {
 		typeName: "grammar_error_correction",
-		schema:   singleExerciseSchema,
 		build: func(cards []indexedCard, knownVocab, srcName, tgtName string) string {
 			return commonPreamble(srcName, tgtName, knownVocab) + fmt.Sprintf(`
 EXERCISE TYPE: grammar_error_correction (Find and fix the error)
@@ -321,7 +302,6 @@ WORDS:
 
 	"grammar_transformation": {
 		typeName: "grammar_transformation",
-		schema:   singleExerciseSchema,
 		build: func(cards []indexedCard, knownVocab, srcName, tgtName string) string {
 			return commonPreamble(srcName, tgtName, knownVocab) + fmt.Sprintf(`
 EXERCISE TYPE: grammar_transformation (Transform the sentence)
@@ -341,7 +321,6 @@ WORDS:
 
 	"grammar_categorization": {
 		typeName: "grammar_categorization",
-		schema:   singleExerciseSchema,
 		build: func(cards []indexedCard, knownVocab, srcName, tgtName string) string {
 			return commonPreamble(srcName, tgtName, knownVocab) + fmt.Sprintf(`
 EXERCISE TYPE: grammar_categorization (Sort words into categories)
@@ -361,7 +340,6 @@ WORDS:
 
 	"grammar_matching": {
 		typeName: "grammar_matching",
-		schema:   singleExerciseSchema,
 		build: func(cards []indexedCard, knownVocab, srcName, tgtName string) string {
 			return commonPreamble(srcName, tgtName, knownVocab) + fmt.Sprintf(`
 EXERCISE TYPE: grammar_matching (Match grammar patterns)
@@ -381,7 +359,6 @@ WORDS:
 
 	"integrative_dialogue": {
 		typeName: "integrative_dialogue",
-		schema:   singleExerciseSchema,
 		build: func(cards []indexedCard, knownVocab, srcName, tgtName string) string {
 			return commonPreamble(srcName, tgtName, knownVocab) + fmt.Sprintf(`
 EXERCISE TYPE: integrative_dialogue (Complete a dialogue)
@@ -401,7 +378,6 @@ WORDS:
 
 	"integrative_reading": {
 		typeName: "integrative_reading",
-		schema:   singleExerciseSchema,
 		build: func(cards []indexedCard, knownVocab, srcName, tgtName string) string {
 			return commonPreamble(srcName, tgtName, knownVocab) + fmt.Sprintf(`
 EXERCISE TYPE: integrative_reading (Reading comprehension)
@@ -421,7 +397,6 @@ WORDS:
 
 	"integrative_cloze_passage": {
 		typeName: "integrative_cloze_passage",
-		schema:   singleExerciseSchema,
 		build: func(cards []indexedCard, knownVocab, srcName, tgtName string) string {
 			return commonPreamble(srcName, tgtName, knownVocab) + fmt.Sprintf(`
 EXERCISE TYPE: integrative_cloze_passage (Fill in blanks in a passage)
@@ -473,27 +448,9 @@ func (c *Client) GenerateExercises(ctx context.Context, cards []ExerciseCard, kn
 			promptDef = exercisePrompts["vocab_fill_blank"]
 		}
 
-		prompt := promptDef.build(group.cards, knownVocab, srcName, tgtName)
-
-		config := &genai.GenerateContentConfig{
-			ResponseMIMEType: "application/json",
-			ResponseSchema:   singleExerciseSchema,
-		}
+		prompt := promptDef.build(group.cards, knownVocab, srcName, tgtName) + jsonInstruction(singleExerciseShape)
 
 		slog.Info("generating exercises via gemini", "model", c.exerciseModel, "type", typeName, "card_count", len(group.cards))
-		contents := []*genai.Content{{Parts: []*genai.Part{{Text: prompt}}}}
-		result, err := c.client.Models.GenerateContent(ctx, c.exerciseModel, contents, config)
-		if err != nil {
-			slog.Error("gemini API error for exercise type", "type", typeName, "error", err)
-			continue // skip this type, try others
-		}
-
-		if len(result.Candidates) == 0 || len(result.Candidates[0].Content.Parts) == 0 {
-			slog.Warn("empty response for exercise type", "type", typeName)
-			continue
-		}
-
-		text := result.Candidates[0].Content.Parts[0].Text
 
 		var rawExercises []struct {
 			Instruction     string   `json:"instruction"`
@@ -505,8 +462,8 @@ func (c *Client) GenerateExercises(ctx context.Context, cards []ExerciseCard, kn
 			Data            string   `json:"data"`
 			SourceCardIndex int      `json:"source_card_index"`
 		}
-		if err := json.Unmarshal([]byte(text), &rawExercises); err != nil {
-			slog.Error("failed to parse exercises", "type", typeName, "error", err)
+		if err := c.generateJSON(ctx, prompt, &rawExercises); err != nil {
+			slog.Error("failed to generate exercises", "type", typeName, "error", err)
 			continue
 		}
 

@@ -5,12 +5,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"strings"
 
-	"google.golang.org/genai"
+	"github.com/XiaoConstantine/dspy-go/pkg/core"
+	"github.com/XiaoConstantine/dspy-go/pkg/llms"
 )
 
 type Client struct {
-	client        *genai.Client
+	llm           core.LLM // gemini-2.5-pro for text/structured calls
+	imageLLM      core.LLM // gemini-2.5-flash-image for card image generation
 	model         string
 	exerciseModel string
 }
@@ -60,31 +63,70 @@ type ImageData struct {
 	MimeType string
 }
 
-func New(ctx context.Context, apiKey string) (*Client, error) {
-	client, err := genai.NewClient(ctx, &genai.ClientConfig{
-		APIKey:  apiKey,
-		Backend: genai.BackendGeminiAPI,
-	})
+func New(_ context.Context, apiKey string) (*Client, error) {
+	textLLM, err := llms.NewGeminiLLM(apiKey, core.ModelGoogleGeminiPro)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("dspy-go gemini text llm: %w", err)
+	}
+	imageLLM, err := llms.NewGeminiLLM(apiKey, core.ModelGoogleGeminiFlashImage)
+	if err != nil {
+		return nil, fmt.Errorf("dspy-go gemini image llm: %w", err)
 	}
 	return &Client{
-		client:        client,
-		model:         "gemini-2.5-pro",
-		exerciseModel: "gemini-2.5-pro",
+		llm:           textLLM,
+		imageLLM:      imageLLM,
+		model:         string(core.ModelGoogleGeminiPro),
+		exerciseModel: string(core.ModelGoogleGeminiPro),
 	}, nil
 }
 
-var cardPairSchema = &genai.Schema{
-	Type: genai.TypeArray,
-	Items: &genai.Schema{
-		Type: genai.TypeObject,
-		Properties: map[string]*genai.Schema{
-			"front": {Type: genai.TypeString},
-			"back":  {Type: genai.TypeString},
-		},
-		Required: []string{"front", "back"},
-	},
+// jsonInstruction appends a footer instructing the model to emit raw JSON only.
+func jsonInstruction(shape string) string {
+	return "\n\nRespond ONLY with valid JSON matching this exact shape (no markdown code fences, no commentary):\n" + shape
+}
+
+// stripJSONFence removes optional ```json ... ``` markdown wrappers from a model response.
+func stripJSONFence(s string) string {
+	s = strings.TrimSpace(s)
+	switch {
+	case strings.HasPrefix(s, "```json"):
+		s = strings.TrimPrefix(s, "```json")
+	case strings.HasPrefix(s, "```"):
+		s = strings.TrimPrefix(s, "```")
+	default:
+		return s
+	}
+	if idx := strings.LastIndex(s, "```"); idx != -1 {
+		s = s[:idx]
+	}
+	return strings.TrimSpace(s)
+}
+
+// generateJSON runs a text-only prompt through the dspy-go LLM and decodes the
+// response into out. The caller is responsible for instructing the model to
+// produce the desired JSON shape.
+func (c *Client) generateJSON(ctx context.Context, prompt string, out any) error {
+	resp, err := c.llm.Generate(ctx, prompt)
+	if err != nil {
+		return fmt.Errorf("gemini generate: %w", err)
+	}
+	if err := json.Unmarshal([]byte(stripJSONFence(resp.Content)), out); err != nil {
+		return fmt.Errorf("parse gemini json: %w", err)
+	}
+	return nil
+}
+
+// generateJSONWithContent runs a multimodal prompt (text + images) through the
+// dspy-go LLM and decodes the response into out.
+func (c *Client) generateJSONWithContent(ctx context.Context, blocks []core.ContentBlock, out any) error {
+	resp, err := c.llm.GenerateWithContent(ctx, blocks)
+	if err != nil {
+		return fmt.Errorf("gemini generate with content: %w", err)
+	}
+	if err := json.Unmarshal([]byte(stripJSONFence(resp.Content)), out); err != nil {
+		return fmt.Errorf("parse gemini json: %w", err)
+	}
+	return nil
 }
 
 var langNames = map[string]string{
@@ -117,37 +159,24 @@ func (c *Client) GenerateCards(ctx context.Context, prompt, sourceLang, targetLa
 	} else {
 		fullPrompt = c.buildVocabularyPrompt(prompt, srcName, tgtName, hasImages, generateImages)
 	}
-
-	parts := []*genai.Part{
-		{Text: fullPrompt},
-	}
-	for _, img := range images {
-		parts = append(parts, &genai.Part{
-			InlineData: &genai.Blob{MIMEType: img.MimeType, Data: img.Data},
-		})
-	}
-
-	config := &genai.GenerateContentConfig{
-		ResponseMIMEType: "application/json",
-		ResponseSchema:   cardPairSchema,
-	}
+	fullPrompt += jsonInstruction(`[{"front": "...", "back": "..."}, ...]`)
 
 	slog.Info("calling gemini API", "model", c.model, "source_lang", sourceLang, "target_lang", targetLang, "image_count", len(images))
-	contents := []*genai.Content{{Parts: parts}}
-	result, err := c.client.Models.GenerateContent(ctx, c.model, contents, config)
-	if err != nil {
-		return nil, fmt.Errorf("gemini API error: %w", err)
-	}
-
-	if len(result.Candidates) == 0 || len(result.Candidates[0].Content.Parts) == 0 {
-		return nil, fmt.Errorf("empty response from Gemini")
-	}
-
-	text := result.Candidates[0].Content.Parts[0].Text
 
 	var pairs []CardPair
-	if err := json.Unmarshal([]byte(text), &pairs); err != nil {
-		return nil, fmt.Errorf("failed to parse Gemini response: %w", err)
+	if hasImages {
+		blocks := make([]core.ContentBlock, 0, 1+len(images))
+		blocks = append(blocks, core.NewTextBlock(fullPrompt))
+		for _, img := range images {
+			blocks = append(blocks, core.NewImageBlock(img.Data, img.MimeType))
+		}
+		if err := c.generateJSONWithContent(ctx, blocks, &pairs); err != nil {
+			return nil, err
+		}
+	} else {
+		if err := c.generateJSON(ctx, fullPrompt, &pairs); err != nil {
+			return nil, err
+		}
 	}
 
 	if generateImages {
@@ -263,16 +292,6 @@ Guidelines:
 	return basePrompt
 }
 
-var gradeSchema = &genai.Schema{
-	Type: genai.TypeObject,
-	Properties: map[string]*genai.Schema{
-		"correct":          {Type: genai.TypeBoolean},
-		"feedback":         {Type: genai.TypeString},
-		"corrected_answer": {Type: genai.TypeString},
-	},
-	Required: []string{"correct", "feedback"},
-}
-
 func (c *Client) GradeExercise(ctx context.Context, exerciseType, prompt, correctAnswer, userAnswer, sourceLang, targetLang string) (*GradeResult, error) {
 	srcName := langName(sourceLang)
 	tgtName := langName(targetLang)
@@ -290,28 +309,12 @@ Rules:
 - If the answer is semantically correct but uses a different valid form, mark as correct.
 - Provide brief, encouraging feedback in %s.
 - If incorrect, provide the corrected answer.`, tgtName, srcName, exerciseType, prompt, correctAnswer, userAnswer, srcName)
+	gradePrompt += jsonInstruction(`{"correct": true|false, "feedback": "...", "corrected_answer": "..."}`)
 
-	config := &genai.GenerateContentConfig{
-		ResponseMIMEType: "application/json",
-		ResponseSchema:   gradeSchema,
-	}
-
-	contents := []*genai.Content{{Parts: []*genai.Part{{Text: gradePrompt}}}}
-	result, err := c.client.Models.GenerateContent(ctx, c.exerciseModel, contents, config)
-	if err != nil {
-		return nil, fmt.Errorf("gemini API error: %w", err)
-	}
-
-	if len(result.Candidates) == 0 || len(result.Candidates[0].Content.Parts) == 0 {
-		return nil, fmt.Errorf("empty response from Gemini")
-	}
-
-	text := result.Candidates[0].Content.Parts[0].Text
 	var grade GradeResult
-	if err := json.Unmarshal([]byte(text), &grade); err != nil {
-		return nil, fmt.Errorf("failed to parse grade response: %w", err)
+	if err := c.generateJSON(ctx, gradePrompt, &grade); err != nil {
+		return nil, err
 	}
-
 	return &grade, nil
 }
 
@@ -323,20 +326,17 @@ func (c *Client) generateCardImage(ctx context.Context, front, back, lang, mode 
 		prompt = fmt.Sprintf("Simple, clean flashcard illustration for the %s word '%s' (meaning: %s). Minimal style, no text, white background.", lang, front, back)
 	}
 
-	result, err := c.client.Models.GenerateContent(
+	resp, err := c.imageLLM.GenerateWithContent(
 		ctx,
-		"gemini-2.5-flash-image",
-		genai.Text(prompt),
-		&genai.GenerateContentConfig{
-			ResponseModalities: []string{"IMAGE", "TEXT"},
-		},
+		[]core.ContentBlock{core.NewTextBlock(prompt)},
+		core.WithResponseModalities("image", "text"),
 	)
 	if err != nil {
 		return nil, "", err
 	}
-	for _, part := range result.Candidates[0].Content.Parts {
-		if part.InlineData != nil {
-			return part.InlineData.Data, part.InlineData.MIMEType, nil
+	for _, block := range resp.ContentBlocks {
+		if block.Type == core.FieldTypeImage && len(block.Data) > 0 {
+			return block.Data, block.MimeType, nil
 		}
 	}
 	return nil, "", fmt.Errorf("no image generated")
