@@ -37,3 +37,12 @@ FROM decks WHERE cards.deck_id = decks.id AND cards.id = $5 AND decks.user_id = 
 -- name: DeleteCard :execrows
 DELETE FROM cards USING decks
 WHERE cards.deck_id = decks.id AND cards.id = $1 AND decks.user_id = $2;
+
+-- name: ListAllUserCards :many
+SELECT c.id, c.deck_id, c.front, c.back,
+	c.front_image_id, c.back_image_id,
+	c.ease_factor, c.interval_days, c.repetitions, c.next_review, c.created_at, c.updated_at,
+	d.source_lang, d.target_lang
+FROM cards c JOIN decks d ON c.deck_id = d.id
+WHERE d.user_id = $1
+ORDER BY random();

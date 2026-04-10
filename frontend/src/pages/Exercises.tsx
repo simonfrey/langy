@@ -2,8 +2,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { db } from "../db/dexie";
 import type { ExerciseRecord } from "../db/dexie";
-import { exercisesApi, exerciseToRecord } from "../lib/api";
-import { selectExerciseCards } from "../lib/maturity";
+import { exercisesApi } from "../lib/api";
 import { useOffline } from "../hooks/useOffline";
 import OfflineBanner from "../components/OfflineBanner";
 import { getHandDrawnStyle } from "../hooks/useHandDrawn";
@@ -15,7 +14,6 @@ import {
 } from "../components/exercises/sharedUtils";
 import type { GradeResult } from "../components/exercises/types";
 
-const BATCH_SIZE = 10;
 const PREFETCH_THRESHOLD = 3;
 
 function levenshtein(a: string, b: string): number {
@@ -70,170 +68,89 @@ export default function Exercises() {
 
   const handDrawnStyle = getHandDrawnStyle();
 
-  const generateBatch = useCallback(async (sid: string) => {
-    const allCards = await db.cards.toArray();
-    if (allCards.length === 0) {
-      setError("No cards available. Add some vocabulary first!");
-      setLoading(false);
-      return [];
-    }
+  const fetchExercises = useCallback(async (): Promise<ExerciseRecord[]> => {
+    const due = await exercisesApi().getDueExercises();
+    if (!due || due.length === 0) return [];
 
-    const decks = await db.decks.toArray();
-    const deckMap = new Map(decks.map((d) => [d.id, d]));
-    const firstDeck = deckMap.get(allCards[0].deck_id);
-    if (firstDeck) {
-      setDeckLangs({
-        source: firstDeck.source_lang,
-        target: firstDeck.target_lang,
-      });
-    }
-
-    const selected = selectExerciseCards(allCards, BATCH_SIZE);
-    if (selected.length === 0) {
-      setError("No cards available for exercises.");
-      setLoading(false);
-      return [];
-    }
-
-    const deck = deckMap.get(selected[0].card.deck_id);
-    const sourceLang = deck?.source_lang || "en";
-    const targetLang = deck?.target_lang || "es";
-
-    const cardsPayload = selected.map((s) => ({
-      id: s.card.id,
-      front: s.card.front,
-      back: s.card.back,
-      level: s.level,
+    const records: ExerciseRecord[] = due.map((ex) => ({
+      ...ex,
+      session_id: sessionId,
+      completed: false,
     }));
-
-    const knownWords = allCards.map((c) => ({ front: c.front, back: c.back }));
-
-    try {
-      const result = await exercisesApi().generateExercises({
-        ExerciseGenerateRequest: {
-          session_id: sid,
-          cards: cardsPayload,
-          known_words: knownWords,
-          source_lang: sourceLang,
-          target_lang: targetLang,
-        },
-      });
-
-      const records: ExerciseRecord[] = result.map((ex) =>
-        exerciseToRecord(ex, sid),
-      );
-
-      // Parse data field if it's a string (from JSON response)
-      for (const r of records) {
-        if (typeof r.data === "string") {
-          try {
-            r.data = JSON.parse(r.data);
-          } catch {
-            /* keep as-is */
-          }
+    for (const r of records) {
+      if (typeof r.data === "string") {
+        try {
+          r.data = JSON.parse(r.data);
+        } catch {
+          /* keep */
         }
       }
-
-      const valid = records.filter((ex) => {
-        if (
-          exerciseNeedsBlanks(ex.type) &&
-          ex.prompt &&
-          !promptHasBlank(ex.prompt)
-        ) {
-          console.warn(
-            "Skipping exercise with missing blank:",
-            ex.type,
-            ex.prompt,
-          );
-          return false;
-        }
-        return true;
-      });
-
-      await db.exercises.bulkPut(valid);
-      return valid;
-    } catch (err) {
-      console.error("Failed to generate exercises:", err);
-      throw err;
     }
-  }, []);
+
+    const valid = records.filter((ex) => {
+      if (
+        exerciseNeedsBlanks(ex.type) &&
+        ex.prompt &&
+        !promptHasBlank(ex.prompt)
+      ) {
+        console.warn(
+          "Skipping exercise with missing blank:",
+          ex.type,
+          ex.prompt,
+        );
+        return false;
+      }
+      return true;
+    });
+
+    await db.exercises.bulkPut(valid);
+    return valid;
+  }, [sessionId]);
 
   // Initial load
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
+        // Show cached exercises immediately while fetching
         const cached = await db.exercises.filter((e) => !e.completed).toArray();
         if (cached.length > 0 && !cancelled) {
           setExercises(cached);
-          const decks = await db.decks.toArray();
-          if (decks.length > 0) {
-            setDeckLangs({
-              source: decks[0].source_lang,
-              target: decks[0].target_lang,
-            });
-          }
           setLoading(false);
         }
 
         if (!isOffline) {
-          try {
-            await db.exercises.filter((e) => e.completed).delete();
-            const due = await exercisesApi().getDueExercises();
-            if (due && due.length > 0 && !cancelled) {
-              const records: ExerciseRecord[] = due.map((ex) => ({
-                ...ex,
-                session_id: sessionId,
-                completed: false,
-              }));
-              for (const r of records) {
-                if (typeof r.data === "string") {
-                  try {
-                    r.data = JSON.parse(r.data);
-                  } catch {
-                    /* keep */
-                  }
-                }
-              }
-              const dueIds = new Set(records.map((r) => r.id));
-              await db.exercises
-                .filter((e) => !e.completed && !dueIds.has(e.id))
-                .delete();
-              await db.exercises.bulkPut(records);
-              const all = await db.exercises
-                .filter((e) => !e.completed)
-                .toArray();
-              if (!cancelled) {
-                setExercises(all);
-                const decks = await db.decks.toArray();
-                if (decks.length > 0) {
-                  setDeckLangs({
-                    source: decks[0].source_lang,
-                    target: decks[0].target_lang,
-                  });
-                }
-                setLoading(false);
-                return;
-              }
-            }
-          } catch {
-            if (cached.length > 0) {
-              if (!cancelled) setLoading(false);
-              return;
-            }
+          setGenerating(cached.length === 0);
+          await db.exercises.filter((e) => e.completed).delete();
+          const fresh = await fetchExercises();
+          if (cancelled) return;
+          if (fresh.length > 0) {
+            const freshIds = new Set(fresh.map((r) => r.id));
+            await db.exercises
+              .filter((e) => !e.completed && !freshIds.has(e.id))
+              .delete();
+            setExercises(fresh);
+          } else if (cached.length === 0) {
+            setError("No cards available. Add some vocabulary first!");
           }
+        } else if (cached.length === 0) {
+          setError("You're offline and have no cached exercises.");
         }
 
-        if (cached.length === 0) {
-          setGenerating(true);
-          const batch = await generateBatch(sessionId);
-          if (cancelled) return;
-          setExercises(batch);
+        // Resolve deck langs for grading
+        const decks = await db.decks.toArray();
+        if (decks.length > 0 && !cancelled) {
+          setDeckLangs({
+            source: decks[0].source_lang,
+            target: decks[0].target_lang,
+          });
         }
       } catch {
-        setError(
-          "Failed to generate exercises. Check your connection and try again.",
-        );
+        if (!cancelled) {
+          setError(
+            "Failed to load exercises. Check your connection and try again.",
+          );
+        }
       } finally {
         if (!cancelled) {
           setLoading(false);
@@ -244,9 +161,9 @@ export default function Exercises() {
     return () => {
       cancelled = true;
     };
-  }, [generateBatch, sessionId, isOffline]);
+  }, [fetchExercises, isOffline]);
 
-  // Prefetch
+  // Prefetch when running low
   useEffect(() => {
     const remaining = exercises.length - index;
     if (
@@ -256,7 +173,7 @@ export default function Exercises() {
       exercises.length > 0
     ) {
       prefetchingRef.current = true;
-      generateBatch(sessionId)
+      fetchExercises()
         .then((newBatch) => {
           if (newBatch.length > 0) {
             setExercises((prev) => [...prev, ...newBatch]);
@@ -267,7 +184,7 @@ export default function Exercises() {
           prefetchingRef.current = false;
         });
     }
-  }, [index, exercises.length, isOffline, generateBatch, sessionId]);
+  }, [index, exercises.length, isOffline, fetchExercises]);
 
   const currentExercise = exercises[index];
 

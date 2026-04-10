@@ -34,13 +34,3 @@ JOIN decks dk ON c.deck_id = dk.id
 WHERE e.completed = true AND e.correct IS NOT NULL
 ORDER BY e.created_at DESC
 LIMIT $1;
-
--- name: GetCardsNeedingExercises :many
-SELECT dk.user_id, c.id AS card_id, c.front, c.back, c.repetitions, c.interval_days, dk.source_lang, dk.target_lang
-FROM cards c
-JOIN decks dk ON c.deck_id = dk.id
-WHERE NOT EXISTS (
-	SELECT 1 FROM exercises e WHERE e.source_card_id = c.id AND e.completed = false
-)
-ORDER BY random()
-LIMIT $1;

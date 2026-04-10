@@ -134,6 +134,68 @@ func (q *Queries) GetCardForUser(ctx context.Context, arg GetCardForUserParams) 
 	return i, err
 }
 
+const listAllUserCards = `-- name: ListAllUserCards :many
+SELECT c.id, c.deck_id, c.front, c.back,
+	c.front_image_id, c.back_image_id,
+	c.ease_factor, c.interval_days, c.repetitions, c.next_review, c.created_at, c.updated_at,
+	d.source_lang, d.target_lang
+FROM cards c JOIN decks d ON c.deck_id = d.id
+WHERE d.user_id = $1
+ORDER BY random()
+`
+
+type ListAllUserCardsRow struct {
+	ID           pgtype.UUID
+	DeckID       pgtype.UUID
+	Front        string
+	Back         string
+	FrontImageID pgtype.UUID
+	BackImageID  pgtype.UUID
+	EaseFactor   *float32
+	IntervalDays *int32
+	Repetitions  *int32
+	NextReview   pgtype.Timestamptz
+	CreatedAt    pgtype.Timestamptz
+	UpdatedAt    pgtype.Timestamptz
+	SourceLang   string
+	TargetLang   string
+}
+
+func (q *Queries) ListAllUserCards(ctx context.Context, userID pgtype.UUID) ([]ListAllUserCardsRow, error) {
+	rows, err := q.db.Query(ctx, listAllUserCards, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListAllUserCardsRow
+	for rows.Next() {
+		var i ListAllUserCardsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.DeckID,
+			&i.Front,
+			&i.Back,
+			&i.FrontImageID,
+			&i.BackImageID,
+			&i.EaseFactor,
+			&i.IntervalDays,
+			&i.Repetitions,
+			&i.NextReview,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.SourceLang,
+			&i.TargetLang,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listCardTexts = `-- name: ListCardTexts :many
 SELECT c.front, c.back
 FROM cards c JOIN decks d ON c.deck_id = d.id

@@ -9,8 +9,8 @@ import {
   ExercisesApi,
   ImagesApi,
 } from "../api";
-import type { Card, Deck, ExerciseResponse } from "../api";
-import type { CardRecord, DeckRecord, ExerciseRecord } from "../db/dexie";
+import type { Card, Deck } from "../api";
+import type { CardRecord, DeckRecord } from "../db/dexie";
 
 let onUnauthorized: (() => void) | null = null;
 
@@ -80,17 +80,5 @@ export function deckToRecord(deck: Deck): DeckRecord {
   return {
     ...deck,
     created_at: deck.created_at.toISOString(),
-  };
-}
-
-/** Convert generated ExerciseResponse to Dexie ExerciseRecord */
-export function exerciseToRecord(
-  ex: ExerciseResponse,
-  sessionId: string,
-): ExerciseRecord {
-  return {
-    ...ex,
-    session_id: sessionId,
-    completed: false,
   };
 }

@@ -9,16 +9,13 @@ import (
 	"net/http"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/XiaoConstantine/dspy-go/pkg/core"
 	"github.com/XiaoConstantine/dspy-go/pkg/llms"
 	"github.com/joho/godotenv"
-	"github.com/simonfrey/langy/internal/api"
 	"github.com/simonfrey/langy/internal/db"
 	"github.com/simonfrey/langy/internal/gemini"
 	"github.com/simonfrey/langy/internal/server"
-	"github.com/simonfrey/langy/internal/worker"
 )
 
 //go:embed static/*
@@ -98,26 +95,6 @@ func runServe(ctx context.Context, databaseURL string) {
 		slog.Error("failed to create static filesystem", "error", err)
 		os.Exit(1)
 	}
-
-	// Start background exercise generation worker
-	if geminiClient != nil {
-		interval := 5 * time.Minute
-		if v := os.Getenv("EXERCISE_WORKER_INTERVAL"); v != "" {
-			if d, err := time.ParseDuration(v); err == nil {
-				interval = d
-			}
-		}
-		w := &worker.ExerciseWorker{
-			DB:        database,
-			Gemini:    geminiClient,
-			Interval:  interval,
-			BatchSize: 50,
-		}
-		go w.Start(ctx)
-	}
-
-	// Start background image cleanup worker
-	go api.ImageCleanupWorker(ctx, database, 10*time.Minute)
 
 	handler := server.New(database, geminiClient, staticFS)
 

@@ -76,6 +76,12 @@ func (c *Card) PopulateImageURLs() {
 	}
 }
 
+type CardWithLangs struct {
+	Card
+	SourceLang string
+	TargetLang string
+}
+
 type CardText struct {
 	Front string
 	Back  string
@@ -107,17 +113,6 @@ type Exercise struct {
 	Feedback       *string         `json:"feedback,omitempty"`
 	NextReview     *time.Time      `json:"next_review,omitempty"`
 	CreatedAt      time.Time       `json:"created_at"`
-}
-
-type CardNeedingExercise struct {
-	UserID       string
-	CardID       string
-	Front        string
-	Back         string
-	Repetitions  int
-	IntervalDays int
-	SourceLang   string
-	TargetLang   string
 }
 
 // --- UUID/time helpers ---
@@ -376,6 +371,35 @@ func (d *DB) ListCards(ctx context.Context, userID, deckID string) ([]Card, erro
 	return cards, nil
 }
 
+func (d *DB) ListAllUserCards(ctx context.Context, userID string) ([]CardWithLangs, error) {
+	rows, err := d.Queries.ListAllUserCards(ctx, ParseUUID(userID))
+	if err != nil {
+		return nil, fmt.Errorf("list all user cards: %w", err)
+	}
+	cards := make([]CardWithLangs, len(rows))
+	for i, r := range rows {
+		cards[i] = CardWithLangs{
+			Card: Card{
+				ID:           uuidToString(r.ID),
+				DeckID:       uuidToString(r.DeckID),
+				Front:        r.Front,
+				Back:         r.Back,
+				FrontImageID: uuidToString(r.FrontImageID),
+				BackImageID:  uuidToString(r.BackImageID),
+				EaseFactor:   float64(derefFloat32(r.EaseFactor, 2.5)),
+				IntervalDays: derefInt32(r.IntervalDays, 0),
+				Repetitions:  derefInt32(r.Repetitions, 0),
+				NextReview:   fromTimestamptz(r.NextReview),
+				CreatedAt:    fromTimestamptz(r.CreatedAt),
+				UpdatedAt:    fromTimestamptz(r.UpdatedAt),
+			},
+			SourceLang: r.SourceLang,
+			TargetLang: r.TargetLang,
+		}
+	}
+	return cards, nil
+}
+
 func (d *DB) ListCardTexts(ctx context.Context, userID, deckID string) ([]CardText, error) {
 	rows, err := d.Queries.ListCardTexts(ctx, ListCardTextsParams{DeckID: ParseUUID(deckID), UserID: ParseUUID(userID)})
 	if err != nil {
@@ -585,10 +609,6 @@ func (d *DB) GetImageData(ctx context.Context, imageID string) (*ImageResult, er
 	return &ImageResult{Data: r.Data, ContentType: r.ContentType}, nil
 }
 
-func (d *DB) CleanupOrphanedImages(ctx context.Context) error {
-	return d.DeleteOrphanedImages(ctx)
-}
-
 // --- Exercise methods ---
 
 func (d *DB) SaveExercises(ctx context.Context, userID string, exercises []Exercise) ([]Exercise, error) {
@@ -665,25 +685,4 @@ func (d *DB) GetUncompletedExercises(ctx context.Context, userID string) ([]Exer
 		exercises[i] = exerciseFromUncompletedRow(r)
 	}
 	return exercises, nil
-}
-
-func (d *DB) GetCardsNeedingExercises(ctx context.Context, limit int) ([]CardNeedingExercise, error) {
-	rows, err := d.Queries.GetCardsNeedingExercises(ctx, int32(limit))
-	if err != nil {
-		return nil, fmt.Errorf("get cards needing exercises: %w", err)
-	}
-	cards := make([]CardNeedingExercise, len(rows))
-	for i, r := range rows {
-		cards[i] = CardNeedingExercise{
-			UserID:       uuidToString(r.UserID),
-			CardID:       uuidToString(r.CardID),
-			Front:        r.Front,
-			Back:         r.Back,
-			Repetitions:  derefInt32(r.Repetitions, 0),
-			IntervalDays: derefInt32(r.IntervalDays, 0),
-			SourceLang:   r.SourceLang,
-			TargetLang:   r.TargetLang,
-		}
-	}
-	return cards, nil
 }

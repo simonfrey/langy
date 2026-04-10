@@ -11,57 +11,6 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const getCardsNeedingExercises = `-- name: GetCardsNeedingExercises :many
-SELECT dk.user_id, c.id AS card_id, c.front, c.back, c.repetitions, c.interval_days, dk.source_lang, dk.target_lang
-FROM cards c
-JOIN decks dk ON c.deck_id = dk.id
-WHERE NOT EXISTS (
-	SELECT 1 FROM exercises e WHERE e.source_card_id = c.id AND e.completed = false
-)
-ORDER BY random()
-LIMIT $1
-`
-
-type GetCardsNeedingExercisesRow struct {
-	UserID       pgtype.UUID
-	CardID       pgtype.UUID
-	Front        string
-	Back         string
-	Repetitions  *int32
-	IntervalDays *int32
-	SourceLang   string
-	TargetLang   string
-}
-
-func (q *Queries) GetCardsNeedingExercises(ctx context.Context, limit int32) ([]GetCardsNeedingExercisesRow, error) {
-	rows, err := q.db.Query(ctx, getCardsNeedingExercises, limit)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []GetCardsNeedingExercisesRow
-	for rows.Next() {
-		var i GetCardsNeedingExercisesRow
-		if err := rows.Scan(
-			&i.UserID,
-			&i.CardID,
-			&i.Front,
-			&i.Back,
-			&i.Repetitions,
-			&i.IntervalDays,
-			&i.SourceLang,
-			&i.TargetLang,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const getCompletedGradedExercises = `-- name: GetCompletedGradedExercises :many
 SELECT e.type, e.prompt, e.correct_answer, e.user_answer, e.correct, e.feedback,
        dk.source_lang, dk.target_lang
