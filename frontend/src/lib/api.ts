@@ -8,6 +8,7 @@ import {
   GenerateApi,
   ExercisesApi,
   ImagesApi,
+  LanguagesApi,
 } from "../api";
 import type { Card, Deck } from "../api";
 import type { CardRecord, DeckRecord } from "../db/dexie";
@@ -64,6 +65,7 @@ export const syncApi = () => new SyncApi(apiConfig());
 export const generateApi = () => new GenerateApi(apiConfig());
 export const exercisesApi = () => new ExercisesApi(apiConfig());
 export const imagesApi = () => new ImagesApi(apiConfig());
+export const languagesApi = () => new LanguagesApi(apiConfig());
 
 /** Convert generated API Card (Date fields) to Dexie CardRecord (string fields) */
 export function cardToRecord(card: Card): CardRecord {

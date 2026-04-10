@@ -442,14 +442,6 @@ func (c *Client) GenerateExercises(ctx context.Context, cards []ExerciseCard, kn
 	var allExercises []Exercise
 
 	for typeName, group := range groups {
-		promptDef, ok := exercisePrompts[typeName]
-		if !ok {
-			slog.Warn("unknown exercise type, falling back to vocab_fill_blank", "type", typeName)
-			promptDef = exercisePrompts["vocab_fill_blank"]
-		}
-
-		prompt := promptDef.build(group.cards, knownVocab, srcName, tgtName) + jsonInstruction(singleExerciseShape)
-
 		slog.Info("generating exercises via gemini", "model", c.exerciseModel, "type", typeName, "card_count", len(group.cards))
 
 		var rawExercises []struct {
@@ -462,9 +454,40 @@ func (c *Client) GenerateExercises(ctx context.Context, cards []ExerciseCard, kn
 			Data            string   `json:"data"`
 			SourceCardIndex int      `json:"source_card_index"`
 		}
-		if err := c.generateJSON(ctx, prompt, &rawExercises); err != nil {
-			slog.Error("failed to generate exercises", "type", typeName, "error", err)
-			continue
+
+		if program, ok := c.exercisePrograms[typeName]; ok {
+			// Use optimizable dspy program.
+			outputs, err := program.Execute(ctx, map[string]any{
+				"cards_list":  buildCardList(group.cards),
+				"known_vocab": knownVocab,
+				"source_lang": srcName,
+				"target_lang": tgtName,
+			})
+			if err != nil {
+				slog.Error("failed to generate exercises via program", "type", typeName, "error", err)
+				continue
+			}
+			exStr, ok := outputs["exercises"].(string)
+			if !ok {
+				slog.Error("exercise program returned unexpected type", "type", typeName)
+				continue
+			}
+			if err := json.Unmarshal([]byte(stripJSONFence(exStr)), &rawExercises); err != nil {
+				slog.Error("failed to parse exercise program output", "type", typeName, "error", err)
+				continue
+			}
+		} else {
+			// Fallback: raw prompt for unknown types.
+			promptDef, ok := exercisePrompts[typeName]
+			if !ok {
+				slog.Warn("unknown exercise type, falling back to vocab_fill_blank", "type", typeName)
+				promptDef = exercisePrompts["vocab_fill_blank"]
+			}
+			prompt := promptDef.build(group.cards, knownVocab, srcName, tgtName) + jsonInstruction(singleExerciseShape)
+			if err := c.generateJSON(ctx, prompt, &rawExercises); err != nil {
+				slog.Error("failed to generate exercises", "type", typeName, "error", err)
+				continue
+			}
 		}
 
 		for i, raw := range rawExercises {
@@ -502,4 +525,91 @@ func (c *Client) GenerateExercises(ctx context.Context, cards []ExerciseCard, kn
 	}
 
 	return allExercises, nil
+}
+
+// GenerateExercisesForType generates exercises of a specific type for all given cards.
+// Used by the eval harness to test one exercise type at a time.
+func (c *Client) GenerateExercisesForType(ctx context.Context, cards []ExerciseCard, knownWords []KnownWord, sourceLang, targetLang, exerciseType string) ([]Exercise, error) {
+	srcName := langName(sourceLang)
+	tgtName := langName(targetLang)
+
+	var knownVocab string
+	for _, w := range knownWords {
+		knownVocab += w.Front + " = " + w.Back + "\n"
+	}
+
+	indexed := make([]indexedCard, len(cards))
+	for i, card := range cards {
+		indexed[i] = indexedCard{index: i, card: card}
+	}
+
+	var rawExercises []struct {
+		Instruction     string   `json:"instruction"`
+		Prompt          string   `json:"prompt"`
+		CorrectAnswer   string   `json:"correct_answer"`
+		Hint            string   `json:"hint"`
+		SourceSentence  string   `json:"source_sentence"`
+		Options         []string `json:"options"`
+		Data            string   `json:"data"`
+		SourceCardIndex int      `json:"source_card_index"`
+	}
+
+	if program, ok := c.exercisePrograms[exerciseType]; ok {
+		outputs, err := program.Execute(ctx, map[string]any{
+			"cards_list":  buildCardList(indexed),
+			"known_vocab": knownVocab,
+			"source_lang": srcName,
+			"target_lang": tgtName,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("exercise program %s: %w", exerciseType, err)
+		}
+		exStr, ok := outputs["exercises"].(string)
+		if !ok {
+			return nil, fmt.Errorf("exercise program %s: unexpected output type", exerciseType)
+		}
+		if err := json.Unmarshal([]byte(stripJSONFence(exStr)), &rawExercises); err != nil {
+			return nil, fmt.Errorf("parse exercise program %s output: %w", exerciseType, err)
+		}
+	} else {
+		promptDef, ok := exercisePrompts[exerciseType]
+		if !ok {
+			return nil, fmt.Errorf("unknown exercise type: %s", exerciseType)
+		}
+		prompt := promptDef.build(indexed, knownVocab, srcName, tgtName) + jsonInstruction(singleExerciseShape)
+		if err := c.generateJSON(ctx, prompt, &rawExercises); err != nil {
+			return nil, fmt.Errorf("generate exercises %s: %w", exerciseType, err)
+		}
+	}
+
+	var exercises []Exercise
+	for i, raw := range rawExercises {
+		cardIdx := raw.SourceCardIndex
+		if cardIdx < 0 || cardIdx >= len(cards) {
+			if i < len(cards) {
+				cardIdx = i
+			} else {
+				cardIdx = 0
+			}
+		}
+
+		ex := Exercise{
+			ID:             fmt.Sprintf("ex-%s-%d", exerciseType, i),
+			Type:           exerciseType,
+			Level:          cards[cardIdx].Level,
+			Instruction:    raw.Instruction,
+			Prompt:         raw.Prompt,
+			CorrectAnswer:  raw.CorrectAnswer,
+			Hint:           raw.Hint,
+			SourceSentence: raw.SourceSentence,
+			Options:        raw.Options,
+			SourceCardID:   cards[cardIdx].ID,
+		}
+		if raw.Data != "" {
+			ex.Data = json.RawMessage(raw.Data)
+		}
+		exercises = append(exercises, ex)
+	}
+
+	return exercises, nil
 }

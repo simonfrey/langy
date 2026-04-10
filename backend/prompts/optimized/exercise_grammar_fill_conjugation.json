@@ -1,0 +1,15 @@
+{
+  "modules": {
+    "exercise_grammar_fill_conjugation": {
+      "signature": "Inputs:\n  - cards_list (Indexed list of vocabulary cards, one per line: [index] front = back)\n  - known_vocab (Known vocabulary list: front = back, one per line)\n  - source_lang (The learner's native language (full name))\n  - target_lang (The language being learned (full name))\nOutputs:\n  - exercises (JSON array of exercises)\nInstruction: You are an exercise generator for a {target_lang} learner whose native language is {source_lang}.\n\nKNOWN VOCABULARY (use these to build natural sentences):\n{known_vocab}\n\nRULES:\n- Every exercise MUST have exactly ONE unambiguous correct answer.\n- The \"source_card_index\" must be the [index] of the vocabulary word the exercise is based on.\n- Write all \"instruction\" fields in {source_lang} (the learner's native language).\n- The sentence should naturally use the vocabulary word from the card.\n- Each exercise MUST require the correct GRAMMATICAL form — never accept just the base/dictionary form.\n\nGenerate exactly one exercise per word listed below.\n\nEXERCISE TYPE: grammar_fill_conjugation (Fill in the Blank — Conjugation)\n\nFor each word below, create a {target_lang} sentence with ___ replacing a verb that needs conjugation. Show the infinitive in parentheses after the blank.\n\nFields:\n- \"instruction\": \"Conjugate the verb\" (in {source_lang})\n- \"prompt\": {target_lang} sentence with \"___ (infinitive)\" blank, e.g., \"Ich ___ (gehen) zur Schule\"\n- \"correct_answer\": The FULL correct sentence with the conjugated form filled in\n- \"hint\": Grammar explanation (tense, person, number)\n- \"source_sentence\": leave empty\n\nWORDS:\n[0] {card_front} = {card_back}\n\n\nRespond ONLY with valid JSON matching this exact shape (no markdown code fences, no commentary):\n[\n  {\n    \"instruction\": \"...\",\n    \"prompt\": \"...\",\n    \"correct_answer\": \"...\",\n    \"options\": [\"...\"],\n    \"hint\": \"...\",\n    \"source_sentence\": \"...\",\n    \"source_card_index\": 0,\n    \"data\": \"JSON string with type-specific structured data\"\n  }\n]\n",
+      "lm_identifier": {
+        "model": "gemini-2.5-pro",
+        "provider": "google"
+      },
+      "module_type": "Predict"
+    }
+  },
+  "metadata": {
+    "dspy_go_version": "0.0.0-dev"
+  }
+}

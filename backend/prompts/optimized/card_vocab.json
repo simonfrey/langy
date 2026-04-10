@@ -1,0 +1,15 @@
+{
+  "modules": {
+    "card_vocab": {
+      "signature": "Inputs:\n  - topic (The topic or request for flashcards, e.g. 'kitchen vocabulary' or 'give me 5 words about weather')\n  - source_lang (The learner's native language (full name, e.g. English))\n  - target_lang (The language being learned (full name, e.g. German))\nOutputs:\n  - cards (JSON array of flashcard pairs)\nInstruction: Provide a clear, direct answer to the specific question being asked through logical analysis.\n",
+      "lm_identifier": {
+        "model": "gemini-2.5-pro",
+        "provider": "google"
+      },
+      "module_type": "Predict"
+    }
+  },
+  "metadata": {
+    "dspy_go_version": "0.0.0-dev"
+  }
+}

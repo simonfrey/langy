@@ -12,11 +12,14 @@ import (
 )
 
 type Client struct {
-	llm           core.LLM // gemini-2.5-pro for text/structured calls
-	imageLLM      core.LLM // gemini-2.5-flash-image for card image generation
-	model         string
-	exerciseModel string
-	gradeProgram  core.Program
+	llm                core.LLM // gemini-2.5-pro for text/structured calls
+	imageLLM           core.LLM // gemini-2.5-flash-image for card image generation
+	model              string
+	exerciseModel      string
+	gradeProgram       core.Program
+	cardVocabProgram   core.Program
+	cardGrammarProgram core.Program
+	exercisePrograms   map[string]core.Program
 }
 
 type CardPair struct {
@@ -65,7 +68,11 @@ type ImageData struct {
 }
 
 func New(_ context.Context, apiKey string) (*Client, error) {
-	textLLM, err := llms.NewGeminiLLM(apiKey, core.ModelGoogleGeminiPro)
+	return NewWithModel(apiKey, core.ModelGoogleGeminiFlash)
+}
+
+func NewWithModel(apiKey string, model core.ModelID) (*Client, error) {
+	textLLM, err := llms.NewGeminiLLM(apiKey, model)
 	if err != nil {
 		return nil, fmt.Errorf("dspy-go gemini text llm: %w", err)
 	}
@@ -74,11 +81,14 @@ func New(_ context.Context, apiKey string) (*Client, error) {
 		return nil, fmt.Errorf("dspy-go gemini image llm: %w", err)
 	}
 	return &Client{
-		llm:           textLLM,
-		imageLLM:      imageLLM,
-		model:         string(core.ModelGoogleGeminiPro),
-		exerciseModel: string(core.ModelGoogleGeminiPro),
-		gradeProgram:  loadGradeProgram(textLLM, "prompts/optimized/grade.json"),
+		llm:                textLLM,
+		imageLLM:           imageLLM,
+		model:              string(model),
+		exerciseModel:      string(model),
+		gradeProgram:       loadGradeProgram(textLLM, "prompts/optimized/grade.json"),
+		cardVocabProgram:   loadCardProgram(textLLM, "vocabulary", "prompts/optimized/card_vocab.json"),
+		cardGrammarProgram: loadCardProgram(textLLM, "grammar", "prompts/optimized/card_grammar.json"),
+		exercisePrograms:   loadAllExercisePrograms(textLLM, "prompts/optimized"),
 	}, nil
 }
 
@@ -155,29 +165,53 @@ func (c *Client) GenerateCards(ctx context.Context, prompt, sourceLang, targetLa
 	tgtName := langName(targetLang)
 	hasImages := len(images) > 0
 
-	var fullPrompt string
-	if mode == "grammar" {
-		fullPrompt = c.buildGrammarPrompt(prompt, srcName, tgtName, hasImages, generateImages)
-	} else {
-		fullPrompt = c.buildVocabularyPrompt(prompt, srcName, tgtName, hasImages, generateImages)
-	}
-	fullPrompt += jsonInstruction(`[{"front": "...", "back": "..."}, ...]`)
-
 	slog.Info("calling gemini API", "model", c.model, "source_lang", sourceLang, "target_lang", targetLang, "image_count", len(images))
 
 	var pairs []CardPair
-	if hasImages {
-		blocks := make([]core.ContentBlock, 0, 1+len(images))
-		blocks = append(blocks, core.NewTextBlock(fullPrompt))
-		for _, img := range images {
-			blocks = append(blocks, core.NewImageBlock(img.Data, img.MimeType))
+	if hasImages || generateImages {
+		// Image paths use raw prompts (dspy programs don't handle multimodal content).
+		var fullPrompt string
+		if mode == "grammar" {
+			fullPrompt = c.buildGrammarPrompt(prompt, srcName, tgtName, hasImages, generateImages)
+		} else {
+			fullPrompt = c.buildVocabularyPrompt(prompt, srcName, tgtName, hasImages, generateImages)
 		}
-		if err := c.generateJSONWithContent(ctx, blocks, &pairs); err != nil {
-			return nil, err
+		fullPrompt += jsonInstruction(`[{"front": "...", "back": "..."}, ...]`)
+
+		if hasImages {
+			blocks := make([]core.ContentBlock, 0, 1+len(images))
+			blocks = append(blocks, core.NewTextBlock(fullPrompt))
+			for _, img := range images {
+				blocks = append(blocks, core.NewImageBlock(img.Data, img.MimeType))
+			}
+			if err := c.generateJSONWithContent(ctx, blocks, &pairs); err != nil {
+				return nil, err
+			}
+		} else {
+			if err := c.generateJSON(ctx, fullPrompt, &pairs); err != nil {
+				return nil, err
+			}
 		}
 	} else {
-		if err := c.generateJSON(ctx, fullPrompt, &pairs); err != nil {
-			return nil, err
+		// Text-only: use optimizable dspy program.
+		program := c.cardVocabProgram
+		if mode == "grammar" {
+			program = c.cardGrammarProgram
+		}
+		outputs, err := program.Execute(ctx, map[string]any{
+			"topic":       prompt,
+			"source_lang": srcName,
+			"target_lang": tgtName,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("card program: %w", err)
+		}
+		cardsStr, ok := outputs["cards"].(string)
+		if !ok {
+			return nil, fmt.Errorf("card program: unexpected output type")
+		}
+		if err := json.Unmarshal([]byte(stripJSONFence(cardsStr)), &pairs); err != nil {
+			return nil, fmt.Errorf("parse card program output: %w", err)
 		}
 	}
 

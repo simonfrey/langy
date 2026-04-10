@@ -1,0 +1,15 @@
+{
+  "modules": {
+    "card_grammar": {
+      "signature": "Inputs:\n  - topic (The grammar topic or request, e.g. 'present tense conjugation' or 'German articles')\n  - source_lang (The learner's native language (full name))\n  - target_lang (The language being learned (full name))\nOutputs:\n  - cards (JSON array of grammar flashcard pairs)\nInstruction: Generate grammar flashcard pairs for learning the target language from the source language.\nEach card has:\n- \"front\": a grammar challenge, question, or exercise in the target language (e.g., conjugation prompt, fill-in-the-blank, \"when do you use X?\", sentence transformation)\n- \"back\": the answer, rule, or explanation in the source language\n\nGuidelines:\n- Mix card types: conjugation exercises, fill-in-the-blank, rule explanations, sentence corrections, pattern recognition\n- Focus on practical, commonly-needed grammar patterns\n- For conjugation cards, test specific forms (not full tables on one card)\n- Include example sentences where helpful\n- For non-Latin script languages, include romanization in the \"back\" field\n- Vary difficulty levels within the set\n- If the request implies a specific number, generate exactly that many. Otherwise, generate around 10.\n\nRespond ONLY with valid JSON matching this exact shape (no markdown code fences, no commentary):\n[{\"front\": \"...\", \"back\": \"...\"}, .. with thorough examination.]\n",
+      "lm_identifier": {
+        "model": "gemini-2.5-pro",
+        "provider": "google"
+      },
+      "module_type": "Predict"
+    }
+  },
+  "metadata": {
+    "dspy_go_version": "0.0.0-dev"
+  }
+}

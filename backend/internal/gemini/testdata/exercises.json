@@ -1,0 +1,306 @@
+[
+  {
+    "id": "ex-vocab-fill-blank-en-de",
+    "source_lang": "en",
+    "target_lang": "de",
+    "exercise_type": "vocab_fill_blank",
+    "cards": [
+      {"id": "c1", "front": "der Hund", "back": "the dog", "level": 1},
+      {"id": "c2", "front": "die Katze", "back": "the cat", "level": 1}
+    ],
+    "known_words": [
+      {"front": "groß", "back": "big"},
+      {"front": "klein", "back": "small"},
+      {"front": "ist", "back": "is"}
+    ],
+    "expected_exercises": [
+      {
+        "source_card_id": "c1",
+        "instruction": "Fill in the missing word",
+        "prompt": "Der ___ ist groß.",
+        "correct_answer": "Der Hund ist groß.",
+        "source_sentence": "The dog is big."
+      },
+      {
+        "source_card_id": "c2",
+        "instruction": "Fill in the missing word",
+        "prompt": "Die ___ ist klein.",
+        "correct_answer": "Die Katze ist klein.",
+        "source_sentence": "The cat is small."
+      }
+    ]
+  },
+  {
+    "id": "ex-vocab-fill-blank-en-es",
+    "source_lang": "en",
+    "target_lang": "es",
+    "exercise_type": "vocab_fill_blank",
+    "cards": [
+      {"id": "c1", "front": "comer", "back": "to eat", "level": 1},
+      {"id": "c2", "front": "beber", "back": "to drink", "level": 1},
+      {"id": "c3", "front": "la manzana", "back": "the apple", "level": 1}
+    ],
+    "known_words": [
+      {"front": "agua", "back": "water"},
+      {"front": "yo", "back": "I"},
+      {"front": "querer", "back": "to want"}
+    ],
+    "expected_exercises": [
+      {
+        "source_card_id": "c1",
+        "instruction": "Fill in the missing word",
+        "prompt": "Me gusta ___ pizza.",
+        "correct_answer": "Me gusta comer pizza.",
+        "source_sentence": "I like to eat pizza."
+      }
+    ]
+  },
+  {
+    "id": "ex-vocab-word-bank-en-de",
+    "source_lang": "en",
+    "target_lang": "de",
+    "exercise_type": "vocab_word_bank",
+    "cards": [
+      {"id": "c1", "front": "das Buch", "back": "the book", "level": 1},
+      {"id": "c2", "front": "lesen", "back": "to read", "level": 1}
+    ],
+    "known_words": [
+      {"front": "ich", "back": "I"},
+      {"front": "gern", "back": "gladly"},
+      {"front": "ein", "back": "a"}
+    ],
+    "expected_exercises": [
+      {
+        "source_card_id": "c1",
+        "instruction": "Build the sentence",
+        "correct_answer": "Ich lese ein Buch",
+        "source_sentence": "I read a book",
+        "options": ["Ich", "lese", "ein", "Buch", "Hund", "trinke"]
+      }
+    ]
+  },
+  {
+    "id": "ex-grammar-fill-conjugation-en-es",
+    "source_lang": "en",
+    "target_lang": "es",
+    "exercise_type": "grammar_fill_conjugation",
+    "cards": [
+      {"id": "c1", "front": "hablar", "back": "to speak", "level": 2},
+      {"id": "c2", "front": "comer", "back": "to eat", "level": 2}
+    ],
+    "known_words": [
+      {"front": "yo", "back": "I"},
+      {"front": "español", "back": "Spanish"},
+      {"front": "mucho", "back": "a lot"}
+    ],
+    "expected_exercises": [
+      {
+        "source_card_id": "c1",
+        "instruction": "Conjugate the verb",
+        "prompt": "Yo ___ (hablar) español.",
+        "correct_answer": "Yo hablo español.",
+        "hint": "Present tense, first person singular"
+      },
+      {
+        "source_card_id": "c2",
+        "instruction": "Conjugate the verb",
+        "prompt": "Nosotros ___ (comer) mucho.",
+        "correct_answer": "Nosotros comemos mucho.",
+        "hint": "Present tense, first person plural"
+      }
+    ]
+  },
+  {
+    "id": "ex-grammar-multiple-choice-en-de",
+    "source_lang": "en",
+    "target_lang": "de",
+    "exercise_type": "grammar_multiple_choice",
+    "cards": [
+      {"id": "c1", "front": "gehen", "back": "to go", "level": 2},
+      {"id": "c2", "front": "sein", "back": "to be", "level": 2}
+    ],
+    "known_words": [
+      {"front": "ich", "back": "I"},
+      {"front": "du", "back": "you"},
+      {"front": "zur Schule", "back": "to school"}
+    ],
+    "expected_exercises": [
+      {
+        "source_card_id": "c1",
+        "instruction": "Choose the correct form",
+        "prompt": "Ich ___ zur Schule.",
+        "correct_answer": "gehe",
+        "options": ["gehe", "gehst", "geht", "gehen"],
+        "hint": "Present tense, first person singular"
+      }
+    ]
+  },
+  {
+    "id": "ex-grammar-fill-article-en-de",
+    "source_lang": "en",
+    "target_lang": "de",
+    "exercise_type": "grammar_fill_article",
+    "cards": [
+      {"id": "c1", "front": "Hund", "back": "dog", "level": 2},
+      {"id": "c2", "front": "Katze", "back": "cat", "level": 2},
+      {"id": "c3", "front": "Buch", "back": "book", "level": 2}
+    ],
+    "known_words": [
+      {"front": "groß", "back": "big"},
+      {"front": "klein", "back": "small"},
+      {"front": "neu", "back": "new"}
+    ],
+    "expected_exercises": [
+      {
+        "source_card_id": "c1",
+        "instruction": "Fill in the correct article",
+        "prompt": "___ Hund ist groß.",
+        "correct_answer": "Der Hund ist groß.",
+        "hint": "Hund is masculine"
+      },
+      {
+        "source_card_id": "c2",
+        "instruction": "Fill in the correct article",
+        "prompt": "___ Katze ist klein.",
+        "correct_answer": "Die Katze ist klein.",
+        "hint": "Katze is feminine"
+      }
+    ]
+  },
+  {
+    "id": "ex-grammar-error-correction-en-es",
+    "source_lang": "en",
+    "target_lang": "es",
+    "exercise_type": "grammar_error_correction",
+    "cards": [
+      {"id": "c1", "front": "tener", "back": "to have", "level": 3},
+      {"id": "c2", "front": "ir", "back": "to go", "level": 3}
+    ],
+    "known_words": [
+      {"front": "yo", "back": "I"},
+      {"front": "hambre", "back": "hunger"},
+      {"front": "la escuela", "back": "the school"}
+    ],
+    "expected_exercises": [
+      {
+        "source_card_id": "c1",
+        "instruction": "Find and fix the error",
+        "prompt": "Yo tiene mucha hambre.",
+        "correct_answer": "Yo tengo mucha hambre.",
+        "source_sentence": "I am very hungry.",
+        "hint": "Check verb conjugation"
+      }
+    ]
+  },
+  {
+    "id": "ex-grammar-transformation-en-fr",
+    "source_lang": "en",
+    "target_lang": "fr",
+    "exercise_type": "grammar_transformation",
+    "cards": [
+      {"id": "c1", "front": "manger", "back": "to eat", "level": 3},
+      {"id": "c2", "front": "parler", "back": "to speak", "level": 3}
+    ],
+    "known_words": [
+      {"front": "je", "back": "I"},
+      {"front": "bien", "back": "well"},
+      {"front": "français", "back": "French"}
+    ],
+    "expected_exercises": [
+      {
+        "source_card_id": "c1",
+        "instruction": "Make it negative",
+        "prompt": "Je mange bien.",
+        "correct_answer": "Je ne mange pas bien.",
+        "hint": "Use ne...pas around the verb"
+      }
+    ]
+  },
+  {
+    "id": "ex-vocab-fill-blank-de-en",
+    "source_lang": "de",
+    "target_lang": "en",
+    "exercise_type": "vocab_fill_blank",
+    "cards": [
+      {"id": "c1", "front": "water", "back": "das Wasser", "level": 1},
+      {"id": "c2", "front": "bread", "back": "das Brot", "level": 1}
+    ],
+    "known_words": [
+      {"front": "cold", "back": "kalt"},
+      {"front": "fresh", "back": "frisch"},
+      {"front": "the", "back": "der/die/das"}
+    ],
+    "expected_exercises": [
+      {
+        "source_card_id": "c1",
+        "instruction": "Fülle das fehlende Wort ein",
+        "prompt": "The ___ is cold.",
+        "correct_answer": "The water is cold.",
+        "source_sentence": "Das Wasser ist kalt."
+      },
+      {
+        "source_card_id": "c2",
+        "instruction": "Fülle das fehlende Wort ein",
+        "prompt": "The ___ is fresh.",
+        "correct_answer": "The bread is fresh.",
+        "source_sentence": "Das Brot ist frisch."
+      }
+    ]
+  },
+  {
+    "id": "ex-vocab-fill-blank-de-es",
+    "source_lang": "de",
+    "target_lang": "es",
+    "exercise_type": "vocab_fill_blank",
+    "cards": [
+      {"id": "c1", "front": "el perro", "back": "der Hund", "level": 1},
+      {"id": "c2", "front": "el gato", "back": "die Katze", "level": 1}
+    ],
+    "known_words": [
+      {"front": "grande", "back": "groß"},
+      {"front": "pequeño", "back": "klein"},
+      {"front": "es", "back": "ist"}
+    ],
+    "expected_exercises": [
+      {
+        "source_card_id": "c1",
+        "instruction": "Fülle das fehlende Wort ein",
+        "prompt": "El ___ es grande.",
+        "correct_answer": "El perro es grande.",
+        "source_sentence": "Der Hund ist groß."
+      },
+      {
+        "source_card_id": "c2",
+        "instruction": "Fülle das fehlende Wort ein",
+        "prompt": "El ___ es pequeño.",
+        "correct_answer": "El gato es pequeño.",
+        "source_sentence": "Die Katze ist klein."
+      }
+    ]
+  },
+  {
+    "id": "ex-grammar-multiple-choice-de-es",
+    "source_lang": "de",
+    "target_lang": "es",
+    "exercise_type": "grammar_multiple_choice",
+    "cards": [
+      {"id": "c1", "front": "hablar", "back": "sprechen", "level": 2},
+      {"id": "c2", "front": "comer", "back": "essen", "level": 2}
+    ],
+    "known_words": [
+      {"front": "yo", "back": "ich"},
+      {"front": "mucho", "back": "viel"},
+      {"front": "español", "back": "Spanisch"}
+    ],
+    "expected_exercises": [
+      {
+        "source_card_id": "c1",
+        "instruction": "Wähle die richtige Form",
+        "prompt": "Yo ___ español.",
+        "correct_answer": "hablo",
+        "options": ["hablo", "hablas", "habla", "hablan"],
+        "hint": "Presente, erste Person Singular"
+      }
+    ]
+  }
+]

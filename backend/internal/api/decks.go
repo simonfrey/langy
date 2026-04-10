@@ -25,6 +25,9 @@ func (s *Server) CreateDeck(ctx context.Context, request CreateDeckRequestObject
 	if req.Name == "" || req.SourceLang == "" || req.TargetLang == "" {
 		return CreateDeckdefaultJSONResponse{Body: ErrorResponse{Error: "name, source_lang, and target_lang required"}, StatusCode: 400}, nil
 	}
+	if !IsValidPair(req.SourceLang, req.TargetLang) {
+		return CreateDeckdefaultJSONResponse{Body: ErrorResponse{Error: "unsupported language pair"}, StatusCode: 400}, nil
+	}
 
 	deck, err := s.DB.CreateDeck(ctx, userID, req.Name, req.SourceLang, req.TargetLang)
 	if err != nil {

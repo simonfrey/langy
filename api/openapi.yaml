@@ -104,6 +104,22 @@ paths:
         default:
           $ref: "#/components/responses/Error"
 
+  # ── Languages ──────────────────────────────────────────────────────
+  /language-pairs:
+    get:
+      operationId: listLanguagePairs
+      tags: [languages]
+      summary: List supported language pairs
+      responses:
+        "200":
+          description: Supported language pairs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LanguagePairResponse"
+
   # ── Decks (protected) ──────────────────────────────────────────────
   /decks:
     get:
@@ -520,6 +536,20 @@ components:
           type: string
           format: uuid
         url:
+          type: string
+
+    # ── Languages ─────────────────────────────────────────────────
+    LanguagePairResponse:
+      type: object
+      required: [source_lang, target_lang, source_name, target_name]
+      properties:
+        source_lang:
+          type: string
+        target_lang:
+          type: string
+        source_name:
+          type: string
+        target_name:
           type: string
 
     # ── Decks ──────────────────────────────────────────────────────

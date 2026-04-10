@@ -1,24 +1,47 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createDeck } from "../db/mutations";
-import LanguageSelect from "../components/LanguageSelect";
 import { useHandDrawn } from "../hooks/useHandDrawn";
+import { languagesApi } from "../lib/api";
+import { formatPair } from "../lib/languages";
+import type { LanguagePairResponse } from "../api";
 
 export default function CreateDeck() {
-  const [form, setForm] = useState({
-    name: "",
-    source_lang: "",
-    target_lang: "",
-  });
+  const [name, setName] = useState("");
+  const [pairs, setPairs] = useState<LanguagePairResponse[]>([]);
+  const [selectedIdx, setSelectedIdx] = useState<number>(-1);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const handDrawnStyle = useHandDrawn();
+
+  useEffect(() => {
+    languagesApi()
+      .listLanguagePairs()
+      .then((data) => {
+        setPairs(data);
+        setLoading(false);
+      })
+      .catch(() => {
+        setError("Failed to load language pairs");
+        setLoading(false);
+      });
+  }, []);
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    if (selectedIdx < 0) {
+      setError("Please select a language pair");
+      return;
+    }
+    const pair = pairs[selectedIdx];
     try {
-      await createDeck(form);
+      await createDeck({
+        name,
+        source_lang: pair.source_lang,
+        target_lang: pair.target_lang,
+      });
       navigate("/");
     } catch {
       setError(
@@ -51,24 +74,33 @@ export default function CreateDeck() {
           )}
           <div className="space-y-3">
             <input
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               placeholder="Deck name"
               required
               className="w-full bg-warm-100 rounded-xl border border-warm-200 px-4 py-3 text-warm-900 placeholder-warm-400 focus:outline-none focus:ring-2 focus:ring-coral"
             />
-            <LanguageSelect
-              value={form.source_lang}
-              onChange={(code) => setForm({ ...form, source_lang: code })}
-              required
-              label="I speak"
-            />
-            <LanguageSelect
-              value={form.target_lang}
-              onChange={(code) => setForm({ ...form, target_lang: code })}
-              required
-              label="I'm learning"
-            />
+            <div>
+              <label className="block text-sm font-semibold text-warm-700 mb-1">
+                Language pair
+              </label>
+              <select
+                value={selectedIdx}
+                onChange={(e) => setSelectedIdx(Number(e.target.value))}
+                required
+                disabled={loading}
+                className="w-full bg-warm-100 rounded-xl border border-warm-200 px-4 py-3 text-warm-900 focus:outline-none focus:ring-2 focus:ring-coral"
+              >
+                <option value={-1}>
+                  {loading ? "Loading..." : "Select languages"}
+                </option>
+                {pairs.map((p, i) => (
+                  <option key={`${p.source_lang}-${p.target_lang}`} value={i}>
+                    {formatPair(p)}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
           <div className="flex gap-3 mt-6">
             <button
@@ -80,7 +112,8 @@ export default function CreateDeck() {
             </button>
             <button
               type="submit"
-              className="flex-1 py-3 rounded-xl text-white bg-coral hover:bg-coral-hover transition font-bold shadow-sm"
+              disabled={loading}
+              className="flex-1 py-3 rounded-xl text-white bg-coral hover:bg-coral-hover transition font-bold shadow-sm disabled:opacity-50"
             >
               Create
             </button>

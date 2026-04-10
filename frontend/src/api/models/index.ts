@@ -16,6 +16,7 @@ export * from './GeneratedCard';
 export * from './GradeResult';
 export * from './ImageUploadResponse';
 export * from './KnownWord';
+export * from './LanguagePairResponse';
 export * from './LoginRequest';
 export * from './RegisterRequest';
 export * from './ReviewRequest';

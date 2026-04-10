@@ -1,0 +1,312 @@
+[
+  {
+    "id": "vocab-kitchen-en-de",
+    "prompt": "kitchen vocabulary",
+    "source_lang": "en",
+    "target_lang": "de",
+    "mode": "vocabulary",
+    "min_cards": 8,
+    "max_cards": 15,
+    "expected_cards": [
+      {"front": "das Messer", "back": "the knife"},
+      {"front": "der Löffel", "back": "the spoon"},
+      {"front": "die Gabel", "back": "the fork"},
+      {"front": "der Teller", "back": "the plate"},
+      {"front": "die Tasse", "back": "the cup"},
+      {"front": "der Topf", "back": "the pot"},
+      {"front": "der Herd", "back": "the stove"},
+      {"front": "der Kühlschrank", "back": "the fridge"}
+    ],
+    "required_concepts": ["knife", "spoon", "fork", "plate", "cup", "pot", "stove"]
+  },
+  {
+    "id": "vocab-animals-en-es",
+    "prompt": "common animals",
+    "source_lang": "en",
+    "target_lang": "es",
+    "mode": "vocabulary",
+    "min_cards": 8,
+    "max_cards": 15,
+    "expected_cards": [
+      {"front": "el perro", "back": "the dog"},
+      {"front": "el gato", "back": "the cat"},
+      {"front": "el pájaro", "back": "the bird"},
+      {"front": "el pez", "back": "the fish"},
+      {"front": "el caballo", "back": "the horse"},
+      {"front": "la vaca", "back": "the cow"},
+      {"front": "el cerdo", "back": "the pig"},
+      {"front": "el conejo", "back": "the rabbit"}
+    ],
+    "required_concepts": ["dog", "cat", "bird", "fish", "horse", "cow"]
+  },
+  {
+    "id": "vocab-travel-en-fr",
+    "prompt": "travel and transportation",
+    "source_lang": "en",
+    "target_lang": "fr",
+    "mode": "vocabulary",
+    "min_cards": 8,
+    "max_cards": 15,
+    "expected_cards": [
+      {"front": "l'avion", "back": "the airplane"},
+      {"front": "le train", "back": "the train"},
+      {"front": "la gare", "back": "the train station"},
+      {"front": "le billet", "back": "the ticket"},
+      {"front": "la valise", "back": "the suitcase"},
+      {"front": "le passeport", "back": "the passport"},
+      {"front": "l'hôtel", "back": "the hotel"},
+      {"front": "le voyage", "back": "the trip"}
+    ],
+    "required_concepts": ["airplane", "train", "ticket", "suitcase", "passport", "hotel"]
+  },
+  {
+    "id": "vocab-food-en-ja",
+    "prompt": "food and drinks",
+    "source_lang": "en",
+    "target_lang": "ja",
+    "mode": "vocabulary",
+    "min_cards": 8,
+    "max_cards": 15,
+    "expected_cards": [
+      {"front": "水 (mizu)", "back": "water"},
+      {"front": "ご飯 (gohan)", "back": "rice / meal"},
+      {"front": "肉 (niku)", "back": "meat"},
+      {"front": "魚 (sakana)", "back": "fish"},
+      {"front": "野菜 (yasai)", "back": "vegetables"},
+      {"front": "パン (pan)", "back": "bread"},
+      {"front": "牛乳 (gyūnyū)", "back": "milk"},
+      {"front": "お茶 (ocha)", "back": "tea"}
+    ],
+    "required_concepts": ["water", "rice", "meat", "fish", "vegetables", "bread"]
+  },
+  {
+    "id": "vocab-clothing-en-es",
+    "prompt": "clothing and accessories",
+    "source_lang": "en",
+    "target_lang": "es",
+    "mode": "vocabulary",
+    "min_cards": 8,
+    "max_cards": 15,
+    "expected_cards": [
+      {"front": "la camisa", "back": "the shirt"},
+      {"front": "los pantalones", "back": "the pants"},
+      {"front": "los zapatos", "back": "the shoes"},
+      {"front": "el vestido", "back": "the dress"},
+      {"front": "la chaqueta", "back": "the jacket"},
+      {"front": "el sombrero", "back": "the hat"},
+      {"front": "los calcetines", "back": "the socks"},
+      {"front": "el cinturón", "back": "the belt"}
+    ],
+    "required_concepts": ["shirt", "pants", "shoes", "dress", "jacket", "hat"]
+  },
+  {
+    "id": "vocab-body-en-de",
+    "prompt": "body parts",
+    "source_lang": "en",
+    "target_lang": "de",
+    "mode": "vocabulary",
+    "min_cards": 8,
+    "max_cards": 15,
+    "expected_cards": [
+      {"front": "der Kopf", "back": "the head"},
+      {"front": "die Hand", "back": "the hand"},
+      {"front": "das Auge", "back": "the eye"},
+      {"front": "das Ohr", "back": "the ear"},
+      {"front": "der Mund", "back": "the mouth"},
+      {"front": "die Nase", "back": "the nose"},
+      {"front": "der Fuß", "back": "the foot"},
+      {"front": "der Arm", "back": "the arm"}
+    ],
+    "required_concepts": ["head", "hand", "eye", "ear", "mouth", "foot"]
+  },
+  {
+    "id": "vocab-exact-count-en-es",
+    "prompt": "give me exactly 5 words about the weather",
+    "source_lang": "en",
+    "target_lang": "es",
+    "mode": "vocabulary",
+    "min_cards": 5,
+    "max_cards": 5,
+    "expected_cards": [
+      {"front": "el sol", "back": "the sun"},
+      {"front": "la lluvia", "back": "the rain"},
+      {"front": "la nieve", "back": "the snow"},
+      {"front": "el viento", "back": "the wind"},
+      {"front": "la nube", "back": "the cloud"}
+    ],
+    "required_concepts": ["sun", "rain", "snow", "wind", "cloud"]
+  },
+  {
+    "id": "vocab-vague-en-fr",
+    "prompt": "useful beginner words",
+    "source_lang": "en",
+    "target_lang": "fr",
+    "mode": "vocabulary",
+    "min_cards": 8,
+    "max_cards": 15,
+    "expected_cards": [
+      {"front": "bonjour", "back": "hello / good morning"},
+      {"front": "merci", "back": "thank you"},
+      {"front": "oui", "back": "yes"},
+      {"front": "non", "back": "no"},
+      {"front": "s'il vous plaît", "back": "please"},
+      {"front": "au revoir", "back": "goodbye"},
+      {"front": "excusez-moi", "back": "excuse me"},
+      {"front": "l'eau", "back": "water"}
+    ],
+    "required_concepts": ["hello", "thank you", "yes", "no", "please", "goodbye"]
+  },
+  {
+    "id": "grammar-verbs-en-es",
+    "prompt": "present tense regular verb conjugation patterns",
+    "source_lang": "en",
+    "target_lang": "es",
+    "mode": "grammar",
+    "min_cards": 8,
+    "max_cards": 15,
+    "expected_cards": [
+      {"front": "yo + hablar → ?", "back": "hablo (I speak)"},
+      {"front": "tú + comer → ?", "back": "comes (you eat)"},
+      {"front": "él/ella + vivir → ?", "back": "vive (he/she lives)"},
+      {"front": "nosotros + hablar → ?", "back": "hablamos (we speak)"},
+      {"front": "-ar verbs: yo ending?", "back": "-o (e.g., hablo, canto)"},
+      {"front": "-er verbs: tú ending?", "back": "-es (e.g., comes, bebes)"},
+      {"front": "-ir verbs: él/ella ending?", "back": "-e (e.g., vive, escribe)"}
+    ],
+    "required_concepts": ["conjugation", "-ar", "-er", "-ir", "yo", "tú"]
+  },
+  {
+    "id": "grammar-articles-en-de",
+    "prompt": "German articles and noun genders",
+    "source_lang": "en",
+    "target_lang": "de",
+    "mode": "grammar",
+    "min_cards": 8,
+    "max_cards": 15,
+    "expected_cards": [
+      {"front": "What article does 'Hund' take?", "back": "der Hund (masculine)"},
+      {"front": "What article does 'Katze' take?", "back": "die Katze (feminine)"},
+      {"front": "What article does 'Buch' take?", "back": "das Buch (neuter)"},
+      {"front": "Nouns ending in -ung are usually...?", "back": "feminine (die), e.g., die Zeitung"},
+      {"front": "Nouns ending in -chen are always...?", "back": "neuter (das), e.g., das Mädchen"}
+    ],
+    "required_concepts": ["der", "die", "das", "masculine", "feminine", "neuter"]
+  },
+  {
+    "id": "grammar-past-tense-en-fr",
+    "prompt": "passé composé with avoir and être",
+    "source_lang": "en",
+    "target_lang": "fr",
+    "mode": "grammar",
+    "min_cards": 8,
+    "max_cards": 15,
+    "expected_cards": [
+      {"front": "J'ai + manger → ?", "back": "J'ai mangé (I ate)"},
+      {"front": "Tu as + finir → ?", "back": "Tu as fini (You finished)"},
+      {"front": "Elle est + aller → ?", "back": "Elle est allée (She went)"},
+      {"front": "Which verbs use 'être'?", "back": "DR MRS VANDERTRAMP verbs (aller, venir, arriver, partir, etc.)"},
+      {"front": "Past participle of 'avoir'?", "back": "eu (had)"},
+      {"front": "Past participle of 'être'?", "back": "été (been)"},
+      {"front": "Agreement rule with être?", "back": "Past participle agrees in gender/number with subject"}
+    ],
+    "required_concepts": ["avoir", "être", "passé composé", "past participle", "agreement"]
+  },
+  {
+    "id": "vocab-food-de-en",
+    "prompt": "Essen und Getränke",
+    "source_lang": "de",
+    "target_lang": "en",
+    "mode": "vocabulary",
+    "min_cards": 8,
+    "max_cards": 15,
+    "expected_cards": [
+      {"front": "water", "back": "das Wasser"},
+      {"front": "bread", "back": "das Brot"},
+      {"front": "milk", "back": "die Milch"},
+      {"front": "cheese", "back": "der Käse"},
+      {"front": "meat", "back": "das Fleisch"},
+      {"front": "apple", "back": "der Apfel"},
+      {"front": "coffee", "back": "der Kaffee"},
+      {"front": "tea", "back": "der Tee"}
+    ],
+    "required_concepts": ["water", "bread", "milk", "cheese", "meat", "apple", "coffee"]
+  },
+  {
+    "id": "vocab-family-de-en",
+    "prompt": "Familie und Verwandte",
+    "source_lang": "de",
+    "target_lang": "en",
+    "mode": "vocabulary",
+    "min_cards": 8,
+    "max_cards": 15,
+    "expected_cards": [
+      {"front": "the mother", "back": "die Mutter"},
+      {"front": "the father", "back": "der Vater"},
+      {"front": "the sister", "back": "die Schwester"},
+      {"front": "the brother", "back": "der Bruder"},
+      {"front": "the grandmother", "back": "die Großmutter / die Oma"},
+      {"front": "the grandfather", "back": "der Großvater / der Opa"},
+      {"front": "the daughter", "back": "die Tochter"},
+      {"front": "the son", "back": "der Sohn"}
+    ],
+    "required_concepts": ["mother", "father", "sister", "brother", "grandmother", "daughter"]
+  },
+  {
+    "id": "vocab-travel-de-es",
+    "prompt": "Reisen und Verkehrsmittel",
+    "source_lang": "de",
+    "target_lang": "es",
+    "mode": "vocabulary",
+    "min_cards": 8,
+    "max_cards": 15,
+    "expected_cards": [
+      {"front": "el avión", "back": "das Flugzeug"},
+      {"front": "el tren", "back": "der Zug"},
+      {"front": "la estación", "back": "der Bahnhof"},
+      {"front": "el billete", "back": "die Fahrkarte"},
+      {"front": "la maleta", "back": "der Koffer"},
+      {"front": "el hotel", "back": "das Hotel"},
+      {"front": "el aeropuerto", "back": "der Flughafen"},
+      {"front": "el pasaporte", "back": "der Reisepass"}
+    ],
+    "required_concepts": ["avión", "tren", "billete", "maleta", "hotel", "aeropuerto"]
+  },
+  {
+    "id": "vocab-animals-de-es",
+    "prompt": "Tiere",
+    "source_lang": "de",
+    "target_lang": "es",
+    "mode": "vocabulary",
+    "min_cards": 8,
+    "max_cards": 15,
+    "expected_cards": [
+      {"front": "el perro", "back": "der Hund"},
+      {"front": "el gato", "back": "die Katze"},
+      {"front": "el pájaro", "back": "der Vogel"},
+      {"front": "el pez", "back": "der Fisch"},
+      {"front": "el caballo", "back": "das Pferd"},
+      {"front": "la vaca", "back": "die Kuh"},
+      {"front": "el cerdo", "back": "das Schwein"},
+      {"front": "el conejo", "back": "das Kaninchen"}
+    ],
+    "required_concepts": ["perro", "gato", "pájaro", "pez", "caballo", "vaca"]
+  },
+  {
+    "id": "grammar-cases-de-en",
+    "prompt": "German cases (Nominativ, Akkusativ, Dativ)",
+    "source_lang": "de",
+    "target_lang": "en",
+    "mode": "grammar",
+    "min_cards": 8,
+    "max_cards": 15,
+    "expected_cards": [
+      {"front": "Ich sehe ___ Hund. (der Hund)", "back": "den Hund (accusative masculine)"},
+      {"front": "Ich gebe ___ Frau das Buch. (die Frau)", "back": "der Frau (dative feminine)"},
+      {"front": "When do you use Akkusativ?", "back": "Direct object; after prepositions: durch, für, gegen, ohne, um"},
+      {"front": "When do you use Dativ?", "back": "Indirect object; after prepositions: aus, bei, mit, nach, seit, von, zu"},
+      {"front": "der → ? (Akkusativ)", "back": "den"},
+      {"front": "der → ? (Dativ)", "back": "dem"}
+    ],
+    "required_concepts": ["Nominativ", "Akkusativ", "Dativ", "den", "dem", "der"]
+  }
+]

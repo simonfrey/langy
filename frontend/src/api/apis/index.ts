@@ -6,5 +6,6 @@ export * from './DecksApi';
 export * from './ExercisesApi';
 export * from './GenerateApi';
 export * from './ImagesApi';
+export * from './LanguagesApi';
 export * from './ReviewApi';
 export * from './SyncApi';

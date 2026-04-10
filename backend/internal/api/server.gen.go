@@ -163,6 +163,14 @@ type KnownWord struct {
 	Front string `json:"front"`
 }
 
+// LanguagePairResponse defines model for LanguagePairResponse.
+type LanguagePairResponse struct {
+	SourceLang string `json:"source_lang"`
+	SourceName string `json:"source_name"`
+	TargetLang string `json:"target_lang"`
+	TargetName string `json:"target_name"`
+}
+
 // LoginRequest defines model for LoginRequest.
 type LoginRequest struct {
 	Email    string `json:"email"`
@@ -321,6 +329,9 @@ type ServerInterface interface {
 
 	// (GET /images/{id})
 	GetImage(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
+	// List supported language pairs
+	// (GET /language-pairs)
+	ListLanguagePairs(w http.ResponseWriter, r *http.Request)
 
 	// (POST /review)
 	SubmitReview(w http.ResponseWriter, r *http.Request)
@@ -413,6 +424,12 @@ func (_ Unimplemented) UploadImage(w http.ResponseWriter, r *http.Request) {
 
 // (GET /images/{id})
 func (_ Unimplemented) GetImage(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// List supported language pairs
+// (GET /language-pairs)
+func (_ Unimplemented) ListLanguagePairs(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -814,6 +831,20 @@ func (siw *ServerInterfaceWrapper) GetImage(w http.ResponseWriter, r *http.Reque
 	handler.ServeHTTP(w, r)
 }
 
+// ListLanguagePairs operation middleware
+func (siw *ServerInterfaceWrapper) ListLanguagePairs(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListLanguagePairs(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // SubmitReview operation middleware
 func (siw *ServerInterfaceWrapper) SubmitReview(w http.ResponseWriter, r *http.Request) {
 
@@ -1047,6 +1078,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/images/{id}", wrapper.GetImage)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/language-pairs", wrapper.ListLanguagePairs)
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/review", wrapper.SubmitReview)
@@ -1538,6 +1572,22 @@ func (response GetImagedefaultJSONResponse) VisitGetImageResponse(w http.Respons
 	return json.NewEncoder(w).Encode(response.Body)
 }
 
+type ListLanguagePairsRequestObject struct {
+}
+
+type ListLanguagePairsResponseObject interface {
+	VisitListLanguagePairsResponse(w http.ResponseWriter) error
+}
+
+type ListLanguagePairs200JSONResponse []LanguagePairResponse
+
+func (response ListLanguagePairs200JSONResponse) VisitListLanguagePairsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type SubmitReviewRequestObject struct {
 	Body *SubmitReviewJSONRequestBody
 }
@@ -1675,6 +1725,9 @@ type StrictServerInterface interface {
 
 	// (GET /images/{id})
 	GetImage(ctx context.Context, request GetImageRequestObject) (GetImageResponseObject, error)
+	// List supported language pairs
+	// (GET /language-pairs)
+	ListLanguagePairs(ctx context.Context, request ListLanguagePairsRequestObject) (ListLanguagePairsResponseObject, error)
 
 	// (POST /review)
 	SubmitReview(ctx context.Context, request SubmitReviewRequestObject) (SubmitReviewResponseObject, error)
@@ -2174,6 +2227,30 @@ func (sh *strictHandler) GetImage(w http.ResponseWriter, r *http.Request, id ope
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(GetImageResponseObject); ok {
 		if err := validResponse.VisitGetImageResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListLanguagePairs operation middleware
+func (sh *strictHandler) ListLanguagePairs(w http.ResponseWriter, r *http.Request) {
+	var request ListLanguagePairsRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListLanguagePairs(ctx, request.(ListLanguagePairsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListLanguagePairs")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListLanguagePairsResponseObject); ok {
+		if err := validResponse.VisitListLanguagePairsResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
