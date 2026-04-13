@@ -41,7 +41,6 @@ We want small files with a clear single responsibility. If a file grows too larg
 
 The smaller a change is you do, the better. I like simple. Be simple. If you find yourself writing complex code, take a step back and see if there’s a simpler way to achieve the same result. Simple code is easier to read, understand, and maintain.
 
-
 ## FRONTEND (/frontend) typescript/react/vite
 
 ### Format frontend code

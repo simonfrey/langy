@@ -1,19 +1,15 @@
 # ImagesApi
 
-All URIs are relative to */api*
+All URIs are relative to _/api_
 
-| Method | HTTP request | Description |
-|------------- | ------------- | -------------|
-| [**getImage**](ImagesApi.md#getimage) | **GET** /images/{id} |  |
-| [**uploadImage**](ImagesApi.md#uploadimage) | **POST** /images |  |
-
-
+| Method                                      | HTTP request         | Description |
+| ------------------------------------------- | -------------------- | ----------- |
+| [**getImage**](ImagesApi.md#getimage)       | **GET** /images/{id} |             |
+| [**uploadImage**](ImagesApi.md#uploadimage) | **POST** /images     |             |
 
 ## getImage
 
 > Blob getImage(id)
-
-
 
 ### Example
 
@@ -26,7 +22,7 @@ import type { GetImageRequest } from '';
 
 async function example() {
   console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
+  const config = new Configuration({
     // Configure HTTP bearer authorization: bearerAuth
     accessToken: "YOUR BEARER TOKEN",
   });
@@ -51,10 +47,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **id** | `string` |  | [Defaults to `undefined`] |
+| Name   | Type     | Description | Notes                     |
+| ------ | -------- | ----------- | ------------------------- |
+| **id** | `string` |             | [Defaults to `undefined`] |
 
 ### Return type
 
@@ -69,34 +64,28 @@ example().catch(console.error);
 - **Content-Type**: Not defined
 - **Accept**: `image/*`, `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Image binary |  -  |
-| **0** | Error response |  -  |
+
+| Status code | Description    | Response headers |
+| ----------- | -------------- | ---------------- |
+| **200**     | Image binary   | -                |
+| **0**       | Error response | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## uploadImage
 
 > ImageUploadResponse uploadImage(image)
 
-
-
 ### Example
 
 ```ts
-import {
-  Configuration,
-  ImagesApi,
-} from '';
-import type { UploadImageRequest } from '';
+import { Configuration, ImagesApi } from "";
+import type { UploadImageRequest } from "";
 
 async function example() {
   console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
+  const config = new Configuration({
     // Configure HTTP bearer authorization: bearerAuth
     accessToken: "YOUR BEARER TOKEN",
   });
@@ -121,10 +110,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **image** | `Blob` |  | [Defaults to `undefined`] |
+| Name      | Type   | Description | Notes                     |
+| --------- | ------ | ----------- | ------------------------- |
+| **image** | `Blob` |             | [Defaults to `undefined`] |
 
 ### Return type
 
@@ -139,12 +127,11 @@ example().catch(console.error);
 - **Content-Type**: `multipart/form-data`
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **201** | Image uploaded |  -  |
-| **0** | Error response |  -  |
+
+| Status code | Description    | Response headers |
+| ----------- | -------------- | ---------------- |
+| **201**     | Image uploaded | -                |
+| **0**       | Error response | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-

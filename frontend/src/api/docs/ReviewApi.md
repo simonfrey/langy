@@ -1,19 +1,15 @@
 # ReviewApi
 
-All URIs are relative to */api*
+All URIs are relative to _/api_
 
-| Method | HTTP request | Description |
-|------------- | ------------- | -------------|
-| [**getDueCards**](ReviewApi.md#getduecards) | **GET** /review/due |  |
-| [**submitReview**](ReviewApi.md#submitreview) | **POST** /review |  |
-
-
+| Method                                        | HTTP request        | Description |
+| --------------------------------------------- | ------------------- | ----------- |
+| [**getDueCards**](ReviewApi.md#getduecards)   | **GET** /review/due |             |
+| [**submitReview**](ReviewApi.md#submitreview) | **POST** /review    |             |
 
 ## getDueCards
 
 > Array&lt;Card&gt; getDueCards(deck_id)
-
-
 
 ### Example
 
@@ -26,7 +22,7 @@ import type { GetDueCardsRequest } from '';
 
 async function example() {
   console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
+  const config = new Configuration({
     // Configure HTTP bearer authorization: bearerAuth
     accessToken: "YOUR BEARER TOKEN",
   });
@@ -51,10 +47,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **deck_id** | `string` |  | [Optional] [Defaults to `undefined`] |
+| Name        | Type     | Description | Notes                                |
+| ----------- | -------- | ----------- | ------------------------------------ |
+| **deck_id** | `string` |             | [Optional] [Defaults to `undefined`] |
 
 ### Return type
 
@@ -69,21 +64,18 @@ example().catch(console.error);
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Due cards for review |  -  |
-| **0** | Error response |  -  |
+
+| Status code | Description          | Response headers |
+| ----------- | -------------------- | ---------------- |
+| **200**     | Due cards for review | -                |
+| **0**       | Error response       | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## submitReview
 
 > Card submitReview(ReviewRequest)
-
-
 
 ### Example
 
@@ -96,7 +88,7 @@ import type { SubmitReviewRequest } from '';
 
 async function example() {
   console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
+  const config = new Configuration({
     // Configure HTTP bearer authorization: bearerAuth
     accessToken: "YOUR BEARER TOKEN",
   });
@@ -121,10 +113,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **ReviewRequest** | [ReviewRequest](ReviewRequest.md) |  | |
+| Name              | Type                              | Description | Notes |
+| ----------------- | --------------------------------- | ----------- | ----- |
+| **ReviewRequest** | [ReviewRequest](ReviewRequest.md) |             |       |
 
 ### Return type
 
@@ -139,12 +130,11 @@ example().catch(console.error);
 - **Content-Type**: `application/json`
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Review submitted, updated card returned |  -  |
-| **0** | Error response |  -  |
+
+| Status code | Description                             | Response headers |
+| ----------- | --------------------------------------- | ---------------- |
+| **200**     | Review submitted, updated card returned | -                |
+| **0**       | Error response                          | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-

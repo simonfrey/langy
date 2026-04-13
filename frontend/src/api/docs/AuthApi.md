@@ -1,19 +1,15 @@
 # AuthApi
 
-All URIs are relative to */api*
+All URIs are relative to _/api_
 
-| Method | HTTP request | Description |
-|------------- | ------------- | -------------|
-| [**login**](AuthApi.md#loginoperation) | **POST** /auth/login |  |
-| [**register**](AuthApi.md#registeroperation) | **POST** /auth/register |  |
-
-
+| Method                                       | HTTP request            | Description |
+| -------------------------------------------- | ----------------------- | ----------- |
+| [**login**](AuthApi.md#loginoperation)       | **POST** /auth/login    |             |
+| [**register**](AuthApi.md#registeroperation) | **POST** /auth/register |             |
 
 ## login
 
 > AuthResponse login(LoginRequest)
-
-
 
 ### Example
 
@@ -47,10 +43,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **LoginRequest** | [LoginRequest](LoginRequest.md) |  | |
+| Name             | Type                            | Description | Notes |
+| ---------------- | ------------------------------- | ----------- | ----- |
+| **LoginRequest** | [LoginRequest](LoginRequest.md) |             |       |
 
 ### Return type
 
@@ -65,21 +60,18 @@ No authorization required
 - **Content-Type**: `application/json`
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Login successful |  -  |
-| **0** | Error response |  -  |
+
+| Status code | Description      | Response headers |
+| ----------- | ---------------- | ---------------- |
+| **200**     | Login successful | -                |
+| **0**       | Error response   | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## register
 
 > AuthResponse register(RegisterRequest)
-
-
 
 ### Example
 
@@ -113,10 +105,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **RegisterRequest** | [RegisterRequest](RegisterRequest.md) |  | |
+| Name                | Type                                  | Description | Notes |
+| ------------------- | ------------------------------------- | ----------- | ----- |
+| **RegisterRequest** | [RegisterRequest](RegisterRequest.md) |             |       |
 
 ### Return type
 
@@ -131,12 +122,11 @@ No authorization required
 - **Content-Type**: `application/json`
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **201** | User registered |  -  |
-| **0** | Error response |  -  |
+
+| Status code | Description     | Response headers |
+| ----------- | --------------- | ---------------- |
+| **201**     | User registered | -                |
+| **0**       | Error response  | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-

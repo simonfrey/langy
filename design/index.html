@@ -1,580 +1,1429 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Langy — Brand Guide</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;0,9..144,800;1,9..144,400&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-<script>
-tailwind.config = {
-  theme: {
-    extend: {
-      colors: {
-        primary: {
-          DEFAULT: '#4A90B8',
-          dark: '#3A7CA5',
-          light: '#B8D8E8',
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Langy — Brand Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;0,9..144,800;1,9..144,400&family=Inter:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: {
+                DEFAULT: "#4A90B8",
+                dark: "#3A7CA5",
+                light: "#B8D8E8",
+              },
+              ink: { DEFAULT: "#2D2926", muted: "#8A8380" },
+              cream: { DEFAULT: "#F5F0EB", light: "#FFFAF5" },
+            },
+            fontFamily: {
+              display: ["Fraunces", "serif"],
+              body: ["Inter", "sans-serif"],
+            },
+            borderRadius: { card: "12px", section: "24px", hero: "40px" },
+            aspectRatio: { flashcard: "96 / 62" },
+          },
         },
-        ink: { DEFAULT: '#2D2926', muted: '#8A8380' },
-        cream: { DEFAULT: '#F5F0EB', light: '#FFFAF5' },
-      },
-      fontFamily: {
-        display: ['Fraunces', 'serif'],
-        body: ['Inter', 'sans-serif'],
-      },
-      borderRadius: { card: '12px', section: '24px', hero: '40px' },
-      aspectRatio: { flashcard: '96 / 62' },
-    },
-  },
-}
-</script>
-<style>
-  .animate-float { animation: none; }
-  @keyframes fade-up {
-    from { opacity: 0; transform: translateY(20px) }
-    to { opacity: 1; transform: translateY(0) }
-  }
-  .animate-fade-up { animation: fade-up 0.8s ease-out backwards }
-  .delay-200 { animation-delay: 0.25s }
-  .delay-300 { animation-delay: 0.4s }
-  .delay-400 { animation-delay: 0.55s }
-  .deco-card {
-    position: absolute;
-    border-radius: 12%;
-    aspect-ratio: 96 / 62;
-  }
-  .{
-    border: 2px solid #edebe8;
-  }
-</style>
-</head>
-<body class="font-body bg-cream-light text-ink antialiased overflow-x-hidden">
-
-<!--
+      };
+    </script>
+    <style>
+      .animate-float {
+        animation: none;
+      }
+      @keyframes fade-up {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .animate-fade-up {
+        animation: fade-up 0.8s ease-out backwards;
+      }
+      .delay-200 {
+        animation-delay: 0.25s;
+      }
+      .delay-300 {
+        animation-delay: 0.4s;
+      }
+      .delay-400 {
+        animation-delay: 0.55s;
+      }
+      .deco-card {
+        position: absolute;
+        border-radius: 12%;
+        aspect-ratio: 96 / 62;
+      }
+      . {
+        border: 2px solid #edebe8;
+      }
+    </style>
+  </head>
+  <body class="font-body bg-cream-light text-ink antialiased overflow-x-hidden">
+    <!--
   MASCOT: loaded from mascot.svg (single source of truth)
   - Hand-drawn flashcard face, 96:62 aspect ratio
   - Symmetric features with organic bezier paths
   - Dark variant: mascot-dark.svg (for primary/dark backgrounds)
 -->
 
-<!-- ━━ NAV ━━ -->
-<nav class="fixed top-0 left-0 right-0 z-50 bg-cream-light/85 backdrop-blur-md border-b border-cream h-14 flex items-center justify-between px-6 lg:px-10">
-  <div class="font-display font-extrabold text-xl text-primary-dark flex items-center gap-2.5">
-    <img src="mascot.svg" alt="Langy" class="w-10 h-auto">
-    Langy CI
-  </div>
-  <ul class="hidden md:flex gap-7">
-    <li><a href="#colors" class="text-ink-muted text-xs font-semibold tracking-wide hover:text-primary transition-colors">Colors</a></li>
-    <li><a href="#typography" class="text-ink-muted text-xs font-semibold tracking-wide hover:text-primary transition-colors">Typography</a></li>
-    <li><a href="#mascot" class="text-ink-muted text-xs font-semibold tracking-wide hover:text-primary transition-colors">Mascot</a></li>
-    <li><a href="#components" class="text-ink-muted text-xs font-semibold tracking-wide hover:text-primary transition-colors">Components</a></li>
-    <li><a href="#spacing" class="text-ink-muted text-xs font-semibold tracking-wide hover:text-primary transition-colors">Spacing</a></li>
-    <li><a href="#guidance" class="text-ink-muted text-xs font-semibold tracking-wide hover:text-primary transition-colors">Guidance</a></li>
-  </ul>
-</nav>
-
-<!-- ━━ HERO ━━ -->
-<section class="min-h-screen flex flex-col items-center justify-center text-center pt-14 px-6 relative overflow-hidden">
-  <div class="absolute inset-0 pointer-events-none">
-    <div class="deco-card w-44 bg-primary-light opacity-[.12] top-[8%] left-[3%] -rotate-[18deg]"></div>
-    <div class="deco-card w-28 bg-primary opacity-[.08] top-[15%] right-[8%] rotate-12"></div>
-    <div class="deco-card w-20 bg-primary-dark opacity-[.07] bottom-[20%] left-[7%] rotate-[25deg]"></div>
-    <div class="deco-card w-36 bg-primary-light opacity-10 bottom-[12%] right-[4%] -rotate-[8deg]"></div>
-    <div class="deco-card w-14 bg-primary-light opacity-[.09] top-[40%] left-[1%] rotate-[35deg]"></div>
-    <div class="deco-card w-16 bg-primary opacity-[.06] top-[35%] right-[2%] -rotate-[22deg]"></div>
-  </div>
-
-  <div class="animate-fade-up">
-    <img src="mascot.svg" alt="Langy mascot" class="animate-float w-[200px] drop-shadow-[0_20px_40px_rgba(74,144,184,.25)]">
-  </div>
-  <h1 class="animate-fade-up delay-200 font-display font-extrabold text-[clamp(56px,10vw,100px)] leading-none tracking-tight mt-8 mb-4">
-    Lang<span class="text-primary">y</span>
-  </h1>
-  <p class="animate-fade-up delay-300 text-xl text-ink-muted max-w-md mx-auto mb-10">
-    Brand guidelines for building a warm, friendly language-learning experience.
-  </p>
-  <span class="animate-fade-up delay-400 inline-block bg-primary-light/40 text-primary-dark text-xs font-bold px-4 py-1.5 rounded-full tracking-wide">
-    Brand Guide v1.0 — March 2026
-  </span>
-</section>
-
-<!-- ━━ COLORS ━━ -->
-<section id="colors" class="max-w-5xl mx-auto px-6 py-24 relative">
-  <div class="absolute inset-0 pointer-events-none overflow-hidden">
-    <div class="deco-card w-24 bg-primary opacity-[.06] top-[5%] right-[2%] rotate-[15deg]"></div>
-    <div class="deco-card w-16 bg-primary-light opacity-[.08] bottom-[8%] left-[1%] -rotate-[20deg]"></div>
-  </div>
-
-  <div class="relative bg-white rounded-hero p-8 sm:p-12 lg:p-16">
-    <p class="text-[11px] font-bold tracking-[.14em] uppercase text-primary mb-3">01 — Color Palette</p>
-    <h2 class="font-display font-extrabold text-[clamp(32px,5vw,52px)] leading-tight mb-5">Our colors</h2>
-    <p class="text-[17px] text-ink-muted max-w-xl leading-relaxed mb-12">
-      A calming blue palette grounded by warm neutrals. The primary blue evokes trust and focus; warm creams keep things cozy.
-    </p>
-
-    <!-- Primary -->
-    <p class="font-bold text-sm text-ink-muted mb-4 tracking-wide">Primary</p>
-    <div class="flex flex-wrap gap-4 mb-10">
-      <div class="w-36 rounded-card overflow-hidden bg-white shadow-sm hover:-translate-y-1 hover:shadow-md transition-all"><div class="h-[90px] bg-primary"></div><div class="p-3"><p class="text-[13px] font-semibold">Primary</p><p class="text-xs text-ink-muted font-mono">#4A90B8</p></div></div>
-      <div class="w-36 rounded-card overflow-hidden bg-white shadow-sm hover:-translate-y-1 hover:shadow-md transition-all"><div class="h-[90px] bg-primary-dark"></div><div class="p-3"><p class="text-[13px] font-semibold">Primary Dark</p><p class="text-xs text-ink-muted font-mono">#3A7CA5</p></div></div>
-      <div class="w-36 rounded-card overflow-hidden bg-white shadow-sm hover:-translate-y-1 hover:shadow-md transition-all"><div class="h-[90px] bg-primary-light"></div><div class="p-3"><p class="text-[13px] font-semibold">Primary Light</p><p class="text-xs text-ink-muted font-mono">#B8D8E8</p></div></div>
-    </div>
-
-    <!-- Neutrals -->
-    <p class="font-bold text-sm text-ink-muted mb-4 tracking-wide">Neutrals</p>
-    <div class="flex flex-wrap gap-4 mb-10">
-      <div class="w-36 rounded-card overflow-hidden bg-white shadow-sm hover:-translate-y-1 hover:shadow-md transition-all"><div class="h-[90px] bg-ink"></div><div class="p-3"><p class="text-[13px] font-semibold">Ink</p><p class="text-xs text-ink-muted font-mono">#2D2926</p></div></div>
-      <div class="w-36 rounded-card overflow-hidden bg-white shadow-sm hover:-translate-y-1 hover:shadow-md transition-all"><div class="h-[90px] bg-ink-muted"></div><div class="p-3"><p class="text-[13px] font-semibold">Ink Muted</p><p class="text-xs text-ink-muted font-mono">#8A8380</p></div></div>
-      <div class="w-36 rounded-card overflow-hidden bg-white shadow-sm hover:-translate-y-1 hover:shadow-md transition-all"><div class="h-[90px] bg-cream"></div><div class="p-3"><p class="text-[13px] font-semibold">Cream</p><p class="text-xs text-ink-muted font-mono">#F5F0EB</p></div></div>
-      <div class="w-36 rounded-card overflow-hidden bg-white shadow-sm hover:-translate-y-1 hover:shadow-md transition-all"><div class="h-[90px] bg-cream-light border border-cream"></div><div class="p-3"><p class="text-[13px] font-semibold">Cream Light</p><p class="text-xs text-ink-muted font-mono">#FFFAF5</p></div></div>
-    </div>
-
-    <!-- Semantic -->
-    <p class="font-bold text-sm text-ink-muted mb-4 tracking-wide">Semantic</p>
-    <div class="flex flex-wrap gap-4">
-      <div class="w-36 rounded-card overflow-hidden bg-white shadow-sm hover:-translate-y-1 hover:shadow-md transition-all"><div class="h-[90px]" style="background:#10B981"></div><div class="p-3"><p class="text-[13px] font-semibold">Success</p><p class="text-xs text-ink-muted font-mono">#10B981</p></div></div>
-      <div class="w-36 rounded-card overflow-hidden bg-white shadow-sm hover:-translate-y-1 hover:shadow-md transition-all"><div class="h-[90px]" style="background:#F59E0B"></div><div class="p-3"><p class="text-[13px] font-semibold">Warning</p><p class="text-xs text-ink-muted font-mono">#F59E0B</p></div></div>
-      <div class="w-36 rounded-card overflow-hidden bg-white shadow-sm hover:-translate-y-1 hover:shadow-md transition-all"><div class="h-[90px]" style="background:#F43F5E"></div><div class="p-3"><p class="text-[13px] font-semibold">Error</p><p class="text-xs text-ink-muted font-mono">#F43F5E</p></div></div>
-    </div>
-  </div>
-</section>
-
-<!-- ━━ TYPOGRAPHY ━━ -->
-<section id="typography" class="max-w-5xl mx-auto px-6 py-24 relative">
-  <div class="absolute inset-0 pointer-events-none overflow-hidden">
-    <div class="deco-card w-28 bg-primary-dark opacity-[.05] top-[3%] right-[5%] -rotate-12"></div>
-    <div class="deco-card w-20 bg-primary-light opacity-[.07] bottom-[5%] left-[3%] rotate-[30deg]"></div>
-  </div>
-
-  <div class="relative">
-    <p class="text-[11px] font-bold tracking-[.14em] uppercase text-primary mb-3">02 — Typography</p>
-    <h2 class="font-display font-extrabold text-[clamp(32px,5vw,52px)] leading-tight mb-5">Two typefaces</h2>
-    <p class="text-[17px] text-ink-muted max-w-xl leading-relaxed mb-12">
-      We pair exactly two fonts: <strong class="text-ink font-semibold">Fraunces</strong> (serif) for display headings, and <strong class="text-ink font-semibold">Inter</strong> (sans-serif) for body and UI. Together they feel warm, legible, and approachable.
-    </p>
-
-    <!-- Fraunces -->
-    <div class="bg-white rounded-section p-8 sm:p-12 mb-6">
-      <div class="flex items-baseline gap-4 mb-6">
-        <h3 class="font-display font-extrabold text-2xl">Fraunces</h3>
-        <span class="text-xs font-semibold text-ink-muted tracking-wide uppercase">Display · Serif</span>
+    <!-- ━━ NAV ━━ -->
+    <nav
+      class="fixed top-0 left-0 right-0 z-50 bg-cream-light/85 backdrop-blur-md border-b border-cream h-14 flex items-center justify-between px-6 lg:px-10"
+    >
+      <div
+        class="font-display font-extrabold text-xl text-primary-dark flex items-center gap-2.5"
+      >
+        <img src="mascot.svg" alt="Langy" class="w-10 h-auto" />
+        Langy CI
       </div>
-      <p class="text-sm text-ink-muted leading-relaxed mb-8 max-w-lg">A soft old-style serif with optical sizing. Rounded, slightly wonky letterforms give headlines a cozy, hand-crafted feel. Used for page titles, hero text, and brand moments.</p>
-      <div class="space-y-5">
-        <div class="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-6 pb-5 border-b border-cream">
-          <div class="shrink-0 sm:w-28 text-xs text-ink-muted font-medium">Display / 48px<br>Weight 800</div>
-          <div class="font-display text-5xl font-extrabold leading-tight tracking-tight">Learn a new language today</div>
-        </div>
-        <div class="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-6 pb-5 border-b border-cream">
-          <div class="shrink-0 sm:w-28 text-xs text-ink-muted font-medium">H1 / 36px<br>Weight 800</div>
-          <div class="font-display text-4xl font-extrabold leading-snug">Your daily vocabulary</div>
-        </div>
-        <div class="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-6">
-          <div class="shrink-0 sm:w-28 text-xs text-ink-muted font-medium">H2 / 28px<br>Weight 700</div>
-          <div class="font-display text-[28px] font-bold leading-snug">Practice makes progress</div>
-        </div>
-      </div>
-      <div class="grid grid-cols-3 gap-5 mt-8">
-        <div class="bg-cream-light rounded-card p-6 hover:bg-primary-light/40 transition-colors"><p class="text-[11px] font-semibold text-ink-muted tracking-wider uppercase mb-2">Regular 400</p><p class="font-display text-[28px] font-normal">Aa Bb Cc</p></div>
-        <div class="bg-cream-light rounded-card p-6 hover:bg-primary-light/40 transition-colors"><p class="text-[11px] font-semibold text-ink-muted tracking-wider uppercase mb-2">Bold 700</p><p class="font-display text-[28px] font-bold">Aa Bb Cc</p></div>
-        <div class="bg-cream-light rounded-card p-6 hover:bg-primary-light/40 transition-colors"><p class="text-[11px] font-semibold text-ink-muted tracking-wider uppercase mb-2">Extra-Bold 800</p><p class="font-display text-[28px] font-extrabold">Aa Bb Cc</p></div>
-      </div>
-    </div>
-
-    <!-- Inter -->
-    <div class="bg-white rounded-section p-8 sm:p-12 mb-6">
-      <div class="flex items-baseline gap-4 mb-6">
-        <h3 class="font-display font-extrabold text-2xl">Inter</h3>
-        <span class="text-xs font-semibold text-ink-muted tracking-wide uppercase">Body · Sans-serif</span>
-      </div>
-      <p class="text-sm text-ink-muted leading-relaxed mb-8 max-w-lg">Clean, highly legible sans-serif optimized for screens. Used for all body text, labels, buttons, inputs, navigation, and UI copy.</p>
-      <div class="space-y-5">
-        <div class="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-6 pb-5 border-b border-cream">
-          <div class="shrink-0 sm:w-28 text-xs text-ink-muted font-medium">H3 / 22px<br>Weight 600</div>
-          <div class="text-[22px] font-semibold leading-normal">Review your flashcards</div>
-        </div>
-        <div class="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-6 pb-5 border-b border-cream">
-          <div class="shrink-0 sm:w-28 text-xs text-ink-muted font-medium">Body / 16px<br>Weight 400</div>
-          <div class="text-base leading-relaxed">Spaced repetition helps you remember words long-term by showing cards just before you'd forget them.</div>
-        </div>
-        <div class="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-6 pb-5 border-b border-cream">
-          <div class="shrink-0 sm:w-28 text-xs text-ink-muted font-medium">Small / 14px<br>Weight 500</div>
-          <div class="text-sm font-medium text-ink-muted">Last reviewed 3 hours ago · 12 cards due</div>
-        </div>
-        <div class="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-6">
-          <div class="shrink-0 sm:w-28 text-xs text-ink-muted font-medium">Caption / 12px<br>Weight 600</div>
-          <div class="text-xs font-semibold tracking-wide uppercase text-ink-muted">Deck · 24 cards · Beginner</div>
-        </div>
-      </div>
-      <div class="grid grid-cols-3 gap-5 mt-8">
-        <div class="bg-cream-light rounded-card p-6 hover:bg-primary-light/40 transition-colors"><p class="text-[11px] font-semibold text-ink-muted tracking-wider uppercase mb-2">Regular 400</p><p class="text-[28px] font-normal">Aa Bb Cc</p></div>
-        <div class="bg-cream-light rounded-card p-6 hover:bg-primary-light/40 transition-colors"><p class="text-[11px] font-semibold text-ink-muted tracking-wider uppercase mb-2">Semi-Bold 600</p><p class="text-[28px] font-semibold">Aa Bb Cc</p></div>
-        <div class="bg-cream-light rounded-card p-6 hover:bg-primary-light/40 transition-colors"><p class="text-[11px] font-semibold text-ink-muted tracking-wider uppercase mb-2">Bold 700</p><p class="text-[28px] font-bold">Aa Bb Cc</p></div>
-      </div>
-    </div>
-
-    <!-- Pairing rules -->
-    <div class="bg-primary-light/40 rounded-section p-8 sm:p-10">
-      <h3 class="font-display font-bold text-lg mb-3">Pairing rules</h3>
-      <ul class="space-y-2 text-sm text-ink-muted leading-relaxed">
-        <li class="pl-5 relative before:content-['·'] before:absolute before:left-0 before:text-primary before:font-bold"><strong class="text-ink font-semibold">Fraunces</strong> for page-level headings (Display, H1, H2) and brand hero text</li>
-        <li class="pl-5 relative before:content-['·'] before:absolute before:left-0 before:text-primary before:font-bold"><strong class="text-ink font-semibold">Inter</strong> for everything else — H3 and below, body, labels, buttons, nav, captions</li>
-        <li class="pl-5 relative before:content-['·'] before:absolute before:left-0 before:text-primary before:font-bold">Never use a third font. These two cover all needs.</li>
+      <ul class="hidden md:flex gap-7">
+        <li>
+          <a
+            href="#colors"
+            class="text-ink-muted text-xs font-semibold tracking-wide hover:text-primary transition-colors"
+            >Colors</a
+          >
+        </li>
+        <li>
+          <a
+            href="#typography"
+            class="text-ink-muted text-xs font-semibold tracking-wide hover:text-primary transition-colors"
+            >Typography</a
+          >
+        </li>
+        <li>
+          <a
+            href="#mascot"
+            class="text-ink-muted text-xs font-semibold tracking-wide hover:text-primary transition-colors"
+            >Mascot</a
+          >
+        </li>
+        <li>
+          <a
+            href="#components"
+            class="text-ink-muted text-xs font-semibold tracking-wide hover:text-primary transition-colors"
+            >Components</a
+          >
+        </li>
+        <li>
+          <a
+            href="#spacing"
+            class="text-ink-muted text-xs font-semibold tracking-wide hover:text-primary transition-colors"
+            >Spacing</a
+          >
+        </li>
+        <li>
+          <a
+            href="#guidance"
+            class="text-ink-muted text-xs font-semibold tracking-wide hover:text-primary transition-colors"
+            >Guidance</a
+          >
+        </li>
       </ul>
-    </div>
-  </div>
-</section>
+    </nav>
 
-<!-- ━━ MASCOT ━━ -->
-<section id="mascot" class="max-w-5xl mx-auto px-6 py-24 relative">
-  <div class="absolute inset-0 pointer-events-none overflow-hidden">
-    <div class="deco-card w-32 bg-primary-light opacity-[.09] top-[2%] left-[2%] rotate-[20deg]"></div>
-    <div class="deco-card w-24 bg-primary opacity-[.06] top-[10%] right-[3%] -rotate-[15deg]"></div>
-    <div class="deco-card w-14 bg-primary-dark opacity-[.07] bottom-[15%] right-[8%] rotate-[38deg]"></div>
-    <div class="deco-card w-20 bg-primary opacity-[.05] bottom-[5%] left-[5%] -rotate-[28deg]"></div>
-  </div>
+    <!-- ━━ HERO ━━ -->
+    <section
+      class="min-h-screen flex flex-col items-center justify-center text-center pt-14 px-6 relative overflow-hidden"
+    >
+      <div class="absolute inset-0 pointer-events-none">
+        <div
+          class="deco-card w-44 bg-primary-light opacity-[.12] top-[8%] left-[3%] -rotate-[18deg]"
+        ></div>
+        <div
+          class="deco-card w-28 bg-primary opacity-[.08] top-[15%] right-[8%] rotate-12"
+        ></div>
+        <div
+          class="deco-card w-20 bg-primary-dark opacity-[.07] bottom-[20%] left-[7%] rotate-[25deg]"
+        ></div>
+        <div
+          class="deco-card w-36 bg-primary-light opacity-10 bottom-[12%] right-[4%] -rotate-[8deg]"
+        ></div>
+        <div
+          class="deco-card w-14 bg-primary-light opacity-[.09] top-[40%] left-[1%] rotate-[35deg]"
+        ></div>
+        <div
+          class="deco-card w-16 bg-primary opacity-[.06] top-[35%] right-[2%] -rotate-[22deg]"
+        ></div>
+      </div>
 
-  <div class="relative">
-    <p class="text-[11px] font-bold tracking-[.14em] uppercase text-primary mb-3">03 — Mascot</p>
-    <h2 class="font-display font-extrabold text-[clamp(32px,5vw,52px)] leading-tight mb-5">The flashcard friend</h2>
-    <p class="text-[17px] text-ink-muted max-w-xl leading-relaxed mb-12">
-      Our mascot is a smiling flashcard — a rounded rectangle with a <strong class="text-ink font-semibold">96:62 aspect ratio</strong>. The face uses bezier paths instead of perfect geometric shapes, giving it warmth and personality inspired by Headspace's illustration style.
-    </p>
-
-    <!-- Backgrounds -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-      <div class="bg-cream rounded-section p-10 flex flex-col items-center gap-4 hover:scale-[1.02] transition-transform">
-        <img src="mascot.svg" alt="Mascot on cream" class="w-36 drop-shadow-[0_8px_24px_rgba(74,144,184,.2)]">
-        <span class="text-[13px] font-semibold text-ink-muted">On cream</span>
+      <div class="animate-fade-up">
+        <img
+          src="mascot.svg"
+          alt="Langy mascot"
+          class="animate-float w-[200px] drop-shadow-[0_20px_40px_rgba(74,144,184,.25)]"
+        />
       </div>
-      <div class="bg-white rounded-section p-10 flex flex-col items-center gap-4 shadow-sm hover:scale-[1.02] transition-transform">
-        <img src="mascot.svg" alt="Mascot on white" class="w-36 drop-shadow-[0_8px_24px_rgba(74,144,184,.2)]">
-        <span class="text-[13px] font-semibold text-ink-muted">On white</span>
-      </div>
-      <div class="bg-primary rounded-section p-10 flex flex-col items-center gap-4 hover:scale-[1.02] transition-transform">
-        <img src="mascot-dark.svg" alt="Mascot on primary" class="w-36 drop-shadow-[0_8px_24px_rgba(0,0,0,.15)]">
-        <span class="text-[13px] font-semibold text-white/80">On primary</span>
-      </div>
-      <div class="bg-ink rounded-section p-10 flex flex-col items-center gap-4 hover:scale-[1.02] transition-transform">
-        <img src="mascot.svg" alt="Mascot on dark" class="w-36 drop-shadow-[0_8px_24px_rgba(74,144,184,.3)]">
-        <span class="text-[13px] font-semibold text-white/80">On dark</span>
-      </div>
-    </div>
-
-    <!-- Size reference -->
-    <h3 class="font-display font-bold text-lg mb-5">Size reference</h3>
-    <div class="flex items-end gap-8 flex-wrap justify-center mb-12">
-      <div class="flex flex-col items-center gap-2">
-        <img src="mascot.svg" alt="" class="w-9">
-        <span class="text-[11px] font-semibold text-ink-muted">36px · Inline</span>
-      </div>
-      <div class="flex flex-col items-center gap-2">
-        <img src="mascot.svg" alt="" class="w-[60px]">
-        <span class="text-[11px] font-semibold text-ink-muted">60px · Nav</span>
-      </div>
-      <div class="flex flex-col items-center gap-2">
-        <img src="mascot.svg" alt="" class="w-24">
-        <span class="text-[11px] font-semibold text-ink-muted">96px · Card</span>
-      </div>
-      <div class="flex flex-col items-center gap-2">
-        <img src="mascot.svg" alt="" class="w-36">
-        <span class="text-[11px] font-semibold text-ink-muted">144px · Feature</span>
-      </div>
-      <div class="flex flex-col items-center gap-2">
-        <img src="mascot.svg" alt="" class="w-[200px]">
-        <span class="text-[11px] font-semibold text-ink-muted">200px · Hero</span>
-      </div>
-    </div>
-
-    <!-- Shape anatomy -->
-    <div class="bg-white rounded-section p-8 sm:p-10">
-      <h4 class="text-base font-bold mb-4">The flashcard shape</h4>
-      <p class="text-sm text-ink-muted leading-relaxed mb-6">
-        Every flashcard element — the mascot, decorative blobs, card components — uses the same <strong class="text-ink font-semibold">96:62</strong> aspect ratio (≈1.55:1). The outlines use cubic bezier paths — the card body has subtle wobble, the eyes are organic ovals, and the smile is a natural curve.
+      <h1
+        class="animate-fade-up delay-200 font-display font-extrabold text-[clamp(56px,10vw,100px)] leading-none tracking-tight mt-8 mb-4"
+      >
+        Lang<span class="text-primary">y</span>
+      </h1>
+      <p
+        class="animate-fade-up delay-300 text-xl text-ink-muted max-w-md mx-auto mb-10"
+      >
+        Brand guidelines for building a warm, friendly language-learning
+        experience.
       </p>
-      <div class="flex gap-5 items-end flex-wrap">
-        <div class="w-[60px] aspect-[96/62] bg-primary-light rounded-[12%] flex items-center justify-center text-[11px] font-semibold text-primary-dark">60px</div>
-        <div class="w-24 aspect-[96/62] bg-primary-light rounded-[12%] flex items-center justify-center text-[11px] font-semibold text-primary-dark">96px</div>
-        <div class="w-36 aspect-[96/62] bg-primary-light rounded-[12%] flex items-center justify-center text-[11px] font-semibold text-primary-dark">144px</div>
-        <div class="w-[200px] aspect-[96/62] bg-primary-light rounded-[12%] flex items-center justify-center text-xs font-semibold text-primary-dark">200px</div>
+      <span
+        class="animate-fade-up delay-400 inline-block bg-primary-light/40 text-primary-dark text-xs font-bold px-4 py-1.5 rounded-full tracking-wide"
+      >
+        Brand Guide v1.0 — March 2026
+      </span>
+    </section>
+
+    <!-- ━━ COLORS ━━ -->
+    <section id="colors" class="max-w-5xl mx-auto px-6 py-24 relative">
+      <div class="absolute inset-0 pointer-events-none overflow-hidden">
+        <div
+          class="deco-card w-24 bg-primary opacity-[.06] top-[5%] right-[2%] rotate-[15deg]"
+        ></div>
+        <div
+          class="deco-card w-16 bg-primary-light opacity-[.08] bottom-[8%] left-[1%] -rotate-[20deg]"
+        ></div>
       </div>
-    </div>
-  </div>
-</section>
 
-<!-- ━━ COMPONENTS ━━ -->
-<section id="components" class="max-w-5xl mx-auto px-6 py-24 relative">
-  <div class="absolute inset-0 pointer-events-none overflow-hidden">
-    <div class="deco-card w-24 bg-primary-light opacity-[.08] top-[4%] right-[3%] -rotate-[25deg]"></div>
-    <div class="deco-card w-16 bg-primary opacity-[.05] bottom-[10%] left-[2%] rotate-[18deg]"></div>
-  </div>
+      <div class="relative bg-white rounded-hero p-8 sm:p-12 lg:p-16">
+        <p
+          class="text-[11px] font-bold tracking-[.14em] uppercase text-primary mb-3"
+        >
+          01 — Color Palette
+        </p>
+        <h2
+          class="font-display font-extrabold text-[clamp(32px,5vw,52px)] leading-tight mb-5"
+        >
+          Our colors
+        </h2>
+        <p class="text-[17px] text-ink-muted max-w-xl leading-relaxed mb-12">
+          A calming blue palette grounded by warm neutrals. The primary blue
+          evokes trust and focus; warm creams keep things cozy.
+        </p>
 
-  <div class="relative">
-    <p class="text-[11px] font-bold tracking-[.14em] uppercase text-primary mb-3">04 — Components</p>
-    <h2 class="font-display font-extrabold text-[clamp(32px,5vw,52px)] leading-tight mb-5">UI building blocks</h2>
-    <p class="text-[17px] text-ink-muted max-w-xl leading-relaxed mb-12">
-      Rounded, tactile components. Generous padding, soft shadows, clear hover states.
-    </p>
-
-    <h3 class="font-display font-bold text-lg mb-5">Buttons</h3>
-    <div class="flex flex-wrap gap-4 items-center mb-8">
-      <button class="bg-primary text-white font-semibold text-[15px] px-7 py-3.5 rounded-card hover:bg-primary-dark hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(74,144,184,.35)] transition-all">Start Learning</button>
-      <button class="bg-primary-light/40 text-primary-dark font-semibold text-[15px] px-7 py-3.5 rounded-card hover:bg-primary-light transition-all">View Deck</button>
-      <button class="bg-transparent text-ink-muted font-semibold text-[15px] px-7 py-3.5 rounded-card border-2 border-cream hover:border-primary hover:text-primary transition-all">Cancel</button>
-    </div>
-    <div class="flex flex-wrap gap-4 items-center mb-12">
-      <button class="bg-primary text-white font-semibold text-[13px] px-5 py-2.5 rounded-card">Small</button>
-      <button class="bg-primary text-white font-semibold text-[15px] px-7 py-3.5 rounded-card">Default</button>
-      <button class="bg-primary text-white font-semibold text-[17px] px-9 py-[18px] rounded-section">Large</button>
-    </div>
-
-    <h3 class="font-display font-bold text-lg mb-5">Inputs</h3>
-    <div class="flex flex-wrap gap-4 items-center mb-12">
-      <input class="font-body text-[15px] px-5 py-3.5 rounded-card border-2 border-cream bg-white text-ink w-72 max-w-full outline-none focus:border-primary focus:ring-4 focus:ring-primary-light/40 transition-all placeholder:text-ink-muted" type="text" placeholder="Search your decks...">
-      <input class="font-body text-[15px] px-5 py-3.5 rounded-card border-2 border-primary bg-white text-ink w-72 max-w-full outline-none ring-4 ring-primary-light/40" type="text" value="Spanish Basics">
-    </div>
-
-    <h3 class="font-display font-bold text-lg mb-5">Cards</h3>
-    <div class="flex flex-wrap gap-6 items-start">
-      <div class="bg-white rounded-section p-7 shadow-[0_4px_24px_rgba(0,0,0,.06)] max-w-xs hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(0,0,0,.1)] transition-all">
-        <div class="bg-primary-light h-36 rounded-card mb-4 flex items-center justify-center">
-          <img src="mascot.svg" alt="" class="w-[72px]">
+        <!-- Primary -->
+        <p class="font-bold text-sm text-ink-muted mb-4 tracking-wide">
+          Primary
+        </p>
+        <div class="flex flex-wrap gap-4 mb-10">
+          <div
+            class="w-36 rounded-card overflow-hidden bg-white shadow-sm hover:-translate-y-1 hover:shadow-md transition-all"
+          >
+            <div class="h-[90px] bg-primary"></div>
+            <div class="p-3">
+              <p class="text-[13px] font-semibold">Primary</p>
+              <p class="text-xs text-ink-muted font-mono">#4A90B8</p>
+            </div>
+          </div>
+          <div
+            class="w-36 rounded-card overflow-hidden bg-white shadow-sm hover:-translate-y-1 hover:shadow-md transition-all"
+          >
+            <div class="h-[90px] bg-primary-dark"></div>
+            <div class="p-3">
+              <p class="text-[13px] font-semibold">Primary Dark</p>
+              <p class="text-xs text-ink-muted font-mono">#3A7CA5</p>
+            </div>
+          </div>
+          <div
+            class="w-36 rounded-card overflow-hidden bg-white shadow-sm hover:-translate-y-1 hover:shadow-md transition-all"
+          >
+            <div class="h-[90px] bg-primary-light"></div>
+            <div class="p-3">
+              <p class="text-[13px] font-semibold">Primary Light</p>
+              <p class="text-xs text-ink-muted font-mono">#B8D8E8</p>
+            </div>
+          </div>
         </div>
-        <h4 class="text-[17px] font-bold mb-1.5">Spanish Basics</h4>
-        <p class="text-sm text-ink-muted">42 cards · Last studied 2h ago</p>
-      </div>
-      <div class="w-72 aspect-[96/62] bg-white rounded-section shadow-[0_8px_32px_rgba(0,0,0,.08)] flex items-center justify-center text-[28px] font-bold relative cursor-pointer hover:-translate-y-1 transition-transform">
-        Hola
-        <span class="absolute bottom-3.5 text-[11px] font-medium text-ink-muted">Tap to flip</span>
-      </div>
-    </div>
-  </div>
-</section>
 
-<!-- ━━ SPACING ━━ -->
-<section id="spacing" class="max-w-5xl mx-auto px-6 py-24 relative">
-  <div class="absolute inset-0 pointer-events-none overflow-hidden">
-    <div class="deco-card w-20 bg-primary-dark opacity-[.06] top-[6%] left-[1%] rotate-[22deg]"></div>
-    <div class="deco-card w-14 bg-primary-light opacity-[.08] bottom-[12%] right-[5%] -rotate-[35deg]"></div>
-  </div>
+        <!-- Neutrals -->
+        <p class="font-bold text-sm text-ink-muted mb-4 tracking-wide">
+          Neutrals
+        </p>
+        <div class="flex flex-wrap gap-4 mb-10">
+          <div
+            class="w-36 rounded-card overflow-hidden bg-white shadow-sm hover:-translate-y-1 hover:shadow-md transition-all"
+          >
+            <div class="h-[90px] bg-ink"></div>
+            <div class="p-3">
+              <p class="text-[13px] font-semibold">Ink</p>
+              <p class="text-xs text-ink-muted font-mono">#2D2926</p>
+            </div>
+          </div>
+          <div
+            class="w-36 rounded-card overflow-hidden bg-white shadow-sm hover:-translate-y-1 hover:shadow-md transition-all"
+          >
+            <div class="h-[90px] bg-ink-muted"></div>
+            <div class="p-3">
+              <p class="text-[13px] font-semibold">Ink Muted</p>
+              <p class="text-xs text-ink-muted font-mono">#8A8380</p>
+            </div>
+          </div>
+          <div
+            class="w-36 rounded-card overflow-hidden bg-white shadow-sm hover:-translate-y-1 hover:shadow-md transition-all"
+          >
+            <div class="h-[90px] bg-cream"></div>
+            <div class="p-3">
+              <p class="text-[13px] font-semibold">Cream</p>
+              <p class="text-xs text-ink-muted font-mono">#F5F0EB</p>
+            </div>
+          </div>
+          <div
+            class="w-36 rounded-card overflow-hidden bg-white shadow-sm hover:-translate-y-1 hover:shadow-md transition-all"
+          >
+            <div class="h-[90px] bg-cream-light border border-cream"></div>
+            <div class="p-3">
+              <p class="text-[13px] font-semibold">Cream Light</p>
+              <p class="text-xs text-ink-muted font-mono">#FFFAF5</p>
+            </div>
+          </div>
+        </div>
 
-  <div class="relative">
-    <p class="text-[11px] font-bold tracking-[.14em] uppercase text-primary mb-3">05 — Spacing &amp; Radius</p>
-    <h2 class="font-display font-extrabold text-[clamp(32px,5vw,52px)] leading-tight mb-5">Spatial rhythm</h2>
-    <p class="text-[17px] text-ink-muted max-w-xl leading-relaxed mb-12">
-      A constrained spacing scale prevents decision fatigue. Pick from these values — don't hand-pick arbitrary numbers.
-    </p>
+        <!-- Semantic -->
+        <p class="font-bold text-sm text-ink-muted mb-4 tracking-wide">
+          Semantic
+        </p>
+        <div class="flex flex-wrap gap-4">
+          <div
+            class="w-36 rounded-card overflow-hidden bg-white shadow-sm hover:-translate-y-1 hover:shadow-md transition-all"
+          >
+            <div class="h-[90px]" style="background: #10b981"></div>
+            <div class="p-3">
+              <p class="text-[13px] font-semibold">Success</p>
+              <p class="text-xs text-ink-muted font-mono">#10B981</p>
+            </div>
+          </div>
+          <div
+            class="w-36 rounded-card overflow-hidden bg-white shadow-sm hover:-translate-y-1 hover:shadow-md transition-all"
+          >
+            <div class="h-[90px]" style="background: #f59e0b"></div>
+            <div class="p-3">
+              <p class="text-[13px] font-semibold">Warning</p>
+              <p class="text-xs text-ink-muted font-mono">#F59E0B</p>
+            </div>
+          </div>
+          <div
+            class="w-36 rounded-card overflow-hidden bg-white shadow-sm hover:-translate-y-1 hover:shadow-md transition-all"
+          >
+            <div class="h-[90px]" style="background: #f43f5e"></div>
+            <div class="p-3">
+              <p class="text-[13px] font-semibold">Error</p>
+              <p class="text-xs text-ink-muted font-mono">#F43F5E</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
 
-    <div class="bg-white rounded-section p-8 sm:p-12">
-      <div class="space-y-3 mb-12">
-        <div class="flex items-center gap-5 group"><span class="w-14 text-right text-[13px] font-semibold text-ink-muted shrink-0">4px</span><div class="h-9 rounded-md bg-primary-light group-hover:bg-primary transition-colors" style="width:16px"></div><span class="text-xs text-ink-muted w-12 tabular-nums">xs</span></div>
-        <div class="flex items-center gap-5 group"><span class="w-14 text-right text-[13px] font-semibold text-ink-muted shrink-0">8px</span><div class="h-9 rounded-md bg-primary-light group-hover:bg-primary transition-colors" style="width:32px"></div><span class="text-xs text-ink-muted w-12 tabular-nums">sm</span></div>
-        <div class="flex items-center gap-5 group"><span class="w-14 text-right text-[13px] font-semibold text-ink-muted shrink-0">12px</span><div class="h-9 rounded-md bg-primary-light group-hover:bg-primary transition-colors" style="width:48px"></div><span class="text-xs text-ink-muted w-12 tabular-nums">md</span></div>
-        <div class="flex items-center gap-5 group"><span class="w-14 text-right text-[13px] font-semibold text-ink-muted shrink-0">16px</span><div class="h-9 rounded-md bg-primary-light group-hover:bg-primary transition-colors" style="width:64px"></div><span class="text-xs text-ink-muted w-12 tabular-nums">base</span></div>
-        <div class="flex items-center gap-5 group"><span class="w-14 text-right text-[13px] font-semibold text-ink-muted shrink-0">24px</span><div class="h-9 rounded-md bg-primary-light group-hover:bg-primary transition-colors" style="width:96px"></div><span class="text-xs text-ink-muted w-12 tabular-nums">lg</span></div>
-        <div class="flex items-center gap-5 group"><span class="w-14 text-right text-[13px] font-semibold text-ink-muted shrink-0">32px</span><div class="h-9 rounded-md bg-primary-light group-hover:bg-primary transition-colors" style="width:128px"></div><span class="text-xs text-ink-muted w-12 tabular-nums">xl</span></div>
-        <div class="flex items-center gap-5 group"><span class="w-14 text-right text-[13px] font-semibold text-ink-muted shrink-0">48px</span><div class="h-9 rounded-md bg-primary-light group-hover:bg-primary transition-colors" style="width:192px"></div><span class="text-xs text-ink-muted w-12 tabular-nums">2xl</span></div>
-        <div class="flex items-center gap-5 group"><span class="w-14 text-right text-[13px] font-semibold text-ink-muted shrink-0">64px</span><div class="h-9 rounded-md bg-primary-light group-hover:bg-primary transition-colors" style="width:256px"></div><span class="text-xs text-ink-muted w-12 tabular-nums">3xl</span></div>
-        <div class="flex items-center gap-5 group"><span class="w-14 text-right text-[13px] font-semibold text-ink-muted shrink-0">96px</span><div class="h-9 rounded-md bg-primary-light group-hover:bg-primary transition-colors" style="width:384px"></div><span class="text-xs text-ink-muted w-12 tabular-nums">4xl</span></div>
+    <!-- ━━ TYPOGRAPHY ━━ -->
+    <section id="typography" class="max-w-5xl mx-auto px-6 py-24 relative">
+      <div class="absolute inset-0 pointer-events-none overflow-hidden">
+        <div
+          class="deco-card w-28 bg-primary-dark opacity-[.05] top-[3%] right-[5%] -rotate-12"
+        ></div>
+        <div
+          class="deco-card w-20 bg-primary-light opacity-[.07] bottom-[5%] left-[3%] rotate-[30deg]"
+        ></div>
       </div>
 
-      <h3 class="font-display font-bold text-lg mb-5">Border radius</h3>
-      <div class="flex flex-wrap gap-6">
-        <div class="w-[100px] h-[100px] bg-primary-light/40 border-2 border-primary-light flex items-center justify-center text-xs font-semibold text-primary-dark rounded hover:bg-primary-light transition-colors">4px</div>
-        <div class="w-[100px] h-[100px] bg-primary-light/40 border-2 border-primary-light flex items-center justify-center text-xs font-semibold text-primary-dark rounded-lg hover:bg-primary-light transition-colors">8px</div>
-        <div class="w-[100px] h-[100px] bg-primary-light/40 border-2 border-primary-light flex items-center justify-center text-xs font-semibold text-primary-dark rounded-card hover:bg-primary-light transition-colors">12px</div>
-        <div class="w-[100px] h-[100px] bg-primary-light/40 border-2 border-primary-light flex items-center justify-center text-xs font-semibold text-primary-dark rounded-section hover:bg-primary-light transition-colors">24px</div>
-        <div class="w-[100px] h-[100px] bg-primary-light/40 border-2 border-primary-light flex items-center justify-center text-xs font-semibold text-primary-dark rounded-hero hover:bg-primary-light transition-colors">40px</div>
-        <div class="w-[100px] h-[100px] bg-primary-light/40 border-2 border-primary-light flex items-center justify-center text-xs font-semibold text-primary-dark rounded-full hover:bg-primary-light transition-colors">50%</div>
-      </div>
-    </div>
-  </div>
-</section>
+      <div class="relative">
+        <p
+          class="text-[11px] font-bold tracking-[.14em] uppercase text-primary mb-3"
+        >
+          02 — Typography
+        </p>
+        <h2
+          class="font-display font-extrabold text-[clamp(32px,5vw,52px)] leading-tight mb-5"
+        >
+          Two typefaces
+        </h2>
+        <p class="text-[17px] text-ink-muted max-w-xl leading-relaxed mb-12">
+          We pair exactly two fonts:
+          <strong class="text-ink font-semibold">Fraunces</strong> (serif) for
+          display headings, and
+          <strong class="text-ink font-semibold">Inter</strong> (sans-serif) for
+          body and UI. Together they feel warm, legible, and approachable.
+        </p>
 
-<!-- ━━ GUIDANCE ━━ -->
-<section id="guidance" class="max-w-5xl mx-auto px-6 py-24 relative">
-  <div class="absolute inset-0 pointer-events-none overflow-hidden">
-    <div class="deco-card w-28 bg-primary opacity-[.05] top-[3%] right-[1%] rotate-[10deg]"></div>
-    <div class="deco-card w-20 bg-primary-light opacity-[.07] bottom-[5%] left-[3%] -rotate-[30deg]"></div>
-  </div>
+        <!-- Fraunces -->
+        <div class="bg-white rounded-section p-8 sm:p-12 mb-6">
+          <div class="flex items-baseline gap-4 mb-6">
+            <h3 class="font-display font-extrabold text-2xl">Fraunces</h3>
+            <span
+              class="text-xs font-semibold text-ink-muted tracking-wide uppercase"
+              >Display · Serif</span
+            >
+          </div>
+          <p class="text-sm text-ink-muted leading-relaxed mb-8 max-w-lg">
+            A soft old-style serif with optical sizing. Rounded, slightly wonky
+            letterforms give headlines a cozy, hand-crafted feel. Used for page
+            titles, hero text, and brand moments.
+          </p>
+          <div class="space-y-5">
+            <div
+              class="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-6 pb-5 border-b border-cream"
+            >
+              <div class="shrink-0 sm:w-28 text-xs text-ink-muted font-medium">
+                Display / 48px<br />Weight 800
+              </div>
+              <div
+                class="font-display text-5xl font-extrabold leading-tight tracking-tight"
+              >
+                Learn a new language today
+              </div>
+            </div>
+            <div
+              class="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-6 pb-5 border-b border-cream"
+            >
+              <div class="shrink-0 sm:w-28 text-xs text-ink-muted font-medium">
+                H1 / 36px<br />Weight 800
+              </div>
+              <div class="font-display text-4xl font-extrabold leading-snug">
+                Your daily vocabulary
+              </div>
+            </div>
+            <div
+              class="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-6"
+            >
+              <div class="shrink-0 sm:w-28 text-xs text-ink-muted font-medium">
+                H2 / 28px<br />Weight 700
+              </div>
+              <div class="font-display text-[28px] font-bold leading-snug">
+                Practice makes progress
+              </div>
+            </div>
+          </div>
+          <div class="grid grid-cols-3 gap-5 mt-8">
+            <div
+              class="bg-cream-light rounded-card p-6 hover:bg-primary-light/40 transition-colors"
+            >
+              <p
+                class="text-[11px] font-semibold text-ink-muted tracking-wider uppercase mb-2"
+              >
+                Regular 400
+              </p>
+              <p class="font-display text-[28px] font-normal">Aa Bb Cc</p>
+            </div>
+            <div
+              class="bg-cream-light rounded-card p-6 hover:bg-primary-light/40 transition-colors"
+            >
+              <p
+                class="text-[11px] font-semibold text-ink-muted tracking-wider uppercase mb-2"
+              >
+                Bold 700
+              </p>
+              <p class="font-display text-[28px] font-bold">Aa Bb Cc</p>
+            </div>
+            <div
+              class="bg-cream-light rounded-card p-6 hover:bg-primary-light/40 transition-colors"
+            >
+              <p
+                class="text-[11px] font-semibold text-ink-muted tracking-wider uppercase mb-2"
+              >
+                Extra-Bold 800
+              </p>
+              <p class="font-display text-[28px] font-extrabold">Aa Bb Cc</p>
+            </div>
+          </div>
+        </div>
 
-  <div class="relative">
-    <p class="text-[11px] font-bold tracking-[.14em] uppercase text-primary mb-3">06 — Guidance</p>
-    <h2 class="font-display font-extrabold text-[clamp(32px,5vw,52px)] leading-tight mb-5">Do's and don'ts</h2>
-    <p class="text-[17px] text-ink-muted max-w-xl leading-relaxed mb-12">
-      Keep Langy feeling warm, approachable, and consistent across every touchpoint.
-    </p>
+        <!-- Inter -->
+        <div class="bg-white rounded-section p-8 sm:p-12 mb-6">
+          <div class="flex items-baseline gap-4 mb-6">
+            <h3 class="font-display font-extrabold text-2xl">Inter</h3>
+            <span
+              class="text-xs font-semibold text-ink-muted tracking-wide uppercase"
+              >Body · Sans-serif</span
+            >
+          </div>
+          <p class="text-sm text-ink-muted leading-relaxed mb-8 max-w-lg">
+            Clean, highly legible sans-serif optimized for screens. Used for all
+            body text, labels, buttons, inputs, navigation, and UI copy.
+          </p>
+          <div class="space-y-5">
+            <div
+              class="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-6 pb-5 border-b border-cream"
+            >
+              <div class="shrink-0 sm:w-28 text-xs text-ink-muted font-medium">
+                H3 / 22px<br />Weight 600
+              </div>
+              <div class="text-[22px] font-semibold leading-normal">
+                Review your flashcards
+              </div>
+            </div>
+            <div
+              class="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-6 pb-5 border-b border-cream"
+            >
+              <div class="shrink-0 sm:w-28 text-xs text-ink-muted font-medium">
+                Body / 16px<br />Weight 400
+              </div>
+              <div class="text-base leading-relaxed">
+                Spaced repetition helps you remember words long-term by showing
+                cards just before you'd forget them.
+              </div>
+            </div>
+            <div
+              class="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-6 pb-5 border-b border-cream"
+            >
+              <div class="shrink-0 sm:w-28 text-xs text-ink-muted font-medium">
+                Small / 14px<br />Weight 500
+              </div>
+              <div class="text-sm font-medium text-ink-muted">
+                Last reviewed 3 hours ago · 12 cards due
+              </div>
+            </div>
+            <div
+              class="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-6"
+            >
+              <div class="shrink-0 sm:w-28 text-xs text-ink-muted font-medium">
+                Caption / 12px<br />Weight 600
+              </div>
+              <div
+                class="text-xs font-semibold tracking-wide uppercase text-ink-muted"
+              >
+                Deck · 24 cards · Beginner
+              </div>
+            </div>
+          </div>
+          <div class="grid grid-cols-3 gap-5 mt-8">
+            <div
+              class="bg-cream-light rounded-card p-6 hover:bg-primary-light/40 transition-colors"
+            >
+              <p
+                class="text-[11px] font-semibold text-ink-muted tracking-wider uppercase mb-2"
+              >
+                Regular 400
+              </p>
+              <p class="text-[28px] font-normal">Aa Bb Cc</p>
+            </div>
+            <div
+              class="bg-cream-light rounded-card p-6 hover:bg-primary-light/40 transition-colors"
+            >
+              <p
+                class="text-[11px] font-semibold text-ink-muted tracking-wider uppercase mb-2"
+              >
+                Semi-Bold 600
+              </p>
+              <p class="text-[28px] font-semibold">Aa Bb Cc</p>
+            </div>
+            <div
+              class="bg-cream-light rounded-card p-6 hover:bg-primary-light/40 transition-colors"
+            >
+              <p
+                class="text-[11px] font-semibold text-ink-muted tracking-wider uppercase mb-2"
+              >
+                Bold 700
+              </p>
+              <p class="text-[28px] font-bold">Aa Bb Cc</p>
+            </div>
+          </div>
+        </div>
 
-    <div class="grid md:grid-cols-2 gap-6">
-      <div class="rounded-section p-8 bg-[#ECFDF5] border-2 border-[#A7F3D0]">
-        <span class="inline-block text-[11px] font-extrabold tracking-wider uppercase bg-[#10B981] text-white px-3 py-1 rounded-full mb-4">Do</span>
-        <h4 class="text-base font-bold mb-2">Use the flashcard shape consistently</h4>
-        <p class="text-sm text-ink-muted leading-relaxed">The 96:62 rounded rectangle is the brand's core geometric motif.</p>
-        <ul class="mt-3 space-y-1">
-          <li class="text-sm text-ink-muted pl-5 relative before:content-['✓'] before:absolute before:left-0 before:text-[#10B981] before:font-bold">Keep the 1.55:1 aspect ratio on all flashcard shapes</li>
-          <li class="text-sm text-ink-muted pl-5 relative before:content-['✓'] before:absolute before:left-0 before:text-[#10B981] before:font-bold">Use ~12% border-radius relative to width</li>
-          <li class="text-sm text-ink-muted pl-5 relative before:content-['✓'] before:absolute before:left-0 before:text-[#10B981] before:font-bold">Scatter subtle flashcard shapes as decoration</li>
-        </ul>
+        <!-- Pairing rules -->
+        <div class="bg-primary-light/40 rounded-section p-8 sm:p-10">
+          <h3 class="font-display font-bold text-lg mb-3">Pairing rules</h3>
+          <ul class="space-y-2 text-sm text-ink-muted leading-relaxed">
+            <li
+              class="pl-5 relative before:content-['·'] before:absolute before:left-0 before:text-primary before:font-bold"
+            >
+              <strong class="text-ink font-semibold">Fraunces</strong> for
+              page-level headings (Display, H1, H2) and brand hero text
+            </li>
+            <li
+              class="pl-5 relative before:content-['·'] before:absolute before:left-0 before:text-primary before:font-bold"
+            >
+              <strong class="text-ink font-semibold">Inter</strong> for
+              everything else — H3 and below, body, labels, buttons, nav,
+              captions
+            </li>
+            <li
+              class="pl-5 relative before:content-['·'] before:absolute before:left-0 before:text-primary before:font-bold"
+            >
+              Never use a third font. These two cover all needs.
+            </li>
+          </ul>
+        </div>
       </div>
-      <div class="rounded-section p-8 bg-[#FFF1F2] border-2 border-[#FECDD3]">
-        <span class="inline-block text-[11px] font-extrabold tracking-wider uppercase bg-[#F43F5E] text-white px-3 py-1 rounded-full mb-4">Don't</span>
-        <h4 class="text-base font-bold mb-2">Distort the flashcard proportions</h4>
-        <p class="text-sm text-ink-muted leading-relaxed">Stretching or squishing breaks the brand's geometric identity.</p>
-        <ul class="mt-3 space-y-1">
-          <li class="text-sm text-ink-muted pl-5 relative before:content-['✗'] before:absolute before:left-0 before:text-[#F43F5E] before:font-bold">Never change the mascot's aspect ratio</li>
-          <li class="text-sm text-ink-muted pl-5 relative before:content-['✗'] before:absolute before:left-0 before:text-[#F43F5E] before:font-bold">Don't use squares or circles as substitutes</li>
-          <li class="text-sm text-ink-muted pl-5 relative before:content-['✗'] before:absolute before:left-0 before:text-[#F43F5E] before:font-bold">Avoid sharp-cornered rectangles for flashcards</li>
-        </ul>
-      </div>
-      <div class="rounded-section p-8 bg-[#ECFDF5] border-2 border-[#A7F3D0]">
-        <span class="inline-block text-[11px] font-extrabold tracking-wider uppercase bg-[#10B981] text-white px-3 py-1 rounded-full mb-4">Do</span>
-        <h4 class="text-base font-bold mb-2">Use warm, rounded shapes</h4>
-        <p class="text-sm text-ink-muted leading-relaxed">Rounded corners (12–24px) make the UI feel friendly.</p>
-        <ul class="mt-3 space-y-1">
-          <li class="text-sm text-ink-muted pl-5 relative before:content-['✓'] before:absolute before:left-0 before:text-[#10B981] before:font-bold">Use rounded-card (12px) or rounded-section (24px)</li>
-          <li class="text-sm text-ink-muted pl-5 relative before:content-['✓'] before:absolute before:left-0 before:text-[#10B981] before:font-bold">Prefer pill-shaped buttons and badges</li>
-          <li class="text-sm text-ink-muted pl-5 relative before:content-['✓'] before:absolute before:left-0 before:text-[#10B981] before:font-bold">Stay consistent — don't mix sharp and rounded</li>
-        </ul>
-      </div>
-      <div class="rounded-section p-8 bg-[#FFF1F2] border-2 border-[#FECDD3]">
-        <span class="inline-block text-[11px] font-extrabold tracking-wider uppercase bg-[#F43F5E] text-white px-3 py-1 rounded-full mb-4">Don't</span>
-        <h4 class="text-base font-bold mb-2">Use sharp corners or harsh edges</h4>
-        <p class="text-sm text-ink-muted leading-relaxed">Sharp rectangles feel clinical and unfriendly.</p>
-        <ul class="mt-3 space-y-1">
-          <li class="text-sm text-ink-muted pl-5 relative before:content-['✗'] before:absolute before:left-0 before:text-[#F43F5E] before:font-bold">Avoid 0px border-radius on interactive elements</li>
-          <li class="text-sm text-ink-muted pl-5 relative before:content-['✗'] before:absolute before:left-0 before:text-[#F43F5E] before:font-bold">Skip harsh 1px solid borders on containers</li>
-          <li class="text-sm text-ink-muted pl-5 relative before:content-['✗'] before:absolute before:left-0 before:text-[#F43F5E] before:font-bold">Don't use hard drop shadows</li>
-        </ul>
-      </div>
-      <div class="rounded-section p-8 bg-[#ECFDF5] border-2 border-[#A7F3D0]">
-        <span class="inline-block text-[11px] font-extrabold tracking-wider uppercase bg-[#10B981] text-white px-3 py-1 rounded-full mb-4">Do</span>
-        <h4 class="text-base font-bold mb-2">Keep the palette warm</h4>
-        <p class="text-sm text-ink-muted leading-relaxed">Cream backgrounds and blue accents create a calm learning space.</p>
-        <ul class="mt-3 space-y-1">
-          <li class="text-sm text-ink-muted pl-5 relative before:content-['✓'] before:absolute before:left-0 before:text-[#10B981] before:font-bold">Use cream-light (#FFFAF5) as page background</li>
-          <li class="text-sm text-ink-muted pl-5 relative before:content-['✓'] before:absolute before:left-0 before:text-[#10B981] before:font-bold">Apply primary blue sparingly as accent</li>
-          <li class="text-sm text-ink-muted pl-5 relative before:content-['✓'] before:absolute before:left-0 before:text-[#10B981] before:font-bold">Use hierarchy via weight and color, not just size</li>
-        </ul>
-      </div>
-      <div class="rounded-section p-8 bg-[#FFF1F2] border-2 border-[#FECDD3]">
-        <span class="inline-block text-[11px] font-extrabold tracking-wider uppercase bg-[#F43F5E] text-white px-3 py-1 rounded-full mb-4">Don't</span>
-        <h4 class="text-base font-bold mb-2">Use cold grays or pure white/black</h4>
-        <p class="text-sm text-ink-muted leading-relaxed">Our palette has warm undertones throughout.</p>
-        <ul class="mt-3 space-y-1">
-          <li class="text-sm text-ink-muted pl-5 relative before:content-['✗'] before:absolute before:left-0 before:text-[#F43F5E] before:font-bold">Avoid #000 for text — use Ink (#2D2926)</li>
-          <li class="text-sm text-ink-muted pl-5 relative before:content-['✗'] before:absolute before:left-0 before:text-[#F43F5E] before:font-bold">Avoid pure #FFF — use Cream Light</li>
-          <li class="text-sm text-ink-muted pl-5 relative before:content-['✗'] before:absolute before:left-0 before:text-[#F43F5E] before:font-bold">Skip cool gray tones (use warm neutrals)</li>
-        </ul>
-      </div>
-      <div class="rounded-section p-8 bg-[#ECFDF5] border-2 border-[#A7F3D0]">
-        <span class="inline-block text-[11px] font-extrabold tracking-wider uppercase bg-[#10B981] text-white px-3 py-1 rounded-full mb-4">Do</span>
-        <h4 class="text-base font-bold mb-2">Use lines everywhere</h4>
-        <p class="text-sm text-ink-muted leading-relaxed">All shapes across the app — cards, containers, buttons, decorative elements — should have a subtle quality. Use slightly wobbly bezier paths or SVG filters instead of perfect CSS rectangles. This makes the entire experience feel cozy, approachable, and crafted by hand.</p>
-        <ul class="mt-3 space-y-1">
-          <li class="text-sm text-ink-muted pl-5 relative before:content-['✓'] before:absolute before:left-0 before:text-[#10B981] before:font-bold">Use SVG paths with slight wobble for card outlines and containers</li>
-          <li class="text-sm text-ink-muted pl-5 relative before:content-['✓'] before:absolute before:left-0 before:text-[#10B981] before:font-bold">Break straight edges into gentle curves — no perfectly straight lines</li>
-          <li class="text-sm text-ink-muted pl-5 relative before:content-['✓'] before:absolute before:left-0 before:text-[#10B981] before:font-bold">Keep the imperfection subtle — it should feel warm, not sloppy</li>
-        </ul>
-      </div>
-      <div class="rounded-section p-8 bg-[#FFF1F2] border-2 border-[#FECDD3]">
-        <span class="inline-block text-[11px] font-extrabold tracking-wider uppercase bg-[#F43F5E] text-white px-3 py-1 rounded-full mb-4">Don't</span>
-        <h4 class="text-base font-bold mb-2">Use perfectly geometric shapes</h4>
-        <p class="text-sm text-ink-muted leading-relaxed">Perfect CSS border-radius rectangles feel sterile and generic. They lack the warmth that defines Langy.</p>
-        <ul class="mt-3 space-y-1">
-          <li class="text-sm text-ink-muted pl-5 relative before:content-['✗'] before:absolute before:left-0 before:text-[#F43F5E] before:font-bold">Don't rely on pure CSS rounded rects for key UI elements</li>
-          <li class="text-sm text-ink-muted pl-5 relative before:content-['✗'] before:absolute before:left-0 before:text-[#F43F5E] before:font-bold">Avoid perfectly circular or elliptical shapes</li>
-          <li class="text-sm text-ink-muted pl-5 relative before:content-['✗'] before:absolute before:left-0 before:text-[#F43F5E] before:font-bold">Don't make the wobble so strong it looks broken or unintentional</li>
-        </ul>
-      </div>
-      <div class="rounded-section p-8 bg-[#ECFDF5] border-2 border-[#A7F3D0]">
-        <span class="inline-block text-[11px] font-extrabold tracking-wider uppercase bg-[#10B981] text-white px-3 py-1 rounded-full mb-4">Do</span>
-        <h4 class="text-base font-bold mb-2">Give the mascot personality</h4>
-        <p class="text-sm text-ink-muted leading-relaxed">The flashcard friend is our brand ambassador.</p>
-        <ul class="mt-3 space-y-1">
-          <li class="text-sm text-ink-muted pl-5 relative before:content-['✓'] before:absolute before:left-0 before:text-[#10B981] before:font-bold">Use at comfortable sizes (36px width+)</li>
-          <li class="text-sm text-ink-muted pl-5 relative before:content-['✓'] before:absolute before:left-0 before:text-[#10B981] before:font-bold">Keep the path style — it's intentional</li>
-          <li class="text-sm text-ink-muted pl-5 relative before:content-['✓'] before:absolute before:left-0 before:text-[#10B981] before:font-bold">Add subtle float/bounce animations in hero areas</li>
-        </ul>
-      </div>
-      <div class="rounded-section p-8 bg-[#FFF1F2] border-2 border-[#FECDD3]">
-        <span class="inline-block text-[11px] font-extrabold tracking-wider uppercase bg-[#F43F5E] text-white px-3 py-1 rounded-full mb-4">Don't</span>
-        <h4 class="text-base font-bold mb-2">Write formal or punishing copy</h4>
-        <p class="text-sm text-ink-muted leading-relaxed">Never make users feel bad about missed sessions or wrong answers.</p>
-        <ul class="mt-3 space-y-1">
-          <li class="text-sm text-ink-muted pl-5 relative before:content-['✗'] before:absolute before:left-0 before:text-[#F43F5E] before:font-bold">Avoid "You failed" — say "Almost! Try again"</li>
-          <li class="text-sm text-ink-muted pl-5 relative before:content-['✗'] before:absolute before:left-0 before:text-[#F43F5E] before:font-bold">Skip corporate jargon and stiff phrasing</li>
-          <li class="text-sm text-ink-muted pl-5 relative before:content-['✗'] before:absolute before:left-0 before:text-[#F43F5E] before:font-bold">Don't guilt-trip about streaks or missed days</li>
-        </ul>
-      </div>
-    </div>
+    </section>
 
-    <!-- Implementation note -->
-    <div class="bg-primary-light/40 rounded-section p-8 sm:p-10 mt-12">
-      <h3 class="font-display font-bold text-lg mb-3">Implementing the effect</h3>
-      <p class="text-sm text-ink-muted leading-relaxed">
-        To achieve the look, use <strong class="text-ink font-semibold">randomized CSS border-radius</strong> with the 8-value slash syntax. Each element gets a unique wobbly shape on render. See <code class="text-ink font-mono text-xs bg-cream px-1.5 py-0.5 rounded">useHandDrawn.ts</code> in the frontend for the React hook. The formula: <code class="text-ink font-mono text-xs bg-cream px-1.5 py-0.5 rounded">border-radius: rand(180,255)px rand(10,25)px rand(180,240)px rand(10,25)px / rand(10,25)px rand(180,240)px rand(10,25)px rand(180,255)px</code>. Pair with a subtle 2px solid border in a warm neutral. Apply to cards, buttons, inputs, and decorative shapes.
-      </p>
-    </div>
-  </div>
-</section>
+    <!-- ━━ MASCOT ━━ -->
+    <section id="mascot" class="max-w-5xl mx-auto px-6 py-24 relative">
+      <div class="absolute inset-0 pointer-events-none overflow-hidden">
+        <div
+          class="deco-card w-32 bg-primary-light opacity-[.09] top-[2%] left-[2%] rotate-[20deg]"
+        ></div>
+        <div
+          class="deco-card w-24 bg-primary opacity-[.06] top-[10%] right-[3%] -rotate-[15deg]"
+        ></div>
+        <div
+          class="deco-card w-14 bg-primary-dark opacity-[.07] bottom-[15%] right-[8%] rotate-[38deg]"
+        ></div>
+        <div
+          class="deco-card w-20 bg-primary opacity-[.05] bottom-[5%] left-[5%] -rotate-[28deg]"
+        ></div>
+      </div>
 
-<!-- ━━ FOOTER ━━ -->
-<footer class="text-center py-16 px-6 text-[13px] text-ink-muted">
-  <img src="mascot.svg" alt="" class="w-[60px] mx-auto mb-4 opacity-30">
-  <p>Langy Brand Guide v1.0 · March 2026</p>
-  <p class="mt-2">Built with care for the Langy team</p>
-</footer>
+      <div class="relative">
+        <p
+          class="text-[11px] font-bold tracking-[.14em] uppercase text-primary mb-3"
+        >
+          03 — Mascot
+        </p>
+        <h2
+          class="font-display font-extrabold text-[clamp(32px,5vw,52px)] leading-tight mb-5"
+        >
+          The flashcard friend
+        </h2>
+        <p class="text-[17px] text-ink-muted max-w-xl leading-relaxed mb-12">
+          Our mascot is a smiling flashcard — a rounded rectangle with a
+          <strong class="text-ink font-semibold">96:62 aspect ratio</strong>.
+          The face uses bezier paths instead of perfect geometric shapes, giving
+          it warmth and personality inspired by Headspace's illustration style.
+        </p>
 
-<script>
-function rand(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-function handDrawnRadius() {
-  return `${rand(18,28)}px ${rand(12,22)}px ${rand(18,28)}px ${rand(12,22)}px / ${rand(12,22)}px ${rand(18,28)}px ${rand(12,22)}px ${rand(18,28)}px`;
-}
-const skip = new Set(['HTML','BODY','HEAD','SCRIPT','STYLE','SVG','FILTER','NAV','BR','HR']);
-document.querySelectorAll('*').forEach(el => {
-  if (skip.has(el.tagName)) return;
-  if (el.closest('nav')) return;
-  const cs = getComputedStyle(el);
-  const hasBg = cs.backgroundColor !== 'rgba(0, 0, 0, 0)' && cs.backgroundColor !== 'transparent';
-  const hasBorder = parseFloat(cs.borderRadius) > 0 || parseFloat(cs.borderWidth) > 0;
-  const isShape = el.classList.contains('deco-card');
-  if (hasBg || hasBorder || isShape) {
-    el.style.borderRadius = handDrawnRadius();
-  }
-});
+        <!-- Backgrounds -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          <div
+            class="bg-cream rounded-section p-10 flex flex-col items-center gap-4 hover:scale-[1.02] transition-transform"
+          >
+            <img
+              src="mascot.svg"
+              alt="Mascot on cream"
+              class="w-36 drop-shadow-[0_8px_24px_rgba(74,144,184,.2)]"
+            />
+            <span class="text-[13px] font-semibold text-ink-muted"
+              >On cream</span
+            >
+          </div>
+          <div
+            class="bg-white rounded-section p-10 flex flex-col items-center gap-4 shadow-sm hover:scale-[1.02] transition-transform"
+          >
+            <img
+              src="mascot.svg"
+              alt="Mascot on white"
+              class="w-36 drop-shadow-[0_8px_24px_rgba(74,144,184,.2)]"
+            />
+            <span class="text-[13px] font-semibold text-ink-muted"
+              >On white</span
+            >
+          </div>
+          <div
+            class="bg-primary rounded-section p-10 flex flex-col items-center gap-4 hover:scale-[1.02] transition-transform"
+          >
+            <img
+              src="mascot-dark.svg"
+              alt="Mascot on primary"
+              class="w-36 drop-shadow-[0_8px_24px_rgba(0,0,0,.15)]"
+            />
+            <span class="text-[13px] font-semibold text-white/80"
+              >On primary</span
+            >
+          </div>
+          <div
+            class="bg-ink rounded-section p-10 flex flex-col items-center gap-4 hover:scale-[1.02] transition-transform"
+          >
+            <img
+              src="mascot.svg"
+              alt="Mascot on dark"
+              class="w-36 drop-shadow-[0_8px_24px_rgba(74,144,184,.3)]"
+            />
+            <span class="text-[13px] font-semibold text-white/80">On dark</span>
+          </div>
+        </div>
 
-// Randomized mascot bounce
-(function() {
-  const mascot = document.querySelector('.animate-float');
-  if (!mascot) return;
-  function doBounce() {
-    const x = (Math.random() - 0.5) * 4;
-    const y = -(Math.random() * 3 + 1);
-    const r = (Math.random() - 0.5) * 1.5;
-    const name = 'bounce-' + Date.now();
-    const kf = `@keyframes ${name} {
+        <!-- Size reference -->
+        <h3 class="font-display font-bold text-lg mb-5">Size reference</h3>
+        <div class="flex items-end gap-8 flex-wrap justify-center mb-12">
+          <div class="flex flex-col items-center gap-2">
+            <img src="mascot.svg" alt="" class="w-9" />
+            <span class="text-[11px] font-semibold text-ink-muted"
+              >36px · Inline</span
+            >
+          </div>
+          <div class="flex flex-col items-center gap-2">
+            <img src="mascot.svg" alt="" class="w-[60px]" />
+            <span class="text-[11px] font-semibold text-ink-muted"
+              >60px · Nav</span
+            >
+          </div>
+          <div class="flex flex-col items-center gap-2">
+            <img src="mascot.svg" alt="" class="w-24" />
+            <span class="text-[11px] font-semibold text-ink-muted"
+              >96px · Card</span
+            >
+          </div>
+          <div class="flex flex-col items-center gap-2">
+            <img src="mascot.svg" alt="" class="w-36" />
+            <span class="text-[11px] font-semibold text-ink-muted"
+              >144px · Feature</span
+            >
+          </div>
+          <div class="flex flex-col items-center gap-2">
+            <img src="mascot.svg" alt="" class="w-[200px]" />
+            <span class="text-[11px] font-semibold text-ink-muted"
+              >200px · Hero</span
+            >
+          </div>
+        </div>
+
+        <!-- Shape anatomy -->
+        <div class="bg-white rounded-section p-8 sm:p-10">
+          <h4 class="text-base font-bold mb-4">The flashcard shape</h4>
+          <p class="text-sm text-ink-muted leading-relaxed mb-6">
+            Every flashcard element — the mascot, decorative blobs, card
+            components — uses the same
+            <strong class="text-ink font-semibold">96:62</strong> aspect ratio
+            (≈1.55:1). The outlines use cubic bezier paths — the card body has
+            subtle wobble, the eyes are organic ovals, and the smile is a
+            natural curve.
+          </p>
+          <div class="flex gap-5 items-end flex-wrap">
+            <div
+              class="w-[60px] aspect-[96/62] bg-primary-light rounded-[12%] flex items-center justify-center text-[11px] font-semibold text-primary-dark"
+            >
+              60px
+            </div>
+            <div
+              class="w-24 aspect-[96/62] bg-primary-light rounded-[12%] flex items-center justify-center text-[11px] font-semibold text-primary-dark"
+            >
+              96px
+            </div>
+            <div
+              class="w-36 aspect-[96/62] bg-primary-light rounded-[12%] flex items-center justify-center text-[11px] font-semibold text-primary-dark"
+            >
+              144px
+            </div>
+            <div
+              class="w-[200px] aspect-[96/62] bg-primary-light rounded-[12%] flex items-center justify-center text-xs font-semibold text-primary-dark"
+            >
+              200px
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ━━ COMPONENTS ━━ -->
+    <section id="components" class="max-w-5xl mx-auto px-6 py-24 relative">
+      <div class="absolute inset-0 pointer-events-none overflow-hidden">
+        <div
+          class="deco-card w-24 bg-primary-light opacity-[.08] top-[4%] right-[3%] -rotate-[25deg]"
+        ></div>
+        <div
+          class="deco-card w-16 bg-primary opacity-[.05] bottom-[10%] left-[2%] rotate-[18deg]"
+        ></div>
+      </div>
+
+      <div class="relative">
+        <p
+          class="text-[11px] font-bold tracking-[.14em] uppercase text-primary mb-3"
+        >
+          04 — Components
+        </p>
+        <h2
+          class="font-display font-extrabold text-[clamp(32px,5vw,52px)] leading-tight mb-5"
+        >
+          UI building blocks
+        </h2>
+        <p class="text-[17px] text-ink-muted max-w-xl leading-relaxed mb-12">
+          Rounded, tactile components. Generous padding, soft shadows, clear
+          hover states.
+        </p>
+
+        <h3 class="font-display font-bold text-lg mb-5">Buttons</h3>
+        <div class="flex flex-wrap gap-4 items-center mb-8">
+          <button
+            class="bg-primary text-white font-semibold text-[15px] px-7 py-3.5 rounded-card hover:bg-primary-dark hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(74,144,184,.35)] transition-all"
+          >
+            Start Learning
+          </button>
+          <button
+            class="bg-primary-light/40 text-primary-dark font-semibold text-[15px] px-7 py-3.5 rounded-card hover:bg-primary-light transition-all"
+          >
+            View Deck
+          </button>
+          <button
+            class="bg-transparent text-ink-muted font-semibold text-[15px] px-7 py-3.5 rounded-card border-2 border-cream hover:border-primary hover:text-primary transition-all"
+          >
+            Cancel
+          </button>
+        </div>
+        <div class="flex flex-wrap gap-4 items-center mb-12">
+          <button
+            class="bg-primary text-white font-semibold text-[13px] px-5 py-2.5 rounded-card"
+          >
+            Small
+          </button>
+          <button
+            class="bg-primary text-white font-semibold text-[15px] px-7 py-3.5 rounded-card"
+          >
+            Default
+          </button>
+          <button
+            class="bg-primary text-white font-semibold text-[17px] px-9 py-[18px] rounded-section"
+          >
+            Large
+          </button>
+        </div>
+
+        <h3 class="font-display font-bold text-lg mb-5">Inputs</h3>
+        <div class="flex flex-wrap gap-4 items-center mb-12">
+          <input
+            class="font-body text-[15px] px-5 py-3.5 rounded-card border-2 border-cream bg-white text-ink w-72 max-w-full outline-none focus:border-primary focus:ring-4 focus:ring-primary-light/40 transition-all placeholder:text-ink-muted"
+            type="text"
+            placeholder="Search your decks..."
+          />
+          <input
+            class="font-body text-[15px] px-5 py-3.5 rounded-card border-2 border-primary bg-white text-ink w-72 max-w-full outline-none ring-4 ring-primary-light/40"
+            type="text"
+            value="Spanish Basics"
+          />
+        </div>
+
+        <h3 class="font-display font-bold text-lg mb-5">Cards</h3>
+        <div class="flex flex-wrap gap-6 items-start">
+          <div
+            class="bg-white rounded-section p-7 shadow-[0_4px_24px_rgba(0,0,0,.06)] max-w-xs hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(0,0,0,.1)] transition-all"
+          >
+            <div
+              class="bg-primary-light h-36 rounded-card mb-4 flex items-center justify-center"
+            >
+              <img src="mascot.svg" alt="" class="w-[72px]" />
+            </div>
+            <h4 class="text-[17px] font-bold mb-1.5">Spanish Basics</h4>
+            <p class="text-sm text-ink-muted">42 cards · Last studied 2h ago</p>
+          </div>
+          <div
+            class="w-72 aspect-[96/62] bg-white rounded-section shadow-[0_8px_32px_rgba(0,0,0,.08)] flex items-center justify-center text-[28px] font-bold relative cursor-pointer hover:-translate-y-1 transition-transform"
+          >
+            Hola
+            <span
+              class="absolute bottom-3.5 text-[11px] font-medium text-ink-muted"
+              >Tap to flip</span
+            >
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ━━ SPACING ━━ -->
+    <section id="spacing" class="max-w-5xl mx-auto px-6 py-24 relative">
+      <div class="absolute inset-0 pointer-events-none overflow-hidden">
+        <div
+          class="deco-card w-20 bg-primary-dark opacity-[.06] top-[6%] left-[1%] rotate-[22deg]"
+        ></div>
+        <div
+          class="deco-card w-14 bg-primary-light opacity-[.08] bottom-[12%] right-[5%] -rotate-[35deg]"
+        ></div>
+      </div>
+
+      <div class="relative">
+        <p
+          class="text-[11px] font-bold tracking-[.14em] uppercase text-primary mb-3"
+        >
+          05 — Spacing &amp; Radius
+        </p>
+        <h2
+          class="font-display font-extrabold text-[clamp(32px,5vw,52px)] leading-tight mb-5"
+        >
+          Spatial rhythm
+        </h2>
+        <p class="text-[17px] text-ink-muted max-w-xl leading-relaxed mb-12">
+          A constrained spacing scale prevents decision fatigue. Pick from these
+          values — don't hand-pick arbitrary numbers.
+        </p>
+
+        <div class="bg-white rounded-section p-8 sm:p-12">
+          <div class="space-y-3 mb-12">
+            <div class="flex items-center gap-5 group">
+              <span
+                class="w-14 text-right text-[13px] font-semibold text-ink-muted shrink-0"
+                >4px</span
+              >
+              <div
+                class="h-9 rounded-md bg-primary-light group-hover:bg-primary transition-colors"
+                style="width: 16px"
+              ></div>
+              <span class="text-xs text-ink-muted w-12 tabular-nums">xs</span>
+            </div>
+            <div class="flex items-center gap-5 group">
+              <span
+                class="w-14 text-right text-[13px] font-semibold text-ink-muted shrink-0"
+                >8px</span
+              >
+              <div
+                class="h-9 rounded-md bg-primary-light group-hover:bg-primary transition-colors"
+                style="width: 32px"
+              ></div>
+              <span class="text-xs text-ink-muted w-12 tabular-nums">sm</span>
+            </div>
+            <div class="flex items-center gap-5 group">
+              <span
+                class="w-14 text-right text-[13px] font-semibold text-ink-muted shrink-0"
+                >12px</span
+              >
+              <div
+                class="h-9 rounded-md bg-primary-light group-hover:bg-primary transition-colors"
+                style="width: 48px"
+              ></div>
+              <span class="text-xs text-ink-muted w-12 tabular-nums">md</span>
+            </div>
+            <div class="flex items-center gap-5 group">
+              <span
+                class="w-14 text-right text-[13px] font-semibold text-ink-muted shrink-0"
+                >16px</span
+              >
+              <div
+                class="h-9 rounded-md bg-primary-light group-hover:bg-primary transition-colors"
+                style="width: 64px"
+              ></div>
+              <span class="text-xs text-ink-muted w-12 tabular-nums">base</span>
+            </div>
+            <div class="flex items-center gap-5 group">
+              <span
+                class="w-14 text-right text-[13px] font-semibold text-ink-muted shrink-0"
+                >24px</span
+              >
+              <div
+                class="h-9 rounded-md bg-primary-light group-hover:bg-primary transition-colors"
+                style="width: 96px"
+              ></div>
+              <span class="text-xs text-ink-muted w-12 tabular-nums">lg</span>
+            </div>
+            <div class="flex items-center gap-5 group">
+              <span
+                class="w-14 text-right text-[13px] font-semibold text-ink-muted shrink-0"
+                >32px</span
+              >
+              <div
+                class="h-9 rounded-md bg-primary-light group-hover:bg-primary transition-colors"
+                style="width: 128px"
+              ></div>
+              <span class="text-xs text-ink-muted w-12 tabular-nums">xl</span>
+            </div>
+            <div class="flex items-center gap-5 group">
+              <span
+                class="w-14 text-right text-[13px] font-semibold text-ink-muted shrink-0"
+                >48px</span
+              >
+              <div
+                class="h-9 rounded-md bg-primary-light group-hover:bg-primary transition-colors"
+                style="width: 192px"
+              ></div>
+              <span class="text-xs text-ink-muted w-12 tabular-nums">2xl</span>
+            </div>
+            <div class="flex items-center gap-5 group">
+              <span
+                class="w-14 text-right text-[13px] font-semibold text-ink-muted shrink-0"
+                >64px</span
+              >
+              <div
+                class="h-9 rounded-md bg-primary-light group-hover:bg-primary transition-colors"
+                style="width: 256px"
+              ></div>
+              <span class="text-xs text-ink-muted w-12 tabular-nums">3xl</span>
+            </div>
+            <div class="flex items-center gap-5 group">
+              <span
+                class="w-14 text-right text-[13px] font-semibold text-ink-muted shrink-0"
+                >96px</span
+              >
+              <div
+                class="h-9 rounded-md bg-primary-light group-hover:bg-primary transition-colors"
+                style="width: 384px"
+              ></div>
+              <span class="text-xs text-ink-muted w-12 tabular-nums">4xl</span>
+            </div>
+          </div>
+
+          <h3 class="font-display font-bold text-lg mb-5">Border radius</h3>
+          <div class="flex flex-wrap gap-6">
+            <div
+              class="w-[100px] h-[100px] bg-primary-light/40 border-2 border-primary-light flex items-center justify-center text-xs font-semibold text-primary-dark rounded hover:bg-primary-light transition-colors"
+            >
+              4px
+            </div>
+            <div
+              class="w-[100px] h-[100px] bg-primary-light/40 border-2 border-primary-light flex items-center justify-center text-xs font-semibold text-primary-dark rounded-lg hover:bg-primary-light transition-colors"
+            >
+              8px
+            </div>
+            <div
+              class="w-[100px] h-[100px] bg-primary-light/40 border-2 border-primary-light flex items-center justify-center text-xs font-semibold text-primary-dark rounded-card hover:bg-primary-light transition-colors"
+            >
+              12px
+            </div>
+            <div
+              class="w-[100px] h-[100px] bg-primary-light/40 border-2 border-primary-light flex items-center justify-center text-xs font-semibold text-primary-dark rounded-section hover:bg-primary-light transition-colors"
+            >
+              24px
+            </div>
+            <div
+              class="w-[100px] h-[100px] bg-primary-light/40 border-2 border-primary-light flex items-center justify-center text-xs font-semibold text-primary-dark rounded-hero hover:bg-primary-light transition-colors"
+            >
+              40px
+            </div>
+            <div
+              class="w-[100px] h-[100px] bg-primary-light/40 border-2 border-primary-light flex items-center justify-center text-xs font-semibold text-primary-dark rounded-full hover:bg-primary-light transition-colors"
+            >
+              50%
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ━━ GUIDANCE ━━ -->
+    <section id="guidance" class="max-w-5xl mx-auto px-6 py-24 relative">
+      <div class="absolute inset-0 pointer-events-none overflow-hidden">
+        <div
+          class="deco-card w-28 bg-primary opacity-[.05] top-[3%] right-[1%] rotate-[10deg]"
+        ></div>
+        <div
+          class="deco-card w-20 bg-primary-light opacity-[.07] bottom-[5%] left-[3%] -rotate-[30deg]"
+        ></div>
+      </div>
+
+      <div class="relative">
+        <p
+          class="text-[11px] font-bold tracking-[.14em] uppercase text-primary mb-3"
+        >
+          06 — Guidance
+        </p>
+        <h2
+          class="font-display font-extrabold text-[clamp(32px,5vw,52px)] leading-tight mb-5"
+        >
+          Do's and don'ts
+        </h2>
+        <p class="text-[17px] text-ink-muted max-w-xl leading-relaxed mb-12">
+          Keep Langy feeling warm, approachable, and consistent across every
+          touchpoint.
+        </p>
+
+        <div class="grid md:grid-cols-2 gap-6">
+          <div
+            class="rounded-section p-8 bg-[#ECFDF5] border-2 border-[#A7F3D0]"
+          >
+            <span
+              class="inline-block text-[11px] font-extrabold tracking-wider uppercase bg-[#10B981] text-white px-3 py-1 rounded-full mb-4"
+              >Do</span
+            >
+            <h4 class="text-base font-bold mb-2">
+              Use the flashcard shape consistently
+            </h4>
+            <p class="text-sm text-ink-muted leading-relaxed">
+              The 96:62 rounded rectangle is the brand's core geometric motif.
+            </p>
+            <ul class="mt-3 space-y-1">
+              <li
+                class="text-sm text-ink-muted pl-5 relative before:content-['✓'] before:absolute before:left-0 before:text-[#10B981] before:font-bold"
+              >
+                Keep the 1.55:1 aspect ratio on all flashcard shapes
+              </li>
+              <li
+                class="text-sm text-ink-muted pl-5 relative before:content-['✓'] before:absolute before:left-0 before:text-[#10B981] before:font-bold"
+              >
+                Use ~12% border-radius relative to width
+              </li>
+              <li
+                class="text-sm text-ink-muted pl-5 relative before:content-['✓'] before:absolute before:left-0 before:text-[#10B981] before:font-bold"
+              >
+                Scatter subtle flashcard shapes as decoration
+              </li>
+            </ul>
+          </div>
+          <div
+            class="rounded-section p-8 bg-[#FFF1F2] border-2 border-[#FECDD3]"
+          >
+            <span
+              class="inline-block text-[11px] font-extrabold tracking-wider uppercase bg-[#F43F5E] text-white px-3 py-1 rounded-full mb-4"
+              >Don't</span
+            >
+            <h4 class="text-base font-bold mb-2">
+              Distort the flashcard proportions
+            </h4>
+            <p class="text-sm text-ink-muted leading-relaxed">
+              Stretching or squishing breaks the brand's geometric identity.
+            </p>
+            <ul class="mt-3 space-y-1">
+              <li
+                class="text-sm text-ink-muted pl-5 relative before:content-['✗'] before:absolute before:left-0 before:text-[#F43F5E] before:font-bold"
+              >
+                Never change the mascot's aspect ratio
+              </li>
+              <li
+                class="text-sm text-ink-muted pl-5 relative before:content-['✗'] before:absolute before:left-0 before:text-[#F43F5E] before:font-bold"
+              >
+                Don't use squares or circles as substitutes
+              </li>
+              <li
+                class="text-sm text-ink-muted pl-5 relative before:content-['✗'] before:absolute before:left-0 before:text-[#F43F5E] before:font-bold"
+              >
+                Avoid sharp-cornered rectangles for flashcards
+              </li>
+            </ul>
+          </div>
+          <div
+            class="rounded-section p-8 bg-[#ECFDF5] border-2 border-[#A7F3D0]"
+          >
+            <span
+              class="inline-block text-[11px] font-extrabold tracking-wider uppercase bg-[#10B981] text-white px-3 py-1 rounded-full mb-4"
+              >Do</span
+            >
+            <h4 class="text-base font-bold mb-2">Use warm, rounded shapes</h4>
+            <p class="text-sm text-ink-muted leading-relaxed">
+              Rounded corners (12–24px) make the UI feel friendly.
+            </p>
+            <ul class="mt-3 space-y-1">
+              <li
+                class="text-sm text-ink-muted pl-5 relative before:content-['✓'] before:absolute before:left-0 before:text-[#10B981] before:font-bold"
+              >
+                Use rounded-card (12px) or rounded-section (24px)
+              </li>
+              <li
+                class="text-sm text-ink-muted pl-5 relative before:content-['✓'] before:absolute before:left-0 before:text-[#10B981] before:font-bold"
+              >
+                Prefer pill-shaped buttons and badges
+              </li>
+              <li
+                class="text-sm text-ink-muted pl-5 relative before:content-['✓'] before:absolute before:left-0 before:text-[#10B981] before:font-bold"
+              >
+                Stay consistent — don't mix sharp and rounded
+              </li>
+            </ul>
+          </div>
+          <div
+            class="rounded-section p-8 bg-[#FFF1F2] border-2 border-[#FECDD3]"
+          >
+            <span
+              class="inline-block text-[11px] font-extrabold tracking-wider uppercase bg-[#F43F5E] text-white px-3 py-1 rounded-full mb-4"
+              >Don't</span
+            >
+            <h4 class="text-base font-bold mb-2">
+              Use sharp corners or harsh edges
+            </h4>
+            <p class="text-sm text-ink-muted leading-relaxed">
+              Sharp rectangles feel clinical and unfriendly.
+            </p>
+            <ul class="mt-3 space-y-1">
+              <li
+                class="text-sm text-ink-muted pl-5 relative before:content-['✗'] before:absolute before:left-0 before:text-[#F43F5E] before:font-bold"
+              >
+                Avoid 0px border-radius on interactive elements
+              </li>
+              <li
+                class="text-sm text-ink-muted pl-5 relative before:content-['✗'] before:absolute before:left-0 before:text-[#F43F5E] before:font-bold"
+              >
+                Skip harsh 1px solid borders on containers
+              </li>
+              <li
+                class="text-sm text-ink-muted pl-5 relative before:content-['✗'] before:absolute before:left-0 before:text-[#F43F5E] before:font-bold"
+              >
+                Don't use hard drop shadows
+              </li>
+            </ul>
+          </div>
+          <div
+            class="rounded-section p-8 bg-[#ECFDF5] border-2 border-[#A7F3D0]"
+          >
+            <span
+              class="inline-block text-[11px] font-extrabold tracking-wider uppercase bg-[#10B981] text-white px-3 py-1 rounded-full mb-4"
+              >Do</span
+            >
+            <h4 class="text-base font-bold mb-2">Keep the palette warm</h4>
+            <p class="text-sm text-ink-muted leading-relaxed">
+              Cream backgrounds and blue accents create a calm learning space.
+            </p>
+            <ul class="mt-3 space-y-1">
+              <li
+                class="text-sm text-ink-muted pl-5 relative before:content-['✓'] before:absolute before:left-0 before:text-[#10B981] before:font-bold"
+              >
+                Use cream-light (#FFFAF5) as page background
+              </li>
+              <li
+                class="text-sm text-ink-muted pl-5 relative before:content-['✓'] before:absolute before:left-0 before:text-[#10B981] before:font-bold"
+              >
+                Apply primary blue sparingly as accent
+              </li>
+              <li
+                class="text-sm text-ink-muted pl-5 relative before:content-['✓'] before:absolute before:left-0 before:text-[#10B981] before:font-bold"
+              >
+                Use hierarchy via weight and color, not just size
+              </li>
+            </ul>
+          </div>
+          <div
+            class="rounded-section p-8 bg-[#FFF1F2] border-2 border-[#FECDD3]"
+          >
+            <span
+              class="inline-block text-[11px] font-extrabold tracking-wider uppercase bg-[#F43F5E] text-white px-3 py-1 rounded-full mb-4"
+              >Don't</span
+            >
+            <h4 class="text-base font-bold mb-2">
+              Use cold grays or pure white/black
+            </h4>
+            <p class="text-sm text-ink-muted leading-relaxed">
+              Our palette has warm undertones throughout.
+            </p>
+            <ul class="mt-3 space-y-1">
+              <li
+                class="text-sm text-ink-muted pl-5 relative before:content-['✗'] before:absolute before:left-0 before:text-[#F43F5E] before:font-bold"
+              >
+                Avoid #000 for text — use Ink (#2D2926)
+              </li>
+              <li
+                class="text-sm text-ink-muted pl-5 relative before:content-['✗'] before:absolute before:left-0 before:text-[#F43F5E] before:font-bold"
+              >
+                Avoid pure #FFF — use Cream Light
+              </li>
+              <li
+                class="text-sm text-ink-muted pl-5 relative before:content-['✗'] before:absolute before:left-0 before:text-[#F43F5E] before:font-bold"
+              >
+                Skip cool gray tones (use warm neutrals)
+              </li>
+            </ul>
+          </div>
+          <div
+            class="rounded-section p-8 bg-[#ECFDF5] border-2 border-[#A7F3D0]"
+          >
+            <span
+              class="inline-block text-[11px] font-extrabold tracking-wider uppercase bg-[#10B981] text-white px-3 py-1 rounded-full mb-4"
+              >Do</span
+            >
+            <h4 class="text-base font-bold mb-2">Use lines everywhere</h4>
+            <p class="text-sm text-ink-muted leading-relaxed">
+              All shapes across the app — cards, containers, buttons, decorative
+              elements — should have a subtle quality. Use slightly wobbly
+              bezier paths or SVG filters instead of perfect CSS rectangles.
+              This makes the entire experience feel cozy, approachable, and
+              crafted by hand.
+            </p>
+            <ul class="mt-3 space-y-1">
+              <li
+                class="text-sm text-ink-muted pl-5 relative before:content-['✓'] before:absolute before:left-0 before:text-[#10B981] before:font-bold"
+              >
+                Use SVG paths with slight wobble for card outlines and
+                containers
+              </li>
+              <li
+                class="text-sm text-ink-muted pl-5 relative before:content-['✓'] before:absolute before:left-0 before:text-[#10B981] before:font-bold"
+              >
+                Break straight edges into gentle curves — no perfectly straight
+                lines
+              </li>
+              <li
+                class="text-sm text-ink-muted pl-5 relative before:content-['✓'] before:absolute before:left-0 before:text-[#10B981] before:font-bold"
+              >
+                Keep the imperfection subtle — it should feel warm, not sloppy
+              </li>
+            </ul>
+          </div>
+          <div
+            class="rounded-section p-8 bg-[#FFF1F2] border-2 border-[#FECDD3]"
+          >
+            <span
+              class="inline-block text-[11px] font-extrabold tracking-wider uppercase bg-[#F43F5E] text-white px-3 py-1 rounded-full mb-4"
+              >Don't</span
+            >
+            <h4 class="text-base font-bold mb-2">
+              Use perfectly geometric shapes
+            </h4>
+            <p class="text-sm text-ink-muted leading-relaxed">
+              Perfect CSS border-radius rectangles feel sterile and generic.
+              They lack the warmth that defines Langy.
+            </p>
+            <ul class="mt-3 space-y-1">
+              <li
+                class="text-sm text-ink-muted pl-5 relative before:content-['✗'] before:absolute before:left-0 before:text-[#F43F5E] before:font-bold"
+              >
+                Don't rely on pure CSS rounded rects for key UI elements
+              </li>
+              <li
+                class="text-sm text-ink-muted pl-5 relative before:content-['✗'] before:absolute before:left-0 before:text-[#F43F5E] before:font-bold"
+              >
+                Avoid perfectly circular or elliptical shapes
+              </li>
+              <li
+                class="text-sm text-ink-muted pl-5 relative before:content-['✗'] before:absolute before:left-0 before:text-[#F43F5E] before:font-bold"
+              >
+                Don't make the wobble so strong it looks broken or unintentional
+              </li>
+            </ul>
+          </div>
+          <div
+            class="rounded-section p-8 bg-[#ECFDF5] border-2 border-[#A7F3D0]"
+          >
+            <span
+              class="inline-block text-[11px] font-extrabold tracking-wider uppercase bg-[#10B981] text-white px-3 py-1 rounded-full mb-4"
+              >Do</span
+            >
+            <h4 class="text-base font-bold mb-2">
+              Give the mascot personality
+            </h4>
+            <p class="text-sm text-ink-muted leading-relaxed">
+              The flashcard friend is our brand ambassador.
+            </p>
+            <ul class="mt-3 space-y-1">
+              <li
+                class="text-sm text-ink-muted pl-5 relative before:content-['✓'] before:absolute before:left-0 before:text-[#10B981] before:font-bold"
+              >
+                Use at comfortable sizes (36px width+)
+              </li>
+              <li
+                class="text-sm text-ink-muted pl-5 relative before:content-['✓'] before:absolute before:left-0 before:text-[#10B981] before:font-bold"
+              >
+                Keep the path style — it's intentional
+              </li>
+              <li
+                class="text-sm text-ink-muted pl-5 relative before:content-['✓'] before:absolute before:left-0 before:text-[#10B981] before:font-bold"
+              >
+                Add subtle float/bounce animations in hero areas
+              </li>
+            </ul>
+          </div>
+          <div
+            class="rounded-section p-8 bg-[#FFF1F2] border-2 border-[#FECDD3]"
+          >
+            <span
+              class="inline-block text-[11px] font-extrabold tracking-wider uppercase bg-[#F43F5E] text-white px-3 py-1 rounded-full mb-4"
+              >Don't</span
+            >
+            <h4 class="text-base font-bold mb-2">
+              Write formal or punishing copy
+            </h4>
+            <p class="text-sm text-ink-muted leading-relaxed">
+              Never make users feel bad about missed sessions or wrong answers.
+            </p>
+            <ul class="mt-3 space-y-1">
+              <li
+                class="text-sm text-ink-muted pl-5 relative before:content-['✗'] before:absolute before:left-0 before:text-[#F43F5E] before:font-bold"
+              >
+                Avoid "You failed" — say "Almost! Try again"
+              </li>
+              <li
+                class="text-sm text-ink-muted pl-5 relative before:content-['✗'] before:absolute before:left-0 before:text-[#F43F5E] before:font-bold"
+              >
+                Skip corporate jargon and stiff phrasing
+              </li>
+              <li
+                class="text-sm text-ink-muted pl-5 relative before:content-['✗'] before:absolute before:left-0 before:text-[#F43F5E] before:font-bold"
+              >
+                Don't guilt-trip about streaks or missed days
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Implementation note -->
+        <div class="bg-primary-light/40 rounded-section p-8 sm:p-10 mt-12">
+          <h3 class="font-display font-bold text-lg mb-3">
+            Implementing the effect
+          </h3>
+          <p class="text-sm text-ink-muted leading-relaxed">
+            To achieve the look, use
+            <strong class="text-ink font-semibold"
+              >randomized CSS border-radius</strong
+            >
+            with the 8-value slash syntax. Each element gets a unique wobbly
+            shape on render. See
+            <code
+              class="text-ink font-mono text-xs bg-cream px-1.5 py-0.5 rounded"
+              >useHandDrawn.ts</code
+            >
+            in the frontend for the React hook. The formula:
+            <code
+              class="text-ink font-mono text-xs bg-cream px-1.5 py-0.5 rounded"
+              >border-radius: rand(180,255)px rand(10,25)px rand(180,240)px
+              rand(10,25)px / rand(10,25)px rand(180,240)px rand(10,25)px
+              rand(180,255)px</code
+            >. Pair with a subtle 2px solid border in a warm neutral. Apply to
+            cards, buttons, inputs, and decorative shapes.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ━━ FOOTER ━━ -->
+    <footer class="text-center py-16 px-6 text-[13px] text-ink-muted">
+      <img src="mascot.svg" alt="" class="w-[60px] mx-auto mb-4 opacity-30" />
+      <p>Langy Brand Guide v1.0 · March 2026</p>
+      <p class="mt-2">Built with care for the Langy team</p>
+    </footer>
+
+    <script>
+      function rand(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+      }
+      function handDrawnRadius() {
+        return `${rand(18, 28)}px ${rand(12, 22)}px ${rand(18, 28)}px ${rand(12, 22)}px / ${rand(12, 22)}px ${rand(18, 28)}px ${rand(12, 22)}px ${rand(18, 28)}px`;
+      }
+      const skip = new Set([
+        "HTML",
+        "BODY",
+        "HEAD",
+        "SCRIPT",
+        "STYLE",
+        "SVG",
+        "FILTER",
+        "NAV",
+        "BR",
+        "HR",
+      ]);
+      document.querySelectorAll("*").forEach((el) => {
+        if (skip.has(el.tagName)) return;
+        if (el.closest("nav")) return;
+        const cs = getComputedStyle(el);
+        const hasBg =
+          cs.backgroundColor !== "rgba(0, 0, 0, 0)" &&
+          cs.backgroundColor !== "transparent";
+        const hasBorder =
+          parseFloat(cs.borderRadius) > 0 || parseFloat(cs.borderWidth) > 0;
+        const isShape = el.classList.contains("deco-card");
+        if (hasBg || hasBorder || isShape) {
+          el.style.borderRadius = handDrawnRadius();
+        }
+      });
+
+      // Randomized mascot bounce
+      (function () {
+        const mascot = document.querySelector(".animate-float");
+        if (!mascot) return;
+        function doBounce() {
+          const x = (Math.random() - 0.5) * 4;
+          const y = -(Math.random() * 3 + 1);
+          const r = (Math.random() - 0.5) * 1.5;
+          const name = "bounce-" + Date.now();
+          const kf = `@keyframes ${name} {
       0%, 100% { transform: translate(0,0) rotate(0deg) scale(1) }
       40% { transform: translate(${x}px, ${y}px) rotate(${r}deg) scale(1.01) }
       65% { transform: translate(0,0) rotate(0deg) scale(0.995) }
-      80% { transform: translate(${x*0.3}px, ${y*0.3}px) rotate(${r*0.3}deg) scale(1.003) }
+      80% { transform: translate(${x * 0.3}px, ${y * 0.3}px) rotate(${r * 0.3}deg) scale(1.003) }
     }`;
-    const style = document.createElement('style');
-    style.textContent = kf;
-    document.head.appendChild(style);
-    mascot.style.animation = `${name} 0.6s ease-in-out`;
-    mascot.addEventListener('animationend', () => {
-      mascot.style.animation = 'none';
-      style.remove();
-      setTimeout(doBounce, 4000 + Math.random() * 4000);
-    }, { once: true });
-  }
-  setTimeout(doBounce, 2000 + Math.random() * 2000);
-})();
-</script>
-</body>
+          const style = document.createElement("style");
+          style.textContent = kf;
+          document.head.appendChild(style);
+          mascot.style.animation = `${name} 0.6s ease-in-out`;
+          mascot.addEventListener(
+            "animationend",
+            () => {
+              mascot.style.animation = "none";
+              style.remove();
+              setTimeout(doBounce, 4000 + Math.random() * 4000);
+            },
+            { once: true },
+          );
+        }
+        setTimeout(doBounce, 2000 + Math.random() * 2000);
+      })();
+    </script>
+  </body>
 </html>

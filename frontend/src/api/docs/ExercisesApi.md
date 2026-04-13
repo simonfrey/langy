@@ -1,21 +1,17 @@
 # ExercisesApi
 
-All URIs are relative to */api*
+All URIs are relative to _/api_
 
-| Method | HTTP request | Description |
-|------------- | ------------- | -------------|
-| [**completeExercise**](ExercisesApi.md#completeexercise) | **POST** /exercises/complete |  |
-| [**generateExercises**](ExercisesApi.md#generateexercises) | **POST** /exercises/generate |  |
-| [**getDueExercises**](ExercisesApi.md#getdueexercises) | **GET** /exercises/due |  |
-| [**gradeExercise**](ExercisesApi.md#gradeexercise) | **POST** /exercises/grade |  |
-
-
+| Method                                                     | HTTP request                 | Description |
+| ---------------------------------------------------------- | ---------------------------- | ----------- |
+| [**completeExercise**](ExercisesApi.md#completeexercise)   | **POST** /exercises/complete |             |
+| [**generateExercises**](ExercisesApi.md#generateexercises) | **POST** /exercises/generate |             |
+| [**getDueExercises**](ExercisesApi.md#getdueexercises)     | **GET** /exercises/due       |             |
+| [**gradeExercise**](ExercisesApi.md#gradeexercise)         | **POST** /exercises/grade    |             |
 
 ## completeExercise
 
 > StatusResponse completeExercise(ExerciseCompleteRequest)
-
-
 
 ### Example
 
@@ -28,7 +24,7 @@ import type { CompleteExerciseRequest } from '';
 
 async function example() {
   console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
+  const config = new Configuration({
     // Configure HTTP bearer authorization: bearerAuth
     accessToken: "YOUR BEARER TOKEN",
   });
@@ -53,10 +49,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **ExerciseCompleteRequest** | [ExerciseCompleteRequest](ExerciseCompleteRequest.md) |  | |
+| Name                        | Type                                                  | Description | Notes |
+| --------------------------- | ----------------------------------------------------- | ----------- | ----- |
+| **ExerciseCompleteRequest** | [ExerciseCompleteRequest](ExerciseCompleteRequest.md) |             |       |
 
 ### Return type
 
@@ -71,21 +66,18 @@ example().catch(console.error);
 - **Content-Type**: `application/json`
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Exercise completed |  -  |
-| **0** | Error response |  -  |
+
+| Status code | Description        | Response headers |
+| ----------- | ------------------ | ---------------- |
+| **200**     | Exercise completed | -                |
+| **0**       | Error response     | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## generateExercises
 
 > Array&lt;ExerciseResponse&gt; generateExercises(ExerciseGenerateRequest)
-
-
 
 ### Example
 
@@ -98,7 +90,7 @@ import type { GenerateExercisesRequest } from '';
 
 async function example() {
   console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
+  const config = new Configuration({
     // Configure HTTP bearer authorization: bearerAuth
     accessToken: "YOUR BEARER TOKEN",
   });
@@ -123,10 +115,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **ExerciseGenerateRequest** | [ExerciseGenerateRequest](ExerciseGenerateRequest.md) |  | |
+| Name                        | Type                                                  | Description | Notes |
+| --------------------------- | ----------------------------------------------------- | ----------- | ----- |
+| **ExerciseGenerateRequest** | [ExerciseGenerateRequest](ExerciseGenerateRequest.md) |             |       |
 
 ### Return type
 
@@ -141,34 +132,28 @@ example().catch(console.error);
 - **Content-Type**: `application/json`
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Generated exercises |  -  |
-| **0** | Error response |  -  |
+
+| Status code | Description         | Response headers |
+| ----------- | ------------------- | ---------------- |
+| **200**     | Generated exercises | -                |
+| **0**       | Error response      | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## getDueExercises
 
 > Array&lt;ExerciseResponse&gt; getDueExercises()
 
-
-
 ### Example
 
 ```ts
-import {
-  Configuration,
-  ExercisesApi,
-} from '';
-import type { GetDueExercisesRequest } from '';
+import { Configuration, ExercisesApi } from "";
+import type { GetDueExercisesRequest } from "";
 
 async function example() {
   console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
+  const config = new Configuration({
     // Configure HTTP bearer authorization: bearerAuth
     accessToken: "YOUR BEARER TOKEN",
   });
@@ -203,21 +188,18 @@ This endpoint does not need any parameter.
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Due exercises |  -  |
-| **0** | Error response |  -  |
+
+| Status code | Description    | Response headers |
+| ----------- | -------------- | ---------------- |
+| **200**     | Due exercises  | -                |
+| **0**       | Error response | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## gradeExercise
 
 > GradeResult gradeExercise(ExerciseGradeRequest)
-
-
 
 ### Example
 
@@ -230,7 +212,7 @@ import type { GradeExerciseRequest } from '';
 
 async function example() {
   console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
+  const config = new Configuration({
     // Configure HTTP bearer authorization: bearerAuth
     accessToken: "YOUR BEARER TOKEN",
   });
@@ -255,10 +237,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **ExerciseGradeRequest** | [ExerciseGradeRequest](ExerciseGradeRequest.md) |  | |
+| Name                     | Type                                            | Description | Notes |
+| ------------------------ | ----------------------------------------------- | ----------- | ----- |
+| **ExerciseGradeRequest** | [ExerciseGradeRequest](ExerciseGradeRequest.md) |             |       |
 
 ### Return type
 
@@ -273,12 +254,11 @@ example().catch(console.error);
 - **Content-Type**: `application/json`
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Grade result |  -  |
-| **0** | Error response |  -  |
+
+| Status code | Description    | Response headers |
+| ----------- | -------------- | ---------------- |
+| **200**     | Grade result   | -                |
+| **0**       | Error response | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-

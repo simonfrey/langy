@@ -1,12 +1,10 @@
 # LanguagesApi
 
-All URIs are relative to */api*
+All URIs are relative to _/api_
 
-| Method | HTTP request | Description |
-|------------- | ------------- | -------------|
+| Method                                                     | HTTP request            | Description                   |
+| ---------------------------------------------------------- | ----------------------- | ----------------------------- |
 | [**listLanguagePairs**](LanguagesApi.md#listlanguagepairs) | **GET** /language-pairs | List supported language pairs |
-
-
 
 ## listLanguagePairs
 
@@ -17,11 +15,8 @@ List supported language pairs
 ### Example
 
 ```ts
-import {
-  Configuration,
-  LanguagesApi,
-} from '';
-import type { ListLanguagePairsRequest } from '';
+import { Configuration, LanguagesApi } from "";
+import type { ListLanguagePairsRequest } from "";
 
 async function example() {
   console.log("🚀 Testing  SDK...");
@@ -56,11 +51,10 @@ No authorization required
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Supported language pairs |  -  |
+
+| Status code | Description              | Response headers |
+| ----------- | ------------------------ | ---------------- |
+| **200**     | Supported language pairs | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-

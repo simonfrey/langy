@@ -1,20 +1,16 @@
 # DecksApi
 
-All URIs are relative to */api*
+All URIs are relative to _/api_
 
-| Method | HTTP request | Description |
-|------------- | ------------- | -------------|
-| [**createDeck**](DecksApi.md#createdeckoperation) | **POST** /decks |  |
-| [**deleteDeck**](DecksApi.md#deletedeck) | **DELETE** /decks/{id} |  |
-| [**listDecks**](DecksApi.md#listdecks) | **GET** /decks |  |
-
-
+| Method                                            | HTTP request           | Description |
+| ------------------------------------------------- | ---------------------- | ----------- |
+| [**createDeck**](DecksApi.md#createdeckoperation) | **POST** /decks        |             |
+| [**deleteDeck**](DecksApi.md#deletedeck)          | **DELETE** /decks/{id} |             |
+| [**listDecks**](DecksApi.md#listdecks)            | **GET** /decks         |             |
 
 ## createDeck
 
 > Deck createDeck(CreateDeckRequest)
-
-
 
 ### Example
 
@@ -27,7 +23,7 @@ import type { CreateDeckOperationRequest } from '';
 
 async function example() {
   console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
+  const config = new Configuration({
     // Configure HTTP bearer authorization: bearerAuth
     accessToken: "YOUR BEARER TOKEN",
   });
@@ -52,10 +48,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **CreateDeckRequest** | [CreateDeckRequest](CreateDeckRequest.md) |  | |
+| Name                  | Type                                      | Description | Notes |
+| --------------------- | ----------------------------------------- | ----------- | ----- |
+| **CreateDeckRequest** | [CreateDeckRequest](CreateDeckRequest.md) |             |       |
 
 ### Return type
 
@@ -70,21 +65,18 @@ example().catch(console.error);
 - **Content-Type**: `application/json`
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **201** | Deck created |  -  |
-| **0** | Error response |  -  |
+
+| Status code | Description    | Response headers |
+| ----------- | -------------- | ---------------- |
+| **201**     | Deck created   | -                |
+| **0**       | Error response | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## deleteDeck
 
 > StatusResponse deleteDeck(id)
-
-
 
 ### Example
 
@@ -97,7 +89,7 @@ import type { DeleteDeckRequest } from '';
 
 async function example() {
   console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
+  const config = new Configuration({
     // Configure HTTP bearer authorization: bearerAuth
     accessToken: "YOUR BEARER TOKEN",
   });
@@ -122,10 +114,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **id** | `string` |  | [Defaults to `undefined`] |
+| Name   | Type     | Description | Notes                     |
+| ------ | -------- | ----------- | ------------------------- |
+| **id** | `string` |             | [Defaults to `undefined`] |
 
 ### Return type
 
@@ -140,34 +131,28 @@ example().catch(console.error);
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Deck deleted |  -  |
-| **0** | Error response |  -  |
+
+| Status code | Description    | Response headers |
+| ----------- | -------------- | ---------------- |
+| **200**     | Deck deleted   | -                |
+| **0**       | Error response | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## listDecks
 
 > Array&lt;Deck&gt; listDecks()
 
-
-
 ### Example
 
 ```ts
-import {
-  Configuration,
-  DecksApi,
-} from '';
-import type { ListDecksRequest } from '';
+import { Configuration, DecksApi } from "";
+import type { ListDecksRequest } from "";
 
 async function example() {
   console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
+  const config = new Configuration({
     // Configure HTTP bearer authorization: bearerAuth
     accessToken: "YOUR BEARER TOKEN",
   });
@@ -202,12 +187,11 @@ This endpoint does not need any parameter.
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | List of decks |  -  |
-| **0** | Error response |  -  |
+
+| Status code | Description    | Response headers |
+| ----------- | -------------- | ---------------- |
+| **200**     | List of decks  | -                |
+| **0**       | Error response | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-

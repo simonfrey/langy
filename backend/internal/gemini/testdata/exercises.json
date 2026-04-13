@@ -5,13 +5,13 @@
     "target_lang": "de",
     "exercise_type": "vocab_fill_blank",
     "cards": [
-      {"id": "c1", "front": "der Hund", "back": "the dog", "level": 1},
-      {"id": "c2", "front": "die Katze", "back": "the cat", "level": 1}
+      { "id": "c1", "front": "der Hund", "back": "the dog", "level": 1 },
+      { "id": "c2", "front": "die Katze", "back": "the cat", "level": 1 }
     ],
     "known_words": [
-      {"front": "groß", "back": "big"},
-      {"front": "klein", "back": "small"},
-      {"front": "ist", "back": "is"}
+      { "front": "groß", "back": "big" },
+      { "front": "klein", "back": "small" },
+      { "front": "ist", "back": "is" }
     ],
     "expected_exercises": [
       {
@@ -36,14 +36,14 @@
     "target_lang": "es",
     "exercise_type": "vocab_fill_blank",
     "cards": [
-      {"id": "c1", "front": "comer", "back": "to eat", "level": 1},
-      {"id": "c2", "front": "beber", "back": "to drink", "level": 1},
-      {"id": "c3", "front": "la manzana", "back": "the apple", "level": 1}
+      { "id": "c1", "front": "comer", "back": "to eat", "level": 1 },
+      { "id": "c2", "front": "beber", "back": "to drink", "level": 1 },
+      { "id": "c3", "front": "la manzana", "back": "the apple", "level": 1 }
     ],
     "known_words": [
-      {"front": "agua", "back": "water"},
-      {"front": "yo", "back": "I"},
-      {"front": "querer", "back": "to want"}
+      { "front": "agua", "back": "water" },
+      { "front": "yo", "back": "I" },
+      { "front": "querer", "back": "to want" }
     ],
     "expected_exercises": [
       {
@@ -61,13 +61,13 @@
     "target_lang": "de",
     "exercise_type": "vocab_word_bank",
     "cards": [
-      {"id": "c1", "front": "das Buch", "back": "the book", "level": 1},
-      {"id": "c2", "front": "lesen", "back": "to read", "level": 1}
+      { "id": "c1", "front": "das Buch", "back": "the book", "level": 1 },
+      { "id": "c2", "front": "lesen", "back": "to read", "level": 1 }
     ],
     "known_words": [
-      {"front": "ich", "back": "I"},
-      {"front": "gern", "back": "gladly"},
-      {"front": "ein", "back": "a"}
+      { "front": "ich", "back": "I" },
+      { "front": "gern", "back": "gladly" },
+      { "front": "ein", "back": "a" }
     ],
     "expected_exercises": [
       {
@@ -85,13 +85,13 @@
     "target_lang": "es",
     "exercise_type": "grammar_fill_conjugation",
     "cards": [
-      {"id": "c1", "front": "hablar", "back": "to speak", "level": 2},
-      {"id": "c2", "front": "comer", "back": "to eat", "level": 2}
+      { "id": "c1", "front": "hablar", "back": "to speak", "level": 2 },
+      { "id": "c2", "front": "comer", "back": "to eat", "level": 2 }
     ],
     "known_words": [
-      {"front": "yo", "back": "I"},
-      {"front": "español", "back": "Spanish"},
-      {"front": "mucho", "back": "a lot"}
+      { "front": "yo", "back": "I" },
+      { "front": "español", "back": "Spanish" },
+      { "front": "mucho", "back": "a lot" }
     ],
     "expected_exercises": [
       {
@@ -116,13 +116,13 @@
     "target_lang": "de",
     "exercise_type": "grammar_multiple_choice",
     "cards": [
-      {"id": "c1", "front": "gehen", "back": "to go", "level": 2},
-      {"id": "c2", "front": "sein", "back": "to be", "level": 2}
+      { "id": "c1", "front": "gehen", "back": "to go", "level": 2 },
+      { "id": "c2", "front": "sein", "back": "to be", "level": 2 }
     ],
     "known_words": [
-      {"front": "ich", "back": "I"},
-      {"front": "du", "back": "you"},
-      {"front": "zur Schule", "back": "to school"}
+      { "front": "ich", "back": "I" },
+      { "front": "du", "back": "you" },
+      { "front": "zur Schule", "back": "to school" }
     ],
     "expected_exercises": [
       {
@@ -141,14 +141,14 @@
     "target_lang": "de",
     "exercise_type": "grammar_fill_article",
     "cards": [
-      {"id": "c1", "front": "Hund", "back": "dog", "level": 2},
-      {"id": "c2", "front": "Katze", "back": "cat", "level": 2},
-      {"id": "c3", "front": "Buch", "back": "book", "level": 2}
+      { "id": "c1", "front": "Hund", "back": "dog", "level": 2 },
+      { "id": "c2", "front": "Katze", "back": "cat", "level": 2 },
+      { "id": "c3", "front": "Buch", "back": "book", "level": 2 }
     ],
     "known_words": [
-      {"front": "groß", "back": "big"},
-      {"front": "klein", "back": "small"},
-      {"front": "neu", "back": "new"}
+      { "front": "groß", "back": "big" },
+      { "front": "klein", "back": "small" },
+      { "front": "neu", "back": "new" }
     ],
     "expected_exercises": [
       {
@@ -173,13 +173,13 @@
     "target_lang": "es",
     "exercise_type": "grammar_error_correction",
     "cards": [
-      {"id": "c1", "front": "tener", "back": "to have", "level": 3},
-      {"id": "c2", "front": "ir", "back": "to go", "level": 3}
+      { "id": "c1", "front": "tener", "back": "to have", "level": 3 },
+      { "id": "c2", "front": "ir", "back": "to go", "level": 3 }
     ],
     "known_words": [
-      {"front": "yo", "back": "I"},
-      {"front": "hambre", "back": "hunger"},
-      {"front": "la escuela", "back": "the school"}
+      { "front": "yo", "back": "I" },
+      { "front": "hambre", "back": "hunger" },
+      { "front": "la escuela", "back": "the school" }
     ],
     "expected_exercises": [
       {
@@ -198,13 +198,13 @@
     "target_lang": "fr",
     "exercise_type": "grammar_transformation",
     "cards": [
-      {"id": "c1", "front": "manger", "back": "to eat", "level": 3},
-      {"id": "c2", "front": "parler", "back": "to speak", "level": 3}
+      { "id": "c1", "front": "manger", "back": "to eat", "level": 3 },
+      { "id": "c2", "front": "parler", "back": "to speak", "level": 3 }
     ],
     "known_words": [
-      {"front": "je", "back": "I"},
-      {"front": "bien", "back": "well"},
-      {"front": "français", "back": "French"}
+      { "front": "je", "back": "I" },
+      { "front": "bien", "back": "well" },
+      { "front": "français", "back": "French" }
     ],
     "expected_exercises": [
       {
@@ -222,13 +222,13 @@
     "target_lang": "en",
     "exercise_type": "vocab_fill_blank",
     "cards": [
-      {"id": "c1", "front": "water", "back": "das Wasser", "level": 1},
-      {"id": "c2", "front": "bread", "back": "das Brot", "level": 1}
+      { "id": "c1", "front": "water", "back": "das Wasser", "level": 1 },
+      { "id": "c2", "front": "bread", "back": "das Brot", "level": 1 }
     ],
     "known_words": [
-      {"front": "cold", "back": "kalt"},
-      {"front": "fresh", "back": "frisch"},
-      {"front": "the", "back": "der/die/das"}
+      { "front": "cold", "back": "kalt" },
+      { "front": "fresh", "back": "frisch" },
+      { "front": "the", "back": "der/die/das" }
     ],
     "expected_exercises": [
       {
@@ -253,13 +253,13 @@
     "target_lang": "es",
     "exercise_type": "vocab_fill_blank",
     "cards": [
-      {"id": "c1", "front": "el perro", "back": "der Hund", "level": 1},
-      {"id": "c2", "front": "el gato", "back": "die Katze", "level": 1}
+      { "id": "c1", "front": "el perro", "back": "der Hund", "level": 1 },
+      { "id": "c2", "front": "el gato", "back": "die Katze", "level": 1 }
     ],
     "known_words": [
-      {"front": "grande", "back": "groß"},
-      {"front": "pequeño", "back": "klein"},
-      {"front": "es", "back": "ist"}
+      { "front": "grande", "back": "groß" },
+      { "front": "pequeño", "back": "klein" },
+      { "front": "es", "back": "ist" }
     ],
     "expected_exercises": [
       {
@@ -284,13 +284,13 @@
     "target_lang": "es",
     "exercise_type": "grammar_multiple_choice",
     "cards": [
-      {"id": "c1", "front": "hablar", "back": "sprechen", "level": 2},
-      {"id": "c2", "front": "comer", "back": "essen", "level": 2}
+      { "id": "c1", "front": "hablar", "back": "sprechen", "level": 2 },
+      { "id": "c2", "front": "comer", "back": "essen", "level": 2 }
     ],
     "known_words": [
-      {"front": "yo", "back": "ich"},
-      {"front": "mucho", "back": "viel"},
-      {"front": "español", "back": "Spanisch"}
+      { "front": "yo", "back": "ich" },
+      { "front": "mucho", "back": "viel" },
+      { "front": "español", "back": "Spanisch" }
     ],
     "expected_exercises": [
       {

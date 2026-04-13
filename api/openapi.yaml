@@ -587,7 +587,19 @@ components:
     # ── Cards ──────────────────────────────────────────────────────
     Card:
       type: object
-      required: [id, deck_id, front, back, ease_factor, interval_days, repetitions, next_review, created_at, updated_at]
+      required:
+        [
+          id,
+          deck_id,
+          front,
+          back,
+          ease_factor,
+          interval_days,
+          repetitions,
+          next_review,
+          created_at,
+          updated_at,
+        ]
       properties:
         id:
           type: string
@@ -789,7 +801,8 @@ components:
 
     ExerciseResponse:
       type: object
-      required: [id, type, level, instruction, prompt, correct_answer, source_card_id]
+      required:
+        [id, type, level, instruction, prompt, correct_answer, source_card_id]
       properties:
         id:
           type: string

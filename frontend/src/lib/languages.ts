@@ -14,7 +14,7 @@ function flagForCode(code: string): string {
 
 export function formatLanguage(code: string, name?: string): string {
   const flag = flagForCode(code);
-  return flag ? `${flag} ${name ?? code}` : name ?? code;
+  return flag ? `${flag} ${name ?? code}` : (name ?? code);
 }
 
 export function formatPair(pair: LanguagePairResponse): string {

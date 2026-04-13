@@ -14,14 +14,17 @@ description: Apply modern Go syntax guidelines based on project's Go version. Us
 DO NOT search for go.mod files or try to detect the version yourself. Use ONLY the version shown above.
 
 **If version detected (not "unknown"):**
+
 - Say: "This project is using Go X.XX, so I’ll stick to modern Go best practices and freely use language features up to and including this version. If you’d prefer a different target version, just let me know."
 - Do NOT list features, do NOT ask for confirmation
 
 **If version is "unknown":**
+
 - Say: "Could not detect Go version in this repository"
 - Use AskUserQuestion: "Which Go version should I target?" → [1.23] / [1.24] / [1.25] / [1.26]
 
 **When writing Go code**, use ALL features from this document up to the target version:
+
 - Prefer modern built-ins and packages (`slices`, `maps`, `cmp`) over legacy patterns
 - Never use features from newer Go versions than the target
 - Never use outdated patterns when a modern alternative is available
@@ -74,10 +77,12 @@ ptr.Store(cfg)
 ### Go 1.21+
 
 **Built-ins:**
+
 - `min`/`max`: `max(a, b)` instead of if/else comparisons
 - `clear`: `clear(m)` to delete all map entries, `clear(s)` to zero slice elements
 
 **slices package:**
+
 - `slices.Contains`: `slices.Contains(items, x)` instead of manual loops
 - `slices.Index`: `slices.Index(items, x)` returns index (-1 if not found)
 - `slices.IndexFunc`: `slices.IndexFunc(items, func(item T) bool { return item.ID == id })`
@@ -90,15 +95,18 @@ ptr.Store(cfg)
 - `slices.Clone`: `slices.Clone(s)` creates a copy
 
 **maps package:**
+
 - `maps.Clone`: `maps.Clone(m)` instead of manual map iteration
 - `maps.Copy`: `maps.Copy(dst, src)` copies entries from src to dst
 - `maps.DeleteFunc`: `maps.DeleteFunc(m, func(k K, v V) bool { return condition })`
 
 **sync package:**
+
 - `sync.OnceFunc`: `f := sync.OnceFunc(func() { ... })` instead of `sync.Once` + wrapper
 - `sync.OnceValue`: `getter := sync.OnceValue(func() T { return computeValue() })`
 
 **context package:**
+
 - `context.AfterFunc`: `stop := context.AfterFunc(ctx, cleanup)` runs cleanup on cancellation
 - `context.WithTimeoutCause`: `ctx, cancel := context.WithTimeoutCause(parent, d, err)`
 - `context.WithDeadlineCause`: Similar with deadline instead of duration
@@ -106,10 +114,12 @@ ptr.Store(cfg)
 ### Go 1.22+
 
 **Loops:**
+
 - `for i := range n`: `for i := range len(items)` instead of `for i := 0; i < len(items); i++`
 - Loop variables are now safe to capture in goroutines (each iteration has its own copy)
 
 **cmp package:**
+
 - `cmp.Or`: `cmp.Or(flag, env, config, "default")` returns first non-zero value
 
 ```go
@@ -123,9 +133,11 @@ name := cmp.Or(os.Getenv("NAME"), "default")
 ```
 
 **reflect package:**
+
 - `reflect.TypeFor`: `reflect.TypeFor[T]()` instead of `reflect.TypeOf((*T)(nil)).Elem()`
 
 **net/http:**
+
 - Enhanced `http.ServeMux` patterns: `mux.HandleFunc("GET /api/{id}", handler)` with method and path params
 - `r.PathValue("id")` to get path parameters
 
@@ -151,6 +163,7 @@ for k := range maps.Keys(m) { process(k) } // iterate directly
   ALWAYS use t.Context() when a test function needs a context.
 
 Before:
+
 ```go
 func TestFoo(t *testing.T) {
     ctx, cancel := context.WithCancel(context.Background())
@@ -158,7 +171,9 @@ func TestFoo(t *testing.T) {
     result := doSomething(ctx)
 }
 ```
+
 After:
+
 ```go
 func TestFoo(t *testing.T) {
     ctx := t.Context()
@@ -170,12 +185,15 @@ func TestFoo(t *testing.T) {
   ALWAYS use omitzero for time.Duration, time.Time, structs, slices, maps.
 
 Before:
+
 ```go
 type Config struct {
     Timeout time.Duration `json:"timeout,omitempty"` // doesn't work for Duration!
 }
 ```
+
 After:
+
 ```go
 type Config struct {
     Timeout time.Duration `json:"timeout,omitzero"`
@@ -186,6 +204,7 @@ type Config struct {
   ALWAYS use b.Loop() for the main loop in benchmark functions.
 
 Before:
+
 ```go
 func BenchmarkFoo(b *testing.B) {
     for i := 0; i < b.N; i++ {
@@ -193,7 +212,9 @@ func BenchmarkFoo(b *testing.B) {
     }
 }
 ```
+
 After:
+
 ```go
 func BenchmarkFoo(b *testing.B) {
     for b.Loop() {
@@ -206,17 +227,21 @@ func BenchmarkFoo(b *testing.B) {
   ALWAYS use SplitSeq/FieldsSeq when iterating over split results in a for-range loop.
 
 Before:
+
 ```go
 for _, part := range strings.Split(s, ",") {
     process(part)
 }
 ```
+
 After:
+
 ```go
 for part := range strings.SplitSeq(s, ",") {
     process(part)
 }
 ```
+
 Also: `strings.FieldsSeq`, `bytes.SplitSeq`, `bytes.FieldsSeq`.
 
 ### Go 1.25+
@@ -225,6 +250,7 @@ Also: `strings.FieldsSeq`, `bytes.SplitSeq`, `bytes.FieldsSeq`.
   ALWAYS use wg.Go() when spawning goroutines with sync.WaitGroup.
 
 Before:
+
 ```go
 var wg sync.WaitGroup
 for _, item := range items {
@@ -236,7 +262,9 @@ for _, item := range items {
 }
 wg.Wait()
 ```
+
 After:
+
 ```go
 var wg sync.WaitGroup
 for _, item := range items {
@@ -251,12 +279,13 @@ wg.Wait()
 
 - `new(val)` not `x := val; &x` — returns pointer to any value.
   Go 1.26 extends new() to accept expressions, not just types.
-  Type is inferred: new(0) → *int, new("s") → *string, new(T{}) → *T.
+  Type is inferred: new(0) → *int, new("s") → *string, new(T{}) → \*T.
   DO NOT use `x := val; &x` pattern — always use new(val) directly.
   DO NOT use redundant casts like new(int(0)) — just write new(0).
   Common use case: struct fields with pointer types.
 
 Before:
+
 ```go
 timeout := 30
 debug := true
@@ -265,7 +294,9 @@ cfg := Config{
     Debug:   &debug,
 }
 ```
+
 After:
+
 ```go
 cfg := Config{
     Timeout: new(30),   // *int
@@ -277,13 +308,16 @@ cfg := Config{
   ALWAYS use errors.AsType when checking if error matches a specific type.
 
 Before:
+
 ```go
 var pathErr *os.PathError
 if errors.As(err, &pathErr) {
     handle(pathErr)
 }
 ```
+
 After:
+
 ```go
 if pathErr, ok := errors.AsType[*os.PathError](err); ok {
     handle(pathErr)

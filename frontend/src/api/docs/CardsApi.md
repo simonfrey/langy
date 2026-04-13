@@ -1,21 +1,17 @@
 # CardsApi
 
-All URIs are relative to */api*
+All URIs are relative to _/api_
 
-| Method | HTTP request | Description |
-|------------- | ------------- | -------------|
-| [**createCard**](CardsApi.md#createcardoperation) | **POST** /decks/{deckId}/cards |  |
-| [**deleteCard**](CardsApi.md#deletecard) | **DELETE** /cards/{id} |  |
-| [**listCards**](CardsApi.md#listcards) | **GET** /decks/{deckId}/cards |  |
-| [**updateCard**](CardsApi.md#updatecardoperation) | **PUT** /cards/{id} |  |
-
-
+| Method                                            | HTTP request                   | Description |
+| ------------------------------------------------- | ------------------------------ | ----------- |
+| [**createCard**](CardsApi.md#createcardoperation) | **POST** /decks/{deckId}/cards |             |
+| [**deleteCard**](CardsApi.md#deletecard)          | **DELETE** /cards/{id}         |             |
+| [**listCards**](CardsApi.md#listcards)            | **GET** /decks/{deckId}/cards  |             |
+| [**updateCard**](CardsApi.md#updatecardoperation) | **PUT** /cards/{id}            |             |
 
 ## createCard
 
 > Card createCard(deckId, CreateCardRequest)
-
-
 
 ### Example
 
@@ -28,7 +24,7 @@ import type { CreateCardOperationRequest } from '';
 
 async function example() {
   console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
+  const config = new Configuration({
     // Configure HTTP bearer authorization: bearerAuth
     accessToken: "YOUR BEARER TOKEN",
   });
@@ -55,11 +51,10 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **deckId** | `string` |  | [Defaults to `undefined`] |
-| **CreateCardRequest** | [CreateCardRequest](CreateCardRequest.md) |  | |
+| Name                  | Type                                      | Description | Notes                     |
+| --------------------- | ----------------------------------------- | ----------- | ------------------------- |
+| **deckId**            | `string`                                  |             | [Defaults to `undefined`] |
+| **CreateCardRequest** | [CreateCardRequest](CreateCardRequest.md) |             |                           |
 
 ### Return type
 
@@ -74,21 +69,18 @@ example().catch(console.error);
 - **Content-Type**: `application/json`
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **201** | Card created |  -  |
-| **0** | Error response |  -  |
+
+| Status code | Description    | Response headers |
+| ----------- | -------------- | ---------------- |
+| **201**     | Card created   | -                |
+| **0**       | Error response | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## deleteCard
 
 > StatusResponse deleteCard(id)
-
-
 
 ### Example
 
@@ -101,7 +93,7 @@ import type { DeleteCardRequest } from '';
 
 async function example() {
   console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
+  const config = new Configuration({
     // Configure HTTP bearer authorization: bearerAuth
     accessToken: "YOUR BEARER TOKEN",
   });
@@ -126,10 +118,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **id** | `string` |  | [Defaults to `undefined`] |
+| Name   | Type     | Description | Notes                     |
+| ------ | -------- | ----------- | ------------------------- |
+| **id** | `string` |             | [Defaults to `undefined`] |
 
 ### Return type
 
@@ -144,21 +135,18 @@ example().catch(console.error);
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Card deleted |  -  |
-| **0** | Error response |  -  |
+
+| Status code | Description    | Response headers |
+| ----------- | -------------- | ---------------- |
+| **200**     | Card deleted   | -                |
+| **0**       | Error response | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## listCards
 
 > Array&lt;Card&gt; listCards(deckId)
-
-
 
 ### Example
 
@@ -171,7 +159,7 @@ import type { ListCardsRequest } from '';
 
 async function example() {
   console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
+  const config = new Configuration({
     // Configure HTTP bearer authorization: bearerAuth
     accessToken: "YOUR BEARER TOKEN",
   });
@@ -196,10 +184,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **deckId** | `string` |  | [Defaults to `undefined`] |
+| Name       | Type     | Description | Notes                     |
+| ---------- | -------- | ----------- | ------------------------- |
+| **deckId** | `string` |             | [Defaults to `undefined`] |
 
 ### Return type
 
@@ -214,21 +201,18 @@ example().catch(console.error);
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | List of cards |  -  |
-| **0** | Error response |  -  |
+
+| Status code | Description    | Response headers |
+| ----------- | -------------- | ---------------- |
+| **200**     | List of cards  | -                |
+| **0**       | Error response | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## updateCard
 
 > StatusResponse updateCard(id, UpdateCardRequest)
-
-
 
 ### Example
 
@@ -241,7 +225,7 @@ import type { UpdateCardOperationRequest } from '';
 
 async function example() {
   console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
+  const config = new Configuration({
     // Configure HTTP bearer authorization: bearerAuth
     accessToken: "YOUR BEARER TOKEN",
   });
@@ -268,11 +252,10 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **id** | `string` |  | [Defaults to `undefined`] |
-| **UpdateCardRequest** | [UpdateCardRequest](UpdateCardRequest.md) |  | |
+| Name                  | Type                                      | Description | Notes                     |
+| --------------------- | ----------------------------------------- | ----------- | ------------------------- |
+| **id**                | `string`                                  |             | [Defaults to `undefined`] |
+| **UpdateCardRequest** | [UpdateCardRequest](UpdateCardRequest.md) |             |                           |
 
 ### Return type
 
@@ -287,12 +270,11 @@ example().catch(console.error);
 - **Content-Type**: `application/json`
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Card updated |  -  |
-| **0** | Error response |  -  |
+
+| Status code | Description    | Response headers |
+| ----------- | -------------- | ---------------- |
+| **200**     | Card updated   | -                |
+| **0**       | Error response | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-

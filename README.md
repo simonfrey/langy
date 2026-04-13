@@ -1,7 +1,6 @@
 # Langy
 
-
-Repo lives in https://github.com/simonfrey/langy 
+Repo lives in https://github.com/simonfrey/langy
 
 ## Prerequisites
 
@@ -45,11 +44,11 @@ This starts PostgreSQL via Docker Compose, runs DB migrations, and launches both
 
 ## Environment variables
 
-| Variable | Default (dev) | Description |
-|---|---|---|
-| `DATABASE_URL` | `postgres://langy:langy@localhost:5432/langy?sslmode=disable` | PostgreSQL connection string |
-| `JWT_SECRET` | `dev-secret` | Secret for signing JWTs |
-| `GEMINI_API_KEY` | — | Optional; enables Gemini AI features |
+| Variable         | Default (dev)                                                 | Description                          |
+| ---------------- | ------------------------------------------------------------- | ------------------------------------ |
+| `DATABASE_URL`   | `postgres://langy:langy@localhost:5432/langy?sslmode=disable` | PostgreSQL connection string         |
+| `JWT_SECRET`     | `dev-secret`                                                  | Secret for signing JWTs              |
+| `GEMINI_API_KEY` | —                                                             | Optional; enables Gemini AI features |
 
 ## Other commands
 
